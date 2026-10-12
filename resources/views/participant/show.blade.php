@@ -121,6 +121,58 @@
                         هنوز کاری برای این چالش ثبت نشده است. کمی بعد دوباره سر بزن.
                     </div>
                 @endforelse
+
+                {{-- نکات چالش --}}
+                @if ($challenge->tips->isNotEmpty())
+                    <div>
+                        <div class="mb-4 flex items-center gap-2">
+                            <span class="grid size-9 place-items-center rounded-2xl bg-amber-100 text-base">💡</span>
+                            <h2 class="text-lg">نکته‌های این چالش</h2>
+                        </div>
+
+                        <div class="grid gap-4 sm:grid-cols-2">
+                            @foreach ($challenge->tips as $tip)
+                                <div class="relative overflow-hidden rounded-3xl bg-gradient-to-tl from-amber-50 to-white p-5 ring-1 ring-amber-200/70">
+                                    <div class="relative flex items-start gap-3">
+                                        <span class="grid size-10 shrink-0 place-items-center rounded-2xl bg-white text-lg shadow-sm ring-1 ring-amber-200/70">{{ $tip->emoji }}</span>
+
+                                        <div class="min-w-0">
+                                            <p class="text-sm font-semibold text-amber-900">{{ $tip->title }}</p>
+                                            @if ($tip->body)
+                                                <p class="mt-2 text-xs leading-6 text-amber-800/80">{{ $tip->body }}</p>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
+                {{-- پرسش و پاسخ --}}
+                @if ($challenge->publishedQuestions->isNotEmpty())
+                    <div>
+                        <div class="mb-4 flex items-center gap-2">
+                            <span class="grid size-9 place-items-center rounded-2xl bg-sky-100 text-base">❓</span>
+                            <h2 class="text-lg">پرسش و پاسخ</h2>
+                        </div>
+
+                        <div class="space-y-3">
+                            @foreach ($challenge->publishedQuestions as $question)
+                                <details class="group overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-900/5">
+                                    <summary class="flex cursor-pointer items-start gap-3 px-5 py-4">
+                                        <span class="min-w-0 flex-1 text-sm font-medium text-slate-800">{{ $question->question }}</span>
+                                        <span class="mt-0.5 text-slate-400 transition group-open:rotate-180">⌄</span>
+                                    </summary>
+
+                                    <div class="border-t border-slate-100 bg-slate-50/60 px-5 py-4 text-xs leading-7 text-slate-600">
+                                        {!! $question->answer ? \App\Support\RichText::toHtml($question->answer) : 'پاسخ این پرسش هنوز ثبت نشده است.' !!}
+                                    </div>
+                                </details>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
             </div>
 
             {{-- ستون کنار --}}
@@ -149,6 +201,29 @@
                         </div>
                     </div>
                 </div>
+
+                @if ($challenge->attachments->isNotEmpty())
+                    <div class="card">
+                        <h2 class="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                            <span>📎</span> فایل‌های این چالش
+                        </h2>
+
+                        <ul class="mt-4 space-y-2">
+                            @foreach ($challenge->attachments as $attachment)
+                                <li>
+                                    <a href="{{ $attachment->url() }}" class="flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3 transition hover:bg-slate-100">
+                                        <span class="grid size-9 shrink-0 place-items-center rounded-xl bg-white text-base ring-1 ring-slate-900/5">{{ $attachment->icon() }}</span>
+
+                                        <span class="min-w-0 flex-1">
+                                            <span class="block truncate text-sm text-slate-800">{{ $attachment->title }}</span>
+                                            <span class="mt-0.5 block text-[11px] text-slate-400">{{ $attachment->sizeForHumans() }}</span>
+                                        </span>
+                                    </a>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
 
                 <div class="card" id="note">
                     <h2 class="text-sm font-semibold text-slate-900">یادداشت من</h2>

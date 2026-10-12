@@ -6,6 +6,7 @@ use App\Models\Challenge;
 use App\Models\Setting;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Storage;
 
 class DatabaseSeeder extends Seeder
 {
@@ -67,6 +68,43 @@ class DatabaseSeeder extends Seeder
             }
         }
 
+        $challenge->update([
+            'long_description' => "هدف این چالش ساده است: هر روز یک قدم کوچک برای آرام‌تر بودن و شکرگزارتر بودن.\n\n## قوانین ساده\n- هر کار را همان روز انجام بده؛ اگر نشد، آخر هفته جبران کن.\n- تیکِ انجام‌شده یعنی واقعاً انجام شده.\n- اگر یک روز از دست رفت، چالش تمام نمی‌شود؛ روز بعد ادامه بده.\n\n## چه چیزی به دست می‌آوری؟\nتمرین روزانه شکرگزاری و آرامش بعد از یک هفته به عادت کوچکی تبدیل می‌شود که خودت اثرش را حس می‌کنی. متن‌های **پررنگ** و فهرست‌ها در همین توضیحات پشتیبانی می‌شوند.",
+            'contact_note' => 'اگر سوالی داشتی، به آیدی @parvaneh_admin پیام بده.',
+        ]);
+
+        $challenge->tips()->createMany([
+            ['emoji' => '💧', 'title' => 'آب کافی بنوش', 'body' => 'روزی ۶ تا ۸ لیوان آب؛ خیلی از بی‌حوصلگی‌های بعدازظهر از کم‌آبی است.', 'sort_order' => 1],
+            ['emoji' => '⏰', 'title' => 'یک ساعت ثابت انتخاب کن', 'body' => 'اگر کارها را همیشه در یک ساعت مشخص انجام بدهی، سریع‌تر به عادت تبدیل می‌شوند.', 'sort_order' => 2],
+            ['emoji' => '⚠️', 'title' => 'با خودت سختگیر نباش', 'body' => 'اگر یک روز کامل نشد، اشکالی ندارد؛ همان روز را بعداً کامل کن.', 'sort_order' => 3],
+        ]);
+
+        $challenge->questions()->createMany([
+            [
+                'question' => 'اگر یک روز را از دست بدهم چه می‌شود؟',
+                'answer' => 'هیچ چیزی از بین نمی‌رود. می‌توانی همان روز را بعداً کامل کنی و زنجیره‌ات را ادامه بدهی. فقط عدد «روزهای پیوسته» ممکن است صفر شود، اما پیشرفت کلی‌ات حفظ می‌شود.',
+                'asked_by' => 'زهرا محمدی',
+                'is_published' => true,
+                'sort_order' => 1,
+            ],
+            [
+                'question' => 'باید کارها را همان روز انجام بدهم؟',
+                'answer' => 'ترجیحاً بله، ولی اگر عقب افتادی تا آخر چالش فرصت جبران داری.',
+                'asked_by' => null,
+                'is_published' => true,
+                'sort_order' => 2,
+            ],
+            [
+                'question' => 'آیا می‌توانم چالش را با یک دوست انجام بدهم؟',
+                'answer' => 'بله! کافی است نامش را به مسئول چالش بگویی تا در فهرست ثبت شود و کد اختصاصی خودش را بگیرد.',
+                'asked_by' => 'امیر رضایی',
+                'is_published' => true,
+                'sort_order' => 3,
+            ],
+        ]);
+
+        $this->seedDemoAttachment($challenge);
+
         $names = ['زهرا محمدی', 'امیر رضایی', 'نگار کریمی'];
         $tasks = $challenge->tasks()->get();
 
@@ -86,5 +124,26 @@ class DatabaseSeeder extends Seeder
                 ]);
             }
         }
+    }
+
+    /**
+     * یک فایل ضمیمه نمونه، تا بخش فایل‌های چالش هم در پنل و سایت دیده شود.
+     */
+    private function seedDemoAttachment(Challenge $challenge): void
+    {
+        $contents = "راهنمای چالش ۷ روزه\n\n۱. هر روز دو کار داری؛ هر وقت انجام دادی در داشبورد تیک بزن.\n۲. اگر یک روز کامل نشد، همان روز را بعداً کامل کن.\n۳. یادداشت شخصی‌ات را در داشبورد خودت بنویس.\n";
+
+        $path = 'challenge-files/'.$challenge->id.'/guide.txt';
+
+        Storage::disk('local')->put($path, $contents);
+
+        $challenge->attachments()->create([
+            'title' => 'راهنمای چالش (نمونه)',
+            'path' => $path,
+            'original_name' => 'parvaneh-sho-guide.txt',
+            'size' => strlen($contents),
+            'mime' => 'text/plain',
+            'sort_order' => 1,
+        ]);
     }
 }

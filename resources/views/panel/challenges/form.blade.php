@@ -31,20 +31,45 @@
                 </div>
 
                 <div>
-                    <label for="description" class="label">توضیحات کامل</label>
-                    <textarea id="description" name="description" rows="6" class="input resize-y" placeholder="درباره این چالش، قوانین و انتظارات بنویس...">{{ old('description', $challenge->description) }}</textarea>
+                    <label for="description" class="label">توضیح کوتاه چالش</label>
+                    <textarea id="description" name="description" rows="3" class="input resize-y" placeholder="یک پاراگراف کوتاه که بالای صفحه چالش دیده می‌شود...">{{ old('description', $challenge->description) }}</textarea>
+                </div>
+
+                <div>
+                    <label for="long_description" class="label">توضیحات بلند</label>
+                    <textarea id="long_description" name="long_description" rows="10" class="input resize-y" placeholder="قوانین، توضیح روزها، انتظارات و هر نکته‌ای که لازم است...">{{ old('long_description', $challenge->long_description) }}</textarea>
+
+                    <div class="mt-2 rounded-2xl bg-slate-50 px-4 py-3 text-[11px] leading-6 text-slate-500">
+                        <p class="font-medium text-slate-600">قالب‌بندی ساده پشتیبانی می‌شود:</p>
+                        <ul class="mt-1.5 space-y-0.5">
+                            <li>– عنوان با <code class="rounded bg-white px-1" dir="ltr">## عنوان</code></li>
+                            <li>– فهرست با شروع خط با <code class="rounded bg-white px-1" dir="ltr">-</code></li>
+                            <li>– متن پررنگ با <code class="rounded bg-white px-1" dir="ltr">**متن**</code></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="contact_note" class="label">راه ارتباطی با مسئول چالش (اختیاری)</label>
+                    <input id="contact_note" name="contact_note" type="text" value="{{ old('contact_note', $challenge->contact_note) }}" class="input" placeholder="مثلاً: برای هماهنگی به آیدی @parvaneh_admin پیام بده">
                 </div>
 
                 <div class="grid gap-5 sm:grid-cols-2">
                     <div>
                         <label for="starts_on" class="label">تاریخ شروع</label>
-                        <input id="starts_on" name="starts_on" type="text" value="{{ old('starts_on', \App\Support\Jalali::inputValue($challenge->starts_on)) }}" class="input" placeholder="۱۴۰۵/۰۷/۲۰" inputmode="numeric">
-                        <p class="hint">تاریخ شمسی را مثل ۱۴۰۵/۰۷/۲۰ بنویسید. خالی گذاشتن هم اشکالی ندارد.</p>
+                        <div class="relative">
+                            <input id="starts_on" name="starts_on" type="text" data-jalali-picker value="{{ old('starts_on', \App\Support\Jalali::inputValue($challenge->starts_on)) }}" class="input pe-11" placeholder="۱۴۰۵/۰۷/۲۰" inputmode="numeric">
+                            <span class="pointer-events-none absolute inset-y-0 end-0 grid w-11 place-items-center text-slate-400">🗓️</span>
+                        </div>
+                        <p class="hint">با تقویم انتخاب کن یا دستی مثل ۱۴۰۵/۰۷/۲۰ بنویس. خالی گذاشتن هم اشکالی ندارد.</p>
                     </div>
 
                     <div>
                         <label for="ends_on" class="label">تاریخ پایان</label>
-                        <input id="ends_on" name="ends_on" type="text" value="{{ old('ends_on', \App\Support\Jalali::inputValue($challenge->ends_on)) }}" class="input" placeholder="۱۴۰۵/۰۸/۱۰" inputmode="numeric">
+                        <div class="relative">
+                            <input id="ends_on" name="ends_on" type="text" data-jalali-picker value="{{ old('ends_on', \App\Support\Jalali::inputValue($challenge->ends_on)) }}" class="input pe-11" placeholder="۱۴۰۵/۰۸/۱۰" inputmode="numeric">
+                            <span class="pointer-events-none absolute inset-y-0 end-0 grid w-11 place-items-center text-slate-400">🗓️</span>
+                        </div>
                         <p class="hint">نمی‌تواند قبل از تاریخ شروع باشد.</p>
                     </div>
                 </div>

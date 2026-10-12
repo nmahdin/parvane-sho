@@ -4,6 +4,7 @@
         ['label' => 'خانه', 'url' => route('home'), 'active' => request()->routeIs('home')],
         ['label' => 'چالش‌ها', 'url' => route('challenges.index'), 'active' => request()->routeIs('challenges.*')],
         ['label' => 'چطور کار می‌کند', 'url' => route('home').'#how', 'active' => false],
+        ['label' => 'سوال‌های پرتکرار', 'url' => route('home').'#faq', 'active' => false],
     ];
 @endphp
 
@@ -22,7 +23,7 @@
                 </a>
             @endforeach
 
-            <a href="{{ route('panel.dashboard') }}" class="btn btn-white btn-sm ms-2">ورود به پنل مدیریت</a>
+            <a href="{{ route('participant.lookup') }}" class="btn btn-primary btn-sm ms-2">کد اختصاصی من</a>
         </nav>
 
         <button type="button" data-menu-toggle="#mobile-menu" class="btn btn-ghost ms-auto sm:hidden" aria-label="منو">
@@ -36,6 +37,6 @@
         @foreach ($links as $link)
             <a href="{{ $link['url'] }}" class="block rounded-xl px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-100">{{ $link['label'] }}</a>
         @endforeach
-        <a href="{{ route('panel.dashboard') }}" class="block rounded-xl px-3 py-2.5 text-sm font-medium text-brand-700 hover:bg-brand-50">ورود به پنل مدیریت</a>
+        <a href="{{ route('participant.lookup') }}" class="block rounded-xl px-3 py-2.5 text-sm font-medium text-brand-700 hover:bg-brand-50">کد اختصاصی من</a>
     </div>
 </header>

@@ -1,13 +1,18 @@
 @extends('layouts.public')
 
-@php($style = $challenge->style())
+@php
+    $style = $challenge->style();
+    $questions = $challenge->questions->where('is_published', true);
+    $attachments = $challenge->attachments;
+    $tips = $challenge->tips;
+@endphp
 
 @section('title', $challenge->title.' — '.($site['site_name'] ?? config('panel.site_name')))
 @section('description', $challenge->tagline ?: $challenge->title)
 
 @section('content')
     <section class="mx-auto max-w-6xl px-4 pt-12 sm:px-6">
-        <nav class="text-xs text-slate-500">
+        <nav class="no-print text-xs text-slate-500">
             <a href="{{ route('home') }}" class="hover:text-brand-700">خانه</a>
             <span class="mx-2">/</span>
             <a href="{{ route('challenges.index') }}" class="hover:text-brand-700">چالش‌ها</a>
@@ -54,13 +59,60 @@
 
     <section class="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1.6fr_1fr]">
         <div class="space-y-8">
-            @if ($challenge->description)
+            @if ($challenge->description || $challenge->long_description)
                 <div class="card">
                     <h2 class="text-lg">درباره این چالش</h2>
-                    <p class="mt-4 text-sm leading-8 whitespace-pre-line text-slate-600">{{ $challenge->description }}</p>
+
+                    @if ($challenge->description)
+                        <p class="mt-4 text-sm leading-8 text-slate-700">{{ $challenge->description }}</p>
+                    @endif
+
+                    @if ($challenge->long_description)
+                        <div class="mt-4 border-t border-slate-100 pt-2 text-sm leading-8 text-slate-600">
+                            {!! $challenge->longDescriptionHtml() !!}
+                        </div>
+                    @endif
+
+                    @if ($challenge->contact_note)
+                        <div class="mt-6 flex items-start gap-3 rounded-2xl {{ $style['bg'] }} px-4 py-3 text-xs leading-6 {{ $style['text'] }}">
+                            <span>📞</span>
+                            <span>{{ $challenge->contact_note }}</span>
+                        </div>
+                    @endif
                 </div>
             @endif
 
+            {{-- نکات چالش: نمایش ویژه --}}
+            @if ($tips->isNotEmpty())
+                <div>
+                    <div class="mb-4 flex items-center gap-2">
+                        <span class="grid size-9 place-items-center rounded-2xl bg-amber-100 text-base">💡</span>
+                        <h2 class="text-lg">نکته‌های این چالش</h2>
+                    </div>
+
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        @foreach ($tips as $tip)
+                            <div class="relative overflow-hidden rounded-3xl bg-gradient-to-tl from-amber-50 to-white p-5 ring-1 ring-amber-200/70">
+                                <div class="pointer-events-none absolute -end-6 -top-6 size-20 rounded-full bg-amber-200/30 blur-2xl"></div>
+
+                                <div class="relative flex items-start gap-3">
+                                    <span class="grid size-10 shrink-0 place-items-center rounded-2xl bg-white text-lg shadow-sm ring-1 ring-amber-200/70">{{ $tip->emoji }}</span>
+
+                                    <div class="min-w-0">
+                                        <p class="text-sm font-semibold text-amber-900">{{ $tip->title }}</p>
+
+                                        @if ($tip->body)
+                                            <p class="mt-2 text-xs leading-6 text-amber-800/80">{{ $tip->body }}</p>
+                                        @endif
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+
+            {{-- روزها و کارها --}}
             <div class="space-y-5">
                 <div class="flex items-center justify-between">
                     <h2 class="text-lg">روزها و کارها</h2>
@@ -99,6 +151,42 @@
                     </div>
                 @endforelse
             </div>
+
+            {{-- باکس پرسش و پاسخ --}}
+            @if ($questions->isNotEmpty())
+                <div id="qa">
+                    <div class="mb-4 flex items-center gap-2">
+                        <span class="grid size-9 place-items-center rounded-2xl bg-sky-100 text-base">❓</span>
+                        <h2 class="text-lg">پرسش و پاسخ</h2>
+                    </div>
+
+                    <div class="space-y-3">
+                        @foreach ($questions as $question)
+                            <details class="group overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-900/5">
+                                <summary class="flex cursor-pointer items-start gap-3 px-5 py-4">
+                                    <span class="mt-0.5 grid size-7 shrink-0 place-items-center rounded-xl bg-sky-50 text-xs font-bold text-sky-700">
+                                        {{ fa_num($loop->iteration) }}
+                                    </span>
+
+                                    <span class="min-w-0 flex-1">
+                                        <span class="block text-sm font-medium text-slate-800">{{ $question->question }}</span>
+
+                                        @if ($question->asked_by)
+                                            <span class="mt-1 block text-[11px] text-slate-400">پرسیده‌شده توسط {{ $question->asked_by }}</span>
+                                        @endif
+                                    </span>
+
+                                    <span class="mt-0.5 text-slate-400 transition group-open:rotate-180">⌄</span>
+                                </summary>
+
+                                <div class="border-t border-slate-100 bg-slate-50/60 px-5 py-4 text-xs leading-7 text-slate-600">
+                                    {!! $question->answer ? \App\Support\RichText::toHtml($question->answer) : 'پاسخ این پرسش هنوز ثبت نشده است.' !!}
+                                </div>
+                            </details>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
         </div>
 
         <aside class="space-y-6 lg:sticky lg:top-24 lg:self-start">
@@ -110,6 +198,33 @@
                 </p>
             </div>
 
+            {{-- فایل‌های ضمیمه --}}
+            @if ($attachments->isNotEmpty())
+                <div class="card">
+                    <h2 class="flex items-center gap-2 text-sm font-semibold text-slate-900">
+                        <span>📎</span> فایل‌های ضمیمه
+                    </h2>
+
+                    <ul class="mt-4 space-y-2">
+                        @foreach ($attachments as $attachment)
+                            <li>
+                                <a href="{{ $attachment->url() }}"
+                                   class="flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3 transition hover:bg-slate-100">
+                                    <span class="grid size-9 shrink-0 place-items-center rounded-xl bg-white text-base ring-1 ring-slate-900/5">{{ $attachment->icon() }}</span>
+
+                                    <span class="min-w-0 flex-1">
+                                        <span class="block truncate text-sm text-slate-800">{{ $attachment->title }}</span>
+                                        <span class="mt-0.5 block text-[11px] text-slate-400">{{ $attachment->sizeForHumans() }}</span>
+                                    </span>
+
+                                    <span class="shrink-0 text-xs text-brand-700">دانلود</span>
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             <div class="card">
                 <h2 class="text-sm font-semibold text-slate-900">چطور در این چالش شرکت کنم؟</h2>
                 <ol class="mt-4 space-y-4 text-xs leading-6 text-slate-600">
@@ -119,21 +234,15 @@
                     </li>
                     <li class="flex gap-3">
                         <span class="grid size-6 shrink-0 place-items-center rounded-lg {{ $style['bg'] }} {{ $style['text'] }} text-[11px] font-bold">۲</span>
-                        <span>یک لینک اختصاصی برایت ساخته می‌شود؛ همان لینک را ذخیره کن.</span>
+                        <span>یک کد و لینک کوتاه اختصاصی برایت ساخته می‌شود؛ همان را ذخیره کن.</span>
                     </li>
                     <li class="flex gap-3">
                         <span class="grid size-6 shrink-0 place-items-center rounded-lg {{ $style['bg'] }} {{ $style['text'] }} text-[11px] font-bold">۳</span>
-                        <span>با آن لینک وارد داشبورد خودت می‌شوی، بدون رمز و ثبت‌نام، و کارهای هر روز را تیک می‌زنی.</span>
+                        <span>با آن کد وارد داشبورد خودت می‌شوی، بدون رمز و ثبت‌نام، و کارهای هر روز را تیک می‌زنی.</span>
                     </li>
                 </ol>
-            </div>
 
-            <div class="card bg-slate-900 text-white ring-slate-900">
-                <p class="text-sm font-semibold">مدیر این چالش هستی؟</p>
-                <p class="mt-2 text-xs leading-6 text-white/70">
-                    از پنل مدیریت می‌توانی روزها و کارها را ویرایش کنی، نام شرکت‌کننده‌ها را اضافه کنی و لینک اختصاصی هر نفر را بگیری.
-                </p>
-                <a href="{{ route('panel.dashboard') }}" class="btn bg-white/10 mt-4 w-full text-white hover:bg-white/20">ورود به پنل مدیریت</a>
+                <a href="{{ route('participant.lookup') }}" class="btn btn-soft mt-5 w-full">ورود با کد اختصاصی</a>
             </div>
         </aside>
     </section>

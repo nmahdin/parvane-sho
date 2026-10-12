@@ -8,11 +8,17 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 #[Fillable(['challenge_id', 'name', 'contact', 'note', 'token', 'last_seen_at'])]
 #[RouteKey('token')]
 class Participant extends Model
 {
+    /**
+     * طول کد اختصاصی هر شرکت‌کننده (لینک کوتاه مثل /p/k7m2p9qz).
+     */
+    public const TOKEN_LENGTH = 8;
+
     protected function casts(): array
     {
         return [
@@ -30,7 +36,7 @@ class Participant extends Model
     /**
      * Generate an unguessable, easy to type token for public dashboards.
      */
-    public static function generateToken(int $length = 16): string
+    public static function generateToken(int $length = self::TOKEN_LENGTH): string
     {
         $alphabet = 'abcdefghjkmnpqrstuvwxyz23456789';
 
@@ -194,6 +200,159 @@ class Participant extends Model
         }
 
         return $streak;
+    }
+
+    /**
+     * زمان انجام هر کار: [task_id => Carbon].
+     *
+     * @return array<int, Carbon>
+     */
+    public function completionTimes(): array
+    {
+        $completions = $this->relationLoaded('completions')
+            ? $this->completions
+            : $this->completions()->get();
+
+        return $completions
+            ->whereNotNull('completed_at')
+            ->mapWithKeys(fn (TaskCompletion $completion) => [
+                (int) $completion->challenge_task_id => $completion->completed_at,
+            ])
+            ->all();
+    }
+
+    /**
+     * وضعیت روزبه‌روز شرکت‌کننده در چالش.
+     *
+     * @return array<int, array{total: int, done: int, complete: bool, is_today: bool, is_past: bool}>
+     */
+    public function dayBreakdown(): array
+    {
+        $times = $this->completionTimes();
+        $currentDay = $this->challenge->currentDayNumber();
+        $breakdown = [];
+
+        foreach ($this->challenge->tasks->groupBy(fn (ChallengeTask $task) => $task->day_number ?? 0) as $day => $tasks) {
+            $done = $tasks->filter(fn (ChallengeTask $task) => isset($times[(int) $task->id]))->count();
+
+            $breakdown[(int) $day] = [
+                'total' => $tasks->count(),
+                'done' => $done,
+                'complete' => $done === $tasks->count(),
+                'is_today' => $currentDay !== null && (int) $day === $currentDay,
+                'is_past' => $currentDay !== null && (int) $day < $currentDay,
+            ];
+        }
+
+        return $breakdown;
+    }
+
+    /**
+     * تعداد روزهایی که به پایان رسیده‌اند اما کامل انجام نشده‌اند.
+     */
+    public function missedDaysCount(): int
+    {
+        $missed = 0;
+
+        foreach ($this->dayBreakdown() as $day => $row) {
+            if ($day > 0 && $row['is_past'] && ! $row['complete']) {
+                $missed++;
+            }
+        }
+
+        return $missed;
+    }
+
+    public function completedDaysCount(): int
+    {
+        return count(array_filter($this->dayBreakdown(), fn (array $row) => $row['complete']));
+    }
+
+    /**
+     * تعداد کارهای انجام‌شده در هر روز از آخرین :days روز: [Y-m-d => count].
+     *
+     * @return array<string, int>
+     */
+    public function activityByDay(int $days = 14): array
+    {
+        $activity = [];
+
+        for ($i = $days - 1; $i >= 0; $i--) {
+            $activity[Carbon::today()->subDays($i)->toDateString()] = 0;
+        }
+
+        foreach ($this->completionTimes() as $time) {
+            $key = $time->toDateString();
+
+            if (array_key_exists($key, $activity)) {
+                $activity[$key]++;
+            }
+        }
+
+        return $activity;
+    }
+
+    public function lastActivityAt(): ?Carbon
+    {
+        $times = $this->completionTimes();
+
+        return $times === [] ? null : Carbon::parse(max($times));
+    }
+
+    public function firstActivityAt(): ?Carbon
+    {
+        $times = $this->completionTimes();
+
+        return $times === [] ? null : Carbon::parse(min($times));
+    }
+
+    /**
+     * وضعیت کلی شرکت‌کننده برای نگاه مدیر.
+     *
+     * @return array{label: string, classes: string, tone: string}
+     */
+    public function activityStatus(): array
+    {
+        $total = $this->totalTasks();
+        $done = $this->completedCount();
+
+        if ($total === 0) {
+            return ['label' => 'بدون کار', 'classes' => 'bg-slate-50 text-slate-600 ring-slate-200', 'tone' => 'slate'];
+        }
+
+        if ($done === 0) {
+            return ['label' => 'شروع نکرده', 'classes' => 'bg-slate-50 text-slate-600 ring-slate-200', 'tone' => 'slate'];
+        }
+
+        $currentDay = $this->challenge->currentDayNumber();
+        $breakdown = $this->dayBreakdown();
+
+        if ($currentDay !== null && ($breakdown[$currentDay]['complete'] ?? false)) {
+            return ['label' => 'امروز را کامل انجام داد', 'classes' => 'bg-emerald-50 text-emerald-700 ring-emerald-200', 'tone' => 'emerald'];
+        }
+
+        $last = $this->lastActivityAt();
+
+        if ($last && $last->greaterThanOrEqualTo(Carbon::today()->subDays(2))) {
+            return ['label' => 'فعال', 'classes' => 'bg-sky-50 text-sky-700 ring-sky-200', 'tone' => 'sky'];
+        }
+
+        return ['label' => 'بی‌فعال', 'classes' => 'bg-amber-50 text-amber-700 ring-amber-200', 'tone' => 'amber'];
+    }
+
+    /**
+     * آخرین تیک‌های زده‌شده برای نمایش در صفحه وضعیت.
+     *
+     * @return Collection<int, TaskCompletion>
+     */
+    public function recentCompletions(int $limit = 10)
+    {
+        return $this->completions()
+            ->with('task')
+            ->whereNotNull('completed_at')
+            ->latest('completed_at')
+            ->limit($limit)
+            ->get();
     }
 
     public function markSeen(): void

@@ -10,31 +10,126 @@ use App\Support\TextList;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Carbon;
 
 class ParticipantController extends Controller
 {
+    public const FILTERS = [
+        'all' => 'همه',
+        'today' => 'امروز تیک زده‌اند',
+        'recent' => '۳ روز اخیر فعال',
+        'inactive' => 'بی‌فعال (بیش از ۳ روز)',
+        'notstarted' => 'هنوز شروع نکرده‌اند',
+    ];
+
+    public const SORTS = [
+        'progress' => 'بیشترین پیشرفت',
+        'weakest' => 'کمترین پیشرفت',
+        'activity' => 'آخرین فعالیت',
+        'seen' => 'آخرین بازدید',
+        'name' => 'نام (الفبا)',
+    ];
+
     public function index(Request $request): View
     {
         $search = trim((string) $request->query('q', ''));
-        $challengeFilter = $request->query('challenge');
+        $challengeFilter = (string) $request->query('challenge', '');
+        $status = (string) $request->query('status', 'all');
+        $sort = (string) $request->query('sort', 'progress');
+
+        $status = array_key_exists($status, self::FILTERS) ? $status : 'all';
+        $sort = array_key_exists($sort, self::SORTS) ? $sort : 'progress';
 
         $participants = Participant::query()
-            ->with(['challenge.tasks', 'completions'])
+            ->with(['challenge.tasks'])
+            ->withCount(['completions as completed_count' => fn ($query) => $query->whereNotNull('completed_at')])
+            ->withMax('completions as last_completed_at', 'completed_at')
             ->when($search !== '', fn ($query) => $query->where('name', 'like', '%'.$search.'%'))
-            ->when($challengeFilter, fn ($query) => $query->whereHas(
+            ->when($challengeFilter !== '', fn ($query) => $query->whereHas(
                 'challenge',
                 fn ($q) => $q->where('slug', $challengeFilter)->orWhere('id', $challengeFilter)
             ))
-            ->orderBy('name')
-            ->paginate(20)
-            ->withQueryString();
+            ->when($status === 'today', fn ($query) => $query->whereHas(
+                'completions',
+                fn ($q) => $q->whereNotNull('completed_at')->whereDate('completed_at', today())
+            ))
+            ->when($status === 'recent', fn ($query) => $query->whereHas(
+                'completions',
+                fn ($q) => $q->whereNotNull('completed_at')->where('completed_at', '>=', Carbon::now()->subDays(3))
+            ))
+            ->when($status === 'inactive', fn ($query) => $query
+                ->whereHas('completions', fn ($q) => $q->whereNotNull('completed_at'))
+                ->whereDoesntHave('completions', fn ($q) => $q->whereNotNull('completed_at')->where('completed_at', '>=', Carbon::now()->subDays(3))))
+            ->when($status === 'notstarted', fn ($query) => $query->whereDoesntHave('completions', fn ($q) => $q->whereNotNull('completed_at')))
+            ->get();
+
+        // مرتب‌سازی پایدار: اول بر اساس نام، بعد بر اساس معیار انتخابی
+        $participants = $participants->sortBy('name', SORT_NATURAL | SORT_FLAG_CASE);
+
+        $participants = match ($sort) {
+            'name' => $participants,
+            'weakest' => $participants->sortBy(fn (Participant $participant) => $participant->progressPercent()),
+            'activity' => $participants->sortByDesc(fn (Participant $participant) => (string) $participant->last_completed_at),
+            'seen' => $participants->sortByDesc(fn (Participant $participant) => (string) $participant->last_seen_at),
+            default => $participants->sortByDesc(fn (Participant $participant) => $participant->progressPercent()),
+        };
+
+        $page = Paginator::resolveCurrentPage();
+        $perPage = 20;
+
+        $paginated = new LengthAwarePaginator(
+            $participants->forPage($page, $perPage)->values(),
+            $participants->count(),
+            $perPage,
+            $page,
+            ['path' => Paginator::resolveCurrentPath(), 'query' => $request->query()],
+        );
 
         return view('panel.participants.index', [
-            'participants' => $participants,
+            'participants' => $paginated,
             'challenges' => Challenge::query()->orderBy('title')->get(),
             'search' => $search,
             'challengeFilter' => $challengeFilter,
+            'status' => $status,
+            'sort' => $sort,
+            'stats' => $this->stats(),
         ]);
+    }
+
+    /**
+     * آمار کلی شرکت‌کننده‌ها برای بالای صفحه مدیریت.
+     *
+     * @return array<string, int>
+     */
+    private function stats(): array
+    {
+        $all = Participant::query()
+            ->withCount(['completions as completed_count' => fn ($query) => $query->whereNotNull('completed_at')])
+            ->get();
+
+        $todayCount = Participant::query()
+            ->whereHas('completions', fn ($q) => $q->whereNotNull('completed_at')->whereDate('completed_at', today()))
+            ->count();
+
+        $activeRecently = Participant::query()
+            ->whereHas('completions', fn ($q) => $q->whereNotNull('completed_at')->where('completed_at', '>=', Carbon::now()->subDays(3)))
+            ->count();
+
+        $notStarted = $all->where('completed_count', 0)->count();
+        $inactive = $all->where('completed_count', '>', 0)->count() - $activeRecently;
+
+        $progressValues = $all->map(fn (Participant $participant) => $participant->progressPercent());
+
+        return [
+            'total' => $all->count(),
+            'today' => $todayCount,
+            'active' => $activeRecently,
+            'inactive' => max(0, $inactive),
+            'not_started' => $notStarted,
+            'average' => $progressValues->isEmpty() ? 0 : (int) round($progressValues->average()),
+        ];
     }
 
     /**
@@ -94,17 +189,40 @@ class ParticipantController extends Controller
 
         return redirect()
             ->route('panel.challenges.show', $challenge)
-            ->with('status', $message)
-            ->with('added_participants', true);
+            ->with('status', $message);
     }
 
+    /**
+     * صفحه وضعیت هر شرکت‌کننده برای مدیر.
+     */
     public function show(Participant $participant): View
     {
-        $participant->load(['challenge.tasks']);
+        $participant->load(['challenge.tasks', 'completions']);
+
+        $challenge = $participant->challenge;
+        $breakdown = $participant->dayBreakdown();
+        $activity = $participant->activityByDay(14);
 
         return view('panel.participants.show', [
             'participant' => $participant,
-            'challenge' => $participant->challenge,
+            'challenge' => $challenge,
+            'breakdown' => $breakdown,
+            'activity' => $activity,
+            'recent' => $participant->recentCompletions(10),
+            'times' => $participant->completionTimes(),
+            'stats' => [
+                'completed' => $participant->completedCount(),
+                'total' => $participant->totalTasks(),
+                'progress' => $participant->progressPercent(),
+                'streak' => $participant->currentStreak(),
+                'best_streak' => $participant->bestStreak(),
+                'missed_days' => $participant->missedDaysCount(),
+                'completed_days' => $participant->completedDaysCount(),
+                'days_count' => $challenge->daysCount(),
+                'current_day' => $challenge->currentDayNumber(),
+                'first_activity' => $participant->firstActivityAt(),
+                'last_activity' => $participant->lastActivityAt(),
+            ],
         ]);
     }
 

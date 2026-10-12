@@ -55,7 +55,7 @@ class ChallengeController extends Controller
 
     public function show(Challenge $challenge): View
     {
-        $challenge->load('tasks');
+        $challenge->load(['tasks', 'tips', 'questions', 'attachments']);
 
         $participants = $challenge->participants()
             ->withCount(['completions as completed_count' => fn ($query) => $query->whereNotNull('completed_at')])
@@ -128,6 +128,8 @@ class ChallengeController extends Controller
             'slug' => ['nullable', 'string', 'max:120', 'regex:/^[a-z0-9\-]+$/'],
             'tagline' => ['nullable', 'string', 'max:190'],
             'description' => ['nullable', 'string', 'max:5000'],
+            'long_description' => ['nullable', 'string', 'max:20000'],
+            'contact_note' => ['nullable', 'string', 'max:190'],
             'emoji' => ['nullable', 'string', 'max:12'],
             'accent' => ['nullable', Rule::in(array_keys(Challenge::ACCENTS))],
             'starts_on' => ['nullable', 'string', 'max:16', $this->jalaliDateRule()],
@@ -136,6 +138,7 @@ class ChallengeController extends Controller
         ], [
             'title.required' => 'عنوان چالش را وارد کنید.',
             'slug.regex' => 'آدرس انگلیسی فقط می‌تواند شامل حروف کوچک لاتین، عدد و خط تیره باشد.',
+            'long_description.max' => 'متن توضیحات بلند خیلی زیاد است.',
             'sort_order.integer' => 'ترتیب نمایش باید عدد باشد.',
         ]);
 
@@ -153,6 +156,8 @@ class ChallengeController extends Controller
             'slug' => $validated['slug'] ?? '',
             'tagline' => $validated['tagline'] ?? null,
             'description' => $validated['description'] ?? null,
+            'long_description' => $validated['long_description'] ?? null,
+            'contact_note' => $validated['contact_note'] ?? null,
             'emoji' => ($validated['emoji'] ?? null) ?: '🦋',
             'accent' => ($validated['accent'] ?? null) ?: 'violet',
             'starts_on' => $startsOn,

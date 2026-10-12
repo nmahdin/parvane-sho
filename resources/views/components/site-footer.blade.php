@@ -15,17 +15,17 @@
         <div>
             <h3 class="text-sm font-semibold text-slate-900">دسترسی سریع</h3>
             <ul class="mt-4 space-y-2 text-sm text-slate-600">
-                <li><a href="{{ route('home') }}" class="hover:text-brand-700">صفحه اصلی</a></li>
                 <li><a href="{{ route('challenges.index') }}" class="hover:text-brand-700">فهرست چالش‌ها</a></li>
                 <li><a href="{{ route('home') }}#how" class="hover:text-brand-700">چالش چطور اجرا می‌شود؟</a></li>
+                <li><a href="{{ route('home') }}#faq" class="hover:text-brand-700">سوال‌های پرتکرار</a></li>
             </ul>
         </div>
 
         <div>
-            <h3 class="text-sm font-semibold text-slate-900">مدیریت</h3>
+            <h3 class="text-sm font-semibold text-slate-900">شرکت در چالش</h3>
             <ul class="mt-4 space-y-2 text-sm text-slate-600">
-                <li><a href="{{ route('panel.dashboard') }}" class="hover:text-brand-700">ورود به پنل (فقط با رمز)</a></li>
-                <li class="text-slate-500">شرکت‌کننده‌ها با لینک اختصاصی خود وارد می‌شوند و نیازی به رمز ندارند.</li>
+                <li><a href="{{ route('participant.lookup') }}" class="hover:text-brand-700">ورود با کد اختصاصی</a></li>
+                <li>برای دیدن پیشرفتت فقط کافی است کد یا لینکی که مسئول چالش داده را باز کنی؛ ثبت‌نام و رمزی لازم نیست.</li>
             </ul>
         </div>
     </div>

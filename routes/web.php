@@ -1,10 +1,14 @@
 <?php
 
 use App\Http\Controllers\ChallengeController;
+use App\Http\Controllers\ChallengeFileController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\Panel\AuthController;
+use App\Http\Controllers\Panel\ChallengeAttachmentController;
 use App\Http\Controllers\Panel\ChallengeController as PanelChallengeController;
+use App\Http\Controllers\Panel\ChallengeQuestionController;
 use App\Http\Controllers\Panel\ChallengeTaskController;
+use App\Http\Controllers\Panel\ChallengeTipController;
 use App\Http\Controllers\Panel\DashboardController;
 use App\Http\Controllers\Panel\ParticipantController as PanelParticipantController;
 use App\Http\Controllers\Panel\SettingController;
@@ -21,6 +25,13 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 
 Route::get('/challenges', [ChallengeController::class, 'index'])->name('challenges.index');
 Route::get('/challenges/{challenge}', [ChallengeController::class, 'show'])->name('challenges.show');
+Route::get('/challenges/{challenge}/files/{attachment}', [ChallengeFileController::class, 'show'])->name('challenge.files.show');
+
+/*
+| ورود شرکت‌کننده‌ها با کد اختصاصی (لینک کوتاه) — بدون نیاز به ورود
+*/
+Route::get('/code', [ParticipantDashboardController::class, 'lookupForm'])->name('participant.lookup');
+Route::post('/code', [ParticipantDashboardController::class, 'lookup'])->name('participant.lookup.attempt');
 
 /*
 | داشبورد اختصاصی هر شرکت‌کننده — بدون نیاز به ورود، فقط با لینک یکتا
@@ -61,6 +72,22 @@ Route::prefix('panel')->name('panel.')->group(function () {
         Route::put('challenges/{challenge}/tasks/{task}', [ChallengeTaskController::class, 'update'])->name('tasks.update');
         Route::delete('challenges/{challenge}/tasks/{task}', [ChallengeTaskController::class, 'destroy'])->name('tasks.destroy');
         Route::patch('challenges/{challenge}/tasks/{task}/move/{direction}', [ChallengeTaskController::class, 'move'])->name('tasks.move');
+
+        // نکات، پرسش و پاسخ و فایل‌های ضمیمه
+        Route::post('challenges/{challenge}/tips', [ChallengeTipController::class, 'store'])->name('tips.store');
+        Route::put('challenges/{challenge}/tips/{tip}', [ChallengeTipController::class, 'update'])->name('tips.update');
+        Route::delete('challenges/{challenge}/tips/{tip}', [ChallengeTipController::class, 'destroy'])->name('tips.destroy');
+        Route::patch('challenges/{challenge}/tips/{tip}/move/{direction}', [ChallengeTipController::class, 'move'])->name('tips.move');
+
+        Route::post('challenges/{challenge}/questions', [ChallengeQuestionController::class, 'store'])->name('questions.store');
+        Route::put('challenges/{challenge}/questions/{question}', [ChallengeQuestionController::class, 'update'])->name('questions.update');
+        Route::delete('challenges/{challenge}/questions/{question}', [ChallengeQuestionController::class, 'destroy'])->name('questions.destroy');
+        Route::patch('challenges/{challenge}/questions/{question}/publish', [ChallengeQuestionController::class, 'togglePublish'])->name('questions.publish');
+        Route::patch('challenges/{challenge}/questions/{question}/move/{direction}', [ChallengeQuestionController::class, 'move'])->name('questions.move');
+
+        Route::post('challenges/{challenge}/files', [ChallengeAttachmentController::class, 'store'])->name('attachments.store');
+        Route::put('challenges/{challenge}/files/{attachment}', [ChallengeAttachmentController::class, 'update'])->name('attachments.update');
+        Route::delete('challenges/{challenge}/files/{attachment}', [ChallengeAttachmentController::class, 'destroy'])->name('attachments.destroy');
 
         // شرکت‌کننده‌ها
         Route::get('participants', [PanelParticipantController::class, 'index'])->name('participants.index');

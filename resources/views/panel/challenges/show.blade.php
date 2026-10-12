@@ -65,8 +65,21 @@
         </div>
     </section>
 
+    {{-- ناوبری بخش‌های چالش --}}
+    <nav class="flex gap-2 overflow-x-auto rounded-3xl bg-white p-3 shadow-sm ring-1 ring-slate-900/5">
+        @foreach ([
+            ['#tasks', '📝 روزها و کارها'],
+            ['#tips', '💡 نکات'],
+            ['#qa', '❓ پرسش و پاسخ'],
+            ['#files', '📎 فایل‌ها'],
+            ['#participants', '👥 شرکت‌کننده‌ها'],
+        ] as [$href, $label])
+            <a href="{{ $href }}" class="shrink-0 rounded-2xl px-4 py-2 text-xs text-slate-600 transition hover:bg-brand-50 hover:text-brand-700">{{ $label }}</a>
+        @endforeach
+    </nav>
+
     {{-- کارها --}}
-    <section class="card">
+    <section class="card scroll-mt-24" id="tasks">
         <div class="flex flex-wrap items-start justify-between gap-4">
             <div>
                 <h2 class="text-base">روزها و کارها</h2>
@@ -203,6 +216,327 @@
                 </div>
             @endforelse
         </div>
+    </section>
+
+    {{-- نکات چالش --}}
+    <section class="card scroll-mt-24" id="tips">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+            <div>
+                <h2 class="text-base">نکات چالش</h2>
+                <p class="mt-1 text-xs leading-6 text-slate-500">
+                    نکته‌ها در صفحه چالش و داشبورد شرکت‌کننده‌ها با ظاهر ویژه (کارت کهربایی) نمایش داده می‌شوند.
+                </p>
+            </div>
+        </div>
+
+        <form method="POST" action="{{ route('panel.tips.store', $challenge) }}" class="mt-5 grid gap-4 rounded-2xl bg-slate-50 p-4 sm:grid-cols-[6rem_1fr]">
+            @csrf
+
+            <div>
+                <label class="label" for="tip-emoji">نماد</label>
+                <input id="tip-emoji" name="emoji" type="text" value="💡" maxlength="8" class="input text-center text-lg">
+
+                <div class="mt-2 flex flex-wrap gap-1">
+                    @foreach (\App\Models\ChallengeTip::EMOJIS as $emoji)
+                        <button type="button" data-emoji="#tip-emoji" data-emoji-value="{{ $emoji }}" class="grid size-7 place-items-center rounded-lg bg-white text-sm ring-1 ring-slate-900/5 hover:bg-amber-50">{{ $emoji }}</button>
+                    @endforeach
+                </div>
+            </div>
+
+            <div class="space-y-3">
+                <div>
+                    <label class="label" for="tip-title">عنوان نکته</label>
+                    <input id="tip-title" name="title" type="text" required class="input" placeholder="مثلاً آب کافی بنوش">
+                </div>
+
+                <div>
+                    <label class="label" for="tip-body">متن نکته (اختیاری)</label>
+                    <textarea id="tip-body" name="body" rows="2" class="input resize-y" placeholder="توضیح کوتاه این نکته..."></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-sm">افزودن نکته</button>
+            </div>
+        </form>
+
+        @if ($challenge->tips->isEmpty())
+            <p class="mt-5 rounded-2xl bg-slate-50 px-4 py-6 text-center text-xs text-slate-500">هنوز نکته‌ای اضافه نشده است.</p>
+        @else
+            <div class="mt-5 space-y-3">
+                @foreach ($challenge->tips as $tip)
+                    <div class="rounded-3xl bg-gradient-to-tl from-amber-50 to-white p-4 ring-1 ring-amber-200/70">
+                        <div class="flex flex-wrap items-start justify-between gap-3">
+                            <div class="flex items-start gap-3">
+                                <span class="grid size-10 shrink-0 place-items-center rounded-2xl bg-white text-lg shadow-sm ring-1 ring-amber-200/70">{{ $tip->emoji }}</span>
+                                <div class="min-w-0">
+                                    <p class="text-sm font-semibold text-amber-900">{{ $tip->title }}</p>
+                                    @if ($tip->body)
+                                        <p class="mt-1 text-xs leading-6 text-amber-800/80">{{ $tip->body }}</p>
+                                    @endif
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-1">
+                                <form method="POST" action="{{ route('panel.tips.move', [$challenge, $tip, 'up']) }}">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="submit" class="btn btn-ghost btn-sm" aria-label="بالا">↑</button>
+                                </form>
+                                <form method="POST" action="{{ route('panel.tips.move', [$challenge, $tip, 'down']) }}">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="submit" class="btn btn-ghost btn-sm" aria-label="پایین">↓</button>
+                                </form>
+
+                                <details>
+                                    <summary class="btn btn-ghost btn-sm list-none">ویرایش</summary>
+                                    <form method="POST" action="{{ route('panel.tips.update', [$challenge, $tip]) }}" class="mt-3 grid w-full max-w-lg gap-3 rounded-2xl bg-white p-4 text-right ring-1 ring-slate-900/5 sm:grid-cols-[5rem_1fr]">
+                                        @csrf
+                                        @method('PUT')
+
+                                        <div>
+                                            <label class="label">نماد</label>
+                                            <input type="text" name="emoji" value="{{ $tip->emoji }}" maxlength="8" class="input text-center">
+                                        </div>
+
+                                        <div>
+                                            <label class="label">عنوان</label>
+                                            <input type="text" name="title" value="{{ $tip->title }}" required class="input">
+                                        </div>
+
+                                        <div class="sm:col-span-2">
+                                            <label class="label">متن</label>
+                                            <textarea name="body" rows="2" class="input resize-y">{{ $tip->body }}</textarea>
+                                        </div>
+
+                                        <div class="sm:col-span-2">
+                                            <button type="submit" class="btn btn-primary btn-sm">ذخیره</button>
+                                        </div>
+                                    </form>
+                                </details>
+
+                                <form method="POST" action="{{ route('panel.tips.destroy', [$challenge, $tip]) }}" data-confirm="این نکته حذف شود؟">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger btn-sm">حذف</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @endif
+    </section>
+
+    {{-- پرسش و پاسخ --}}
+    <section class="card scroll-mt-24" id="qa">
+        <div>
+            <h2 class="text-base">باکس پرسش و پاسخ</h2>
+            <p class="mt-1 text-xs leading-6 text-slate-500">
+                پرسش‌های پرتکرار شرکت‌کننده‌ها را اینجا با پاسخشان بنویس؛ در صفحه چالش و داشبورد هر نفر به شکل آکاردئون نمایش داده می‌شود.
+            </p>
+        </div>
+
+        <form method="POST" action="{{ route('panel.questions.store', $challenge) }}" class="mt-5 space-y-4 rounded-2xl bg-slate-50 p-4">
+            @csrf
+
+            <div class="grid gap-4 sm:grid-cols-[1.4fr_1fr]">
+                <div>
+                    <label class="label" for="question-text">پرسش</label>
+                    <input id="question-text" name="question" type="text" required class="input" placeholder="مثلاً اگر یک روز را از دست بدهم چه می‌شود؟">
+                </div>
+
+                <div>
+                    <label class="label" for="question-by">پرسنده (اختیاری)</label>
+                    <input id="question-by" name="asked_by" type="text" class="input" placeholder="نام شرکت‌کننده">
+                </div>
+            </div>
+
+            <div>
+                <label class="label" for="question-answer">پاسخ</label>
+                <textarea id="question-answer" name="answer" rows="3" class="input resize-y" placeholder="پاسخ روشن و کوتاه..."></textarea>
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-3">
+                <label class="flex items-center gap-2 text-xs text-slate-600">
+                    <input type="checkbox" name="is_published" value="1" checked class="size-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500">
+                    در صفحه چالش نمایش داده شود
+                </label>
+
+                <button type="submit" class="btn btn-primary btn-sm">افزودن پرسش</button>
+            </div>
+        </form>
+
+        @if ($challenge->questions->isEmpty())
+            <p class="mt-5 rounded-2xl bg-slate-50 px-4 py-6 text-center text-xs text-slate-500">هنوز پرسشی ثبت نشده است.</p>
+        @else
+            <div class="mt-5 space-y-3">
+                @foreach ($challenge->questions as $question)
+                    <div class="rounded-3xl bg-slate-50 p-4">
+                        <div class="flex flex-wrap items-start justify-between gap-3">
+                            <div class="min-w-0 flex-1">
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <p class="text-sm font-medium text-slate-800">{{ $question->question }}</p>
+                                    <span class="badge {{ $question->is_published ? 'bg-emerald-50 text-emerald-700 ring-emerald-200' : 'bg-slate-200/60 text-slate-600 ring-slate-300' }}">
+                                        {{ $question->is_published ? 'نمایش داده می‌شود' : 'پنهان' }}
+                                    </span>
+                                </div>
+
+                                @if ($question->asked_by)
+                                    <p class="mt-1 text-[11px] text-slate-400">پرسیده‌شده توسط {{ $question->asked_by }}</p>
+                                @endif
+
+                                <p class="mt-2 border-s-2 border-slate-200 ps-3 text-xs leading-6 text-slate-600">
+                                    {!! $question->answer ? \App\Support\RichText::toHtml($question->answer) : '<span class="text-slate-400">بدون پاسخ</span>' !!}
+                                </p>
+                            </div>
+
+                            <div class="flex items-center gap-1">
+                                <form method="POST" action="{{ route('panel.questions.move', [$challenge, $question, 'up']) }}">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="submit" class="btn btn-ghost btn-sm" aria-label="بالا">↑</button>
+                                </form>
+                                <form method="POST" action="{{ route('panel.questions.move', [$challenge, $question, 'down']) }}">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="submit" class="btn btn-ghost btn-sm" aria-label="پایین">↓</button>
+                                </form>
+
+                                <form method="POST" action="{{ route('panel.questions.publish', [$challenge, $question]) }}">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button type="submit" class="btn btn-white btn-sm">{{ $question->is_published ? 'پنهان کن' : 'نمایش بده' }}</button>
+                                </form>
+
+                                <details>
+                                    <summary class="btn btn-ghost btn-sm list-none">ویرایش</summary>
+                                    <form method="POST" action="{{ route('panel.questions.update', [$challenge, $question]) }}" class="mt-3 grid w-full max-w-lg gap-3 rounded-2xl bg-white p-4 text-right ring-1 ring-slate-900/5">
+                                        @csrf
+                                        @method('PUT')
+
+                                        <div>
+                                            <label class="label">پرسش</label>
+                                            <input type="text" name="question" value="{{ $question->question }}" required class="input">
+                                        </div>
+
+                                        <div>
+                                            <label class="label">پاسخ</label>
+                                            <textarea name="answer" rows="3" class="input resize-y">{{ $question->answer }}</textarea>
+                                        </div>
+
+                                        <div>
+                                            <label class="label">پرسنده</label>
+                                            <input type="text" name="asked_by" value="{{ $question->asked_by }}" class="input">
+                                        </div>
+
+                                        <label class="flex items-center gap-2 text-xs text-slate-600">
+                                            <input type="checkbox" name="is_published" value="1" @checked($question->is_published) class="size-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500">
+                                            نمایش در صفحه چالش
+                                        </label>
+
+                                        <button type="submit" class="btn btn-primary btn-sm">ذخیره</button>
+                                    </form>
+                                </details>
+
+                                <form method="POST" action="{{ route('panel.questions.destroy', [$challenge, $question]) }}" data-confirm="این پرسش حذف شود؟">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-danger btn-sm">حذف</button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @endif
+    </section>
+
+    {{-- فایل‌های ضمیمه --}}
+    <section class="card scroll-mt-24" id="files">
+        <div>
+            <h2 class="text-base">فایل‌های ضمیمه چالش</h2>
+            <p class="mt-1 text-xs leading-6 text-slate-500">
+                فایل راهنما، جدول تمرین‌ها، صوت یا هر چیزی که شرکت‌کننده‌ها لازم دارند. حجم هر فایل تا ۸ مگابایت.
+            </p>
+        </div>
+
+        <form method="POST" action="{{ route('panel.attachments.store', $challenge) }}" enctype="multipart/form-data" class="mt-5 grid gap-4 rounded-2xl bg-slate-50 p-4 sm:grid-cols-[1fr_1.4fr_auto]">
+            @csrf
+
+            <div>
+                <label class="label" for="file-title">عنوان فایل</label>
+                <input id="file-title" name="title" type="text" class="input" placeholder="مثلاً جدول تمرین‌های هفته اول">
+            </div>
+
+            <div>
+                <label class="label" for="file-input">فایل</label>
+                <input id="file-input" name="file" type="file" required class="input py-2.5 text-xs file:me-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-1.5 file:text-brand-700">
+            </div>
+
+            <div class="flex items-end">
+                <button type="submit" class="btn btn-primary w-full sm:w-auto">افزودن فایل</button>
+            </div>
+        </form>
+
+        @if ($challenge->attachments->isEmpty())
+            <p class="mt-5 rounded-2xl bg-slate-50 px-4 py-6 text-center text-xs text-slate-500">هنوز فایلی ضمیمه نشده است.</p>
+        @else
+            <div class="table-wrap mt-5">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>فایل</th>
+                            <th>حجم</th>
+                            <th>دانلود</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($challenge->attachments as $attachment)
+                            <tr>
+                                <td>
+                                    <div class="flex items-center gap-3">
+                                        <span class="grid size-9 place-items-center rounded-xl bg-slate-50 text-base">{{ $attachment->icon() }}</span>
+                                        <div class="min-w-0">
+                                            <a href="{{ $attachment->url() }}" target="_blank" class="block max-w-[18rem] truncate font-medium text-slate-900 hover:text-brand-700">{{ $attachment->title }}</a>
+                                            <span class="text-[11px] text-slate-400" dir="ltr">{{ $attachment->original_name }}</span>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td class="text-xs text-slate-500">{{ $attachment->sizeForHumans() }}</td>
+                                <td class="text-xs text-slate-500">{{ fa_num($attachment->downloads) }} بار</td>
+
+                                <td>
+                                    <div class="flex items-center justify-end gap-1">
+                                        <a href="{{ $attachment->url() }}" class="btn btn-ghost btn-sm">دانلود</a>
+
+                                        <details>
+                                            <summary class="btn btn-ghost btn-sm list-none">ویرایش</summary>
+                                            <form method="POST" action="{{ route('panel.attachments.update', [$challenge, $attachment]) }}" class="mt-3 grid w-full max-w-sm gap-3 rounded-2xl bg-slate-50 p-4 text-right">
+                                                @csrf
+                                                @method('PUT')
+                                                <div>
+                                                    <label class="label">عنوان</label>
+                                                    <input type="text" name="title" value="{{ $attachment->title }}" required class="input">
+                                                </div>
+                                                <button type="submit" class="btn btn-primary btn-sm">ذخیره</button>
+                                            </form>
+                                        </details>
+
+                                        <form method="POST" action="{{ route('panel.attachments.destroy', [$challenge, $attachment]) }}" data-confirm="فایل «{{ $attachment->title }}» حذف شود؟">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger btn-sm">حذف</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
     </section>
 
     {{-- شرکت‌کننده‌ها --}}

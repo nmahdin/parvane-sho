@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\RichText;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\RouteKey;
 use Illuminate\Database\Eloquent\Model;
@@ -15,6 +16,8 @@ use Illuminate\Support\Str;
     'slug',
     'tagline',
     'description',
+    'long_description',
+    'contact_note',
     'emoji',
     'accent',
     'starts_on',
@@ -124,6 +127,45 @@ class Challenge extends Model
     public function participants(): HasMany
     {
         return $this->hasMany(Participant::class)->orderBy('name');
+    }
+
+    /**
+     * @return HasMany<ChallengeTip, $this>
+     */
+    public function tips(): HasMany
+    {
+        return $this->hasMany(ChallengeTip::class)->orderBy('sort_order')->orderBy('id');
+    }
+
+    /**
+     * @return HasMany<ChallengeQuestion, $this>
+     */
+    public function questions(): HasMany
+    {
+        return $this->hasMany(ChallengeQuestion::class)->orderBy('sort_order')->orderBy('id');
+    }
+
+    /**
+     * پرسش و پاسخ‌هایی که برای مخاطب نمایش داده می‌شوند.
+     *
+     * @return HasMany<ChallengeQuestion, $this>
+     */
+    public function publishedQuestions(): HasMany
+    {
+        return $this->questions()->where('is_published', true);
+    }
+
+    /**
+     * @return HasMany<ChallengeAttachment, $this>
+     */
+    public function attachments(): HasMany
+    {
+        return $this->hasMany(ChallengeAttachment::class)->orderBy('sort_order')->orderBy('id');
+    }
+
+    public function longDescriptionHtml(): string
+    {
+        return RichText::toHtml($this->long_description);
     }
 
     /**

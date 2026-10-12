@@ -14,8 +14,7 @@
     <div class="w-full max-w-md">
         <div class="mb-6 text-center text-white">
             <span class="mx-auto grid size-14 place-items-center rounded-3xl bg-white/15 text-2xl backdrop-blur">🦋</span>
-            <h1 class="mt-4 text-xl text-white">پنل مدیریت {{ $site['site_name'] ?? config('panel.site_name') }}</h1>
-            <p class="mt-2 text-xs text-white/75">برای ورود فقط رمز عبور لازم است؛ نام کاربری و ایمیل نمی‌خواهد.</p>
+            <h1 class="mt-4 text-xl text-white">ورود مدیر {{ $site['site_name'] ?? config('panel.site_name') }}</h1>
         </div>
 
         <div class="animate-rise rounded-[2rem] bg-white p-7 shadow-xl ring-1 ring-slate-900/5">
@@ -53,11 +52,6 @@
                 <button type="submit" class="btn btn-primary w-full py-3">ورود به پنل</button>
             </form>
 
-            <p class="mt-6 border-t border-slate-100 pt-5 text-center text-[11px] leading-6 text-slate-500">
-                رمز پیش‌فرض در فایل <code class="rounded bg-slate-100 px-1.5 py-0.5 text-[10px]">.env</code> با کلید
-                <code class="rounded bg-slate-100 px-1.5 py-0.5 text-[10px]" dir="ltr">PANEL_PASSWORD</code>
-                تعیین می‌شود و بعد از اولین ورود می‌توانی از صفحه تنظیمات تغییرش دهی.
-            </p>
         </div>
 
         <p class="mt-6 text-center text-xs text-white/75">

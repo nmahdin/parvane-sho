@@ -1,5 +1,7 @@
+import { initJalaliPickers } from './jalali-datepicker';
+
 /**
- * اسکریپت‌های سبک سایت: کپی لینک، منوی موبایل و تأیید حذف.
+ * اسکریپت‌های سبک سایت: انتخابگر تاریخ شمسی، کپی لینک، منوی موبایل و تأیید حذف.
  */
 const app = {
     init() {
@@ -10,6 +12,12 @@ const app = {
         this.initPrint();
         this.initPasswordToggles();
         this.initEmojiPickers();
+        this.initJalaliDates();
+    },
+
+    /* مدال انتخاب تاریخ شمسی روی input های دارای data-jalali-picker */
+    initJalaliDates() {
+        initJalaliPickers();
     },
 
     /* انتخاب نماد چالش: data-emoji="#input" data-emoji-value="🦋" */

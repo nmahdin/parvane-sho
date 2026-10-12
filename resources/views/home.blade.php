@@ -1,6 +1,11 @@
 @extends('layouts.public')
 
-@section('title', ($site['site_name'] ?? config('panel.site_name')).' — چالش‌های گروهی')
+@php
+    $siteName = $site['site_name'] ?? config('panel.site_name');
+    $activeChallenge = $challenges->first(fn ($challenge) => $challenge->status() === 'active') ?? $challenges->first();
+@endphp
+
+@section('title', $siteName.' — چالش‌های گروهی')
 
 @section('content')
     {{-- قهرمان صفحه --}}
@@ -13,16 +18,14 @@
                 <div>
                     <span class="badge bg-white text-brand-700 ring-brand-200">
                         <span class="size-1.5 rounded-full bg-brand-500"></span>
-                        پلتفرم چالش‌های گروهی
+                        {{ $stats['challenges'] > 0 ? fa_num($stats['challenges']).' چالش در جریان' : 'چالش‌های گروهی' }}
                     </span>
 
                     <h1 class="mt-5 text-3xl leading-[1.35] sm:text-4xl sm:leading-[1.35] lg:text-5xl lg:leading-[1.3]">
                         با
-                        <span class="bg-gradient-to-l from-brand-600 to-fuchsia-500 bg-clip-text text-transparent">
-                            {{ $site['site_name'] ?? config('panel.site_name') }}
-                        </span>
+                        <span class="bg-gradient-to-l from-brand-600 to-fuchsia-500 bg-clip-text text-transparent">{{ $siteName }}</span>
                         <br>
-                        هر روز یک قدم به هدف نزدیک‌تر شو
+                        هر روز یک قدم کوچک، یک تغییر واقعی
                     </h1>
 
                     <p class="mt-6 max-w-xl text-base leading-8 text-slate-600">
@@ -31,7 +34,7 @@
 
                     <div class="mt-8 flex flex-wrap items-center gap-3">
                         <a href="{{ route('challenges.index') }}" class="btn btn-primary px-5 py-3">دیدن چالش‌ها</a>
-                        <a href="#how" class="btn btn-white px-5 py-3">چالش چطور اجرا می‌شود؟</a>
+                        <a href="{{ route('participant.lookup') }}" class="btn btn-white px-5 py-3">کد اختصاصی من را دارم</a>
                     </div>
 
                     <dl class="mt-10 grid max-w-lg grid-cols-3 gap-4 border-t border-slate-200 pt-6">
@@ -50,15 +53,15 @@
                     </dl>
                 </div>
 
-                {{-- کارت پیش‌نمایش داشبورد شرکت‌کننده --}}
+                {{-- پیش‌نمایش داشبورد شرکت‌کننده --}}
                 <div class="relative">
                     <div class="card animate-rise space-y-5 p-7">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-3">
                                 <span class="grid size-11 place-items-center rounded-2xl bg-gradient-to-tl from-brand-600 to-fuchsia-500 text-white">پ</span>
                                 <div>
-                                    <p class="text-sm font-semibold text-slate-900">داشبورد اختصاصی شما</p>
-                                    <p class="text-xs text-slate-500">بدون نام کاربری، فقط با یک لینک</p>
+                                    <p class="text-sm font-semibold text-slate-900">داشبورد اختصاصی تو</p>
+                                    <p class="text-xs text-slate-500">فقط با یک کد کوتاه، بدون ثبت‌نام</p>
                                 </div>
                             </div>
                             <span class="badge bg-emerald-50 text-emerald-700 ring-emerald-200">فعال</span>
@@ -87,13 +90,46 @@
                                 <span class="text-slate-700">۱۰ دقیقه تمرین تمرکز</span>
                             </div>
                         </div>
+
+                        <div class="flex items-center gap-2 rounded-2xl bg-brand-50 px-4 py-3 text-xs text-brand-700">
+                            <span>🔗</span>
+                            <span class="font-medium">کد اختصاصی:</span>
+                            <span class="tracking-[0.2em]" dir="ltr">k7m2p9qz</span>
+                        </div>
                     </div>
 
                     <div class="pointer-events-none absolute -bottom-6 -start-6 hidden rounded-2xl bg-white px-4 py-3 text-xs shadow-lg ring-1 ring-slate-900/5 sm:block">
-                        لینک اختصاصی شما آماده است 🔗
+                        پیشرفتت را همان روز می‌بینی ✨
                     </div>
                 </div>
             </div>
+        </div>
+    </section>
+
+    {{-- ورود سریع با کد اختصاصی --}}
+    <section class="mx-auto max-w-6xl px-4 pb-4 sm:px-6">
+        <div class="rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-slate-900/5 sm:p-8">
+            <div class="grid items-center gap-6 lg:grid-cols-[1.2fr_1fr]">
+                <div>
+                    <h2 class="text-xl">کد اختصاصی داری؟</h2>
+                    <p class="mt-2 text-sm leading-7 text-slate-600">
+                        کد کوتاهی که مسئول چالش برایت فرستاده را وارد کن تا داشبورد خودت باز شود؛ بدون ثبت‌نام، بدون رمز.
+                    </p>
+                </div>
+
+                <form method="POST" action="{{ route('participant.lookup.attempt') }}" class="flex flex-wrap items-center gap-3 sm:flex-nowrap">
+                    @csrf
+
+                    <input name="code" type="text" required dir="ltr" class="input flex-1 text-center tracking-[0.3em]"
+                           placeholder="k7m2p9qz" value="{{ old('code') }}" autocomplete="off" spellcheck="false">
+
+                    <button type="submit" class="btn btn-primary shrink-0">باز کردن داشبورد</button>
+                </form>
+            </div>
+
+            @error('code')
+                <p class="mt-3 text-xs text-rose-600">{{ $message }}</p>
+            @enderror
         </div>
     </section>
 
@@ -102,7 +138,7 @@
         <div class="flex flex-wrap items-end justify-between gap-4">
             <div>
                 <h2 class="text-2xl">چالش‌های در جریان</h2>
-                <p class="mt-2 text-sm text-slate-500">روی هر چالش بزن تا روزها و کارهایش را ببینی.</p>
+                <p class="mt-2 text-sm text-slate-500">روی هر چالش بزن تا روزها، نکته‌ها و کارهایش را ببینی.</p>
             </div>
 
             <a href="{{ route('challenges.index') }}" class="btn btn-soft">همه چالش‌ها</a>
@@ -111,8 +147,7 @@
         @if ($featured->isEmpty())
             <div class="card mt-8 text-center">
                 <p class="text-3xl">🌱</p>
-                <p class="mt-3 text-sm text-slate-600">هنوز چالشی منتشر نشده است. از پنل مدیریت اولین چالش را بسازید.</p>
-                <a href="{{ route('panel.dashboard') }}" class="btn btn-primary mt-5">ورود به پنل مدیریت</a>
+                <p class="mt-3 text-sm text-slate-600">به‌زودی اولین چالش اینجا منتشر می‌شود.</p>
             </div>
         @else
             <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -121,6 +156,31 @@
                 @endforeach
             </div>
         @endif
+    </section>
+
+    {{-- چرا اینجا؟ --}}
+    <section class="mx-auto max-w-6xl px-4 py-12 sm:px-6">
+        <div class="max-w-2xl">
+            <h2 class="text-2xl">چرا با هم و در چالش؟</h2>
+            <p class="mt-3 text-sm leading-8 text-slate-600">
+                تغییرهای بزرگ از قدم‌های کوچک روزانه ساخته می‌شوند؛ وقتی در یک چالش گروهی همراه می‌شوی، ادامه دادن ساده‌تر است.
+            </p>
+        </div>
+
+        <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            @foreach ([
+                ['🗓️', 'مسیر روزانه روشن', 'هر روز بدان دقیقاً چه کاری باید انجام دهی؛ بدون سردرگمی و بدون برنامه‌ریزی پیچیده.'],
+                ['📈', 'پیشرفت زنده', 'وقتی کاری را تیک می‌زنی، درصد پیشرفت و روزهای پیوسته‌ات بلافاصله به‌روز می‌شود.'],
+                ['🙌', 'همراهی گروه', 'دیدن اینکه بقیه هم در همان مسیر قدم برمی‌دارند، انگیزه را زنده نگه می‌دارد.'],
+                ['🔓', 'بدون ثبت‌نام', 'نه حساب کاربری، نه رمز، نه ایمیل؛ فقط یک کد کوتاه اختصاصی که همیشه در دستت است.'],
+            ] as [$icon, $title, $text])
+                <div class="card p-6">
+                    <span class="grid size-11 place-items-center rounded-2xl bg-brand-50 text-lg">{{ $icon }}</span>
+                    <h3 class="mt-4 text-base">{{ $title }}</h3>
+                    <p class="mt-2 text-sm leading-7 text-slate-600">{{ $text }}</p>
+                </div>
+            @endforeach
+        </div>
     </section>
 
     {{-- چطور کار می‌کند --}}
@@ -135,9 +195,9 @@
 
             <div class="mt-10 grid gap-6 md:grid-cols-3">
                 @foreach ([
-                    ['۱', 'چالش را بساز', 'عنوان، توضیح و تاریخ شروع و پایان چالش را در پنل وارد کن و کارهای هر روز را بنویس.'],
-                    ['۲', 'نام‌ها را وارد کن', 'فهرست شرکت‌کننده‌ها را خط‌به‌خط اضافه کن؛ برای هر نفر خودکار یک لینک اختصاصی ساخته می‌شود.'],
-                    ['۳', 'لینک را بفرست', 'هر نفر لینک خودش را باز می‌کند، بدون رمز و ثبت‌نام؛ کارهای روزانه‌اش را تیک می‌زند و پیشرفتش را می‌بیند.'],
+                    ['۱', 'در فهرست چالش ثبت می‌شوی', 'نامت را به مسئول چالش می‌گویی و در فهرست شرکت‌کننده‌ها ثبت می‌شوی.'],
+                    ['۲', 'یک کد کوتاه می‌گیری', 'برای هر نفر یک کد و لینک اختصاصی ساخته می‌شود؛ همان کد کلید داشبورد توست.'],
+                    ['۳', 'هر روز تیک می‌زنی', 'کارهای روزت را انجام می‌دهی و در داشبورد خودت تیک می‌زنی؛ پیشرفتت همان لحظه ثبت می‌شود.'],
                 ] as [$number, $title, $text])
                     <div class="rounded-3xl bg-slate-50/80 p-6">
                         <span class="grid size-10 place-items-center rounded-2xl bg-white text-sm font-bold text-brand-700 shadow-sm ring-1 ring-slate-900/5">{{ $number }}</span>
@@ -146,6 +206,55 @@
                     </div>
                 @endforeach
             </div>
+
+            @if ($activeChallenge)
+                <div class="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-3xl {{ $activeChallenge->styleValue('bg') }} px-6 py-5">
+                    <div class="flex items-center gap-4">
+                        <span class="grid size-11 place-items-center rounded-2xl bg-white text-lg shadow-sm">{{ $activeChallenge->emoji }}</span>
+                        <div>
+                            <p class="text-sm font-semibold text-slate-900">{{ $activeChallenge->title }}</p>
+                            <p class="mt-0.5 text-xs text-slate-600">
+                                {{ $activeChallenge->dateRangeLabel() }}
+                                @if ($activeChallenge->currentDayNumber())
+                                    · امروز روز {{ fa_num($activeChallenge->currentDayNumber()) }} از {{ fa_num($activeChallenge->daysCount()) }}
+                                @endif
+                            </p>
+                        </div>
+                    </div>
+
+                    <a href="{{ $activeChallenge->publicUrl() }}" class="btn btn-white">دیدن این چالش</a>
+                </div>
+            @endif
+        </div>
+    </section>
+
+    {{-- سوال‌های پرتکرار --}}
+    <section id="faq" class="mx-auto max-w-4xl px-4 py-12 sm:px-6">
+        <div class="text-center">
+            <h2 class="text-2xl">سوال‌های پرتکرار</h2>
+            <p class="mt-3 text-sm text-slate-600">اگر جواب سوالت را پیدا نکردی، از مسئول چالش بپرس.</p>
+        </div>
+
+        <div class="mt-8 space-y-3">
+            @foreach ([
+                ['برای شرکت در چالش باید ثبت‌نام کنم؟', 'نه. کافی است نامت در فهرست شرکت‌کننده‌های چالش ثبت شود؛ بعد از آن یک کد کوتاه اختصاصی می‌گیری و با همان داشبورد خودت را باز می‌کنی.'],
+                ['کدم را گم کرده‌ام، چه کار کنم؟', 'از مسئول چالش بخواه لینک یا کد را دوباره برایت بفرستد یا برایت کد جدید بسازد. کد قبلی در آن حالت از کار می‌افتد.'],
+                ['چطور کارهایم را تیک بزنم؟', 'در داشبورد خودت، فهرست کارهای هر روز را می‌بینی؛ روی هر کار بزن تا انجام‌شده شود. هر تیک بلافاصله در پیشرفتت حساب می‌شود.'],
+                ['پیشرفت من را چه کسی می‌بیند؟', 'تنها مسئول چالش می‌تواند وضعیت شرکت‌کننده‌ها را ببیند. لینک تو هم مثل یک کلید شخصی است؛ آن را جایی منتشر نکن.'],
+                ['اگر یک روز را از دست بدهم چه می‌شود؟', 'هیچ چیز از بین نمی‌رود. همان روز را می‌توانی بعداً هم کامل کنی و زنجیره‌ات را ادامه بدهی.'],
+            ] as [$question, $answer])
+                <details class="group overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-slate-900/5">
+                    <summary class="flex cursor-pointer items-center gap-3 px-6 py-5">
+                        <span class="grid size-7 shrink-0 place-items-center rounded-xl bg-brand-50 text-xs font-bold text-brand-700">؟</span>
+                        <span class="min-w-0 flex-1 text-sm font-medium text-slate-800">{{ $question }}</span>
+                        <span class="text-slate-400 transition group-open:rotate-180">⌄</span>
+                    </summary>
+
+                    <div class="border-t border-slate-100 bg-slate-50/60 px-6 py-4 text-xs leading-7 text-slate-600">
+                        {{ $answer }}
+                    </div>
+                </details>
+            @endforeach
         </div>
     </section>
 
@@ -156,13 +265,16 @@
 
             <div class="relative flex flex-wrap items-center justify-between gap-6">
                 <div class="max-w-2xl">
-                    <h2 class="text-2xl text-white">می‌خواهی چالشی راه بیندازی؟</h2>
+                    <h2 class="text-2xl text-white">آماده‌ای امروز شروع کنی؟</h2>
                     <p class="mt-3 text-sm leading-8 text-white/80">
-                        ورود به پنل مدیریت فقط با یک رمز انجام می‌شود؛ نه نام کاربری، نه ایمیل. چالش بساز، شرکت‌کننده‌ها را اضافه کن و لینک‌ها را برایشان بفرست.
+                        چالش‌ها را ببین، چالشی که به تو نزدیک است را انتخاب کن و همان امروز اولین قدم را بردار.
                     </p>
                 </div>
 
-                <a href="{{ route('panel.dashboard') }}" class="btn bg-white px-5 py-3 text-brand-700 hover:bg-white/90">ورود به پنل مدیریت</a>
+                <div class="flex flex-wrap gap-3">
+                    <a href="{{ route('challenges.index') }}" class="btn bg-white px-5 py-3 text-brand-700 hover:bg-white/90">دیدن چالش‌ها</a>
+                    <a href="{{ route('participant.lookup') }}" class="btn bg-white/10 px-5 py-3 text-white hover:bg-white/20">کد اختصاصی من</a>
+                </div>
             </div>
         </div>
     </section>
