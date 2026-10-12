@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\ConfigureSessionCookie;
 use App\Http\Middleware\EnsureAdminIsSuper;
 use App\Http\Middleware\EnsurePanelIsAuthenticated;
 use App\Http\Middleware\RedirectIfPanelAuthenticated;
@@ -17,6 +18,10 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         // پروکسی/بالانسر جلوی اپلیکیشن (مثل هاست‌های ابری و دامنه‌های https)
         $middleware->trustProxies(at: env('TRUSTED_PROXIES', '*'));
+
+        // باید داخل گروه web و پیش از StartSession اجرا شود تا کوکی سشن
+        // پشت پروکسی https درست (Secure + SameSite=None) تنظیم شود.
+        $middleware->prependToGroup('web', ConfigureSessionCookie::class);
 
         $middleware->alias([
             'panel.auth' => EnsurePanelIsAuthenticated::class,

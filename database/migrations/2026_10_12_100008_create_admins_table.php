@@ -49,16 +49,16 @@ return new class extends Migration
      */
     private function primaryAdminId(): int
     {
-        $existing = DB::table('admins')->where('username', 'admin')->value('id');
+        $existing = DB::table('admins')->where('username', config('panel.default_admin_username', 'admin'))->value('id');
 
         if ($existing) {
             return (int) $existing;
         }
 
         return (int) DB::table('admins')->insertGetId([
-            'name' => 'مدیر اصلی',
-            'username' => 'admin',
-            'password' => Hash::make('a12345678'),
+            'name' => config('panel.default_admin_name', 'مدیر اصلی'),
+            'username' => config('panel.default_admin_username', 'admin'),
+            'password' => Hash::make(config('panel.default_admin_password', 'a12345678')),
             'is_super' => true,
             'is_active' => true,
             'created_at' => now(),

@@ -13,6 +13,12 @@ return [
     |
     */
 
+    'default_admin_username' => env('PANEL_ADMIN_USERNAME', 'admin'),
+
+    'default_admin_password' => env('PANEL_ADMIN_PASSWORD', 'a12345678'),
+
+    'default_admin_name' => env('PANEL_ADMIN_NAME', 'مدیر اصلی'),
+
     'login_max_attempts' => (int) env('PANEL_LOGIN_MAX_ATTEMPTS', 5),
 
     'login_decay_seconds' => (int) env('PANEL_LOGIN_DECAY_SECONDS', 60),

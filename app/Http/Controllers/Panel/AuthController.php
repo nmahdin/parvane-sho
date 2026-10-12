@@ -9,7 +9,9 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\RateLimiter;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\ValidationException;
+use Throwable;
 
 /**
  * ورود مدیران (هر مدیر با نام کاربری و رمز عبور اختصاصی خودش).
@@ -18,11 +20,21 @@ class AuthController extends Controller
 {
     public function showLogin(): View
     {
-        return view('panel.login');
+        return view('panel.login', [
+            'databaseReady' => $this->databaseReady(),
+        ]);
     }
 
     public function login(Request $request): RedirectResponse
     {
+        // اگر دیتابیس آماده نباشد (مهاجرت‌ها اجرا نشده یا مدیری ساخته نشده)،
+        // به جای خطای سرور، پیام روشن و راهنما نشان می‌دهیم.
+        if (! $this->databaseReady()) {
+            throw ValidationException::withMessages([
+                'username' => 'هنوز هیچ مدیری در دیتابیس ثبت نشده است. در ترمینال پروژه دستور «php artisan migrate --seed» را اجرا کن (یا «php artisan parvane:setup»).',
+            ]);
+        }
+
         $validated = $request->validate([
             'username' => ['required', 'string', 'max:120'],
             'password' => ['required', 'string'],
@@ -80,6 +92,18 @@ class AuthController extends Controller
         return redirect()
             ->intended(route('panel.dashboard'))
             ->with('status', 'خوش آمدید '.$admin->name.' 🌿');
+    }
+
+    /**
+     * آیا دیتابیس و جدول مدیران آماده است؟
+     */
+    private function databaseReady(): bool
+    {
+        try {
+            return Schema::hasTable('admins') && Admin::query()->exists();
+        } catch (Throwable) {
+            return false;
+        }
     }
 
     public function logout(Request $request): RedirectResponse
