@@ -46,7 +46,7 @@
                     </div>
                     <div>
                         <dt class="text-white/70">تعداد روزها</dt>
-                        <dd class="mt-1 font-medium">{{ fa_num($challenge->daysCount()) }} روز</dd>
+                        <dd class="mt-1 font-medium">{{ fa_num($challenge->totalDays()) }} روز</dd>
                     </div>
                     <div>
                         <dt class="text-white/70">شرکت‌کننده‌ها</dt>
@@ -166,16 +166,12 @@
 
                             <span class="text-xs text-muted">
                                 {{ fa_num($tasks->count()) }} کار@if ($dayQuestions->isNotEmpty()) · {{ fa_num($dayQuestions->count()) }} پرسش @endif
-                                @if ($locked)
-                                    (قفل)
-                                @endif
                             </span>
                         </div>
 
                         @if ($locked)
                             <div class="locked-panel m-4">
-                                <p class="text-2xl">🔒</p>
-                                <p class="mt-2 text-sm font-medium text-forest">کارها و پرسش‌های این روز هنوز آزاد نشده‌اند</p>
+                                <p class="text-sm font-medium text-forest">کارها و پرسش‌های این روز هنوز آزاد نشده‌اند</p>
                                 <p class="mt-1 text-xs leading-6 text-muted">
                                     روزهای چالش یکی‌یکی باز می‌شوند؛ برای دیدن محتوای این روز
                                     @if ($unlockLabel)
@@ -233,9 +229,11 @@
                                                             <p class="mt-1 text-[11px] text-muted/80">پرسیده‌شده توسط {{ $question->asked_by }}</p>
                                                         @endif
 
-                                                        <div class="mt-2 rounded-xl bg-cream/70 px-3 py-2 text-xs leading-7 text-ink/80">
-                                                            {!! $question->answer ? \App\Support\RichText::toHtml($question->answer) : 'پاسخ این پرسش هنوز ثبت نشده است.' !!}
-                                                        </div>
+                                                        @if ($question->answer)
+                                                            <div class="mt-2 rounded-xl bg-cream/70 px-3 py-2 text-xs leading-7 text-ink/80">
+                                                                {!! \App\Support\RichText::toHtml($question->answer) !!}
+                                                            </div>
+                                                        @endif
                                                     </div>
                                                 </div>
                                             </li>

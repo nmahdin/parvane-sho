@@ -64,7 +64,7 @@
                                                 {{ $challenge->title }}
                                             </a>
                                             <span class="text-[11px] text-muted">
-                                                {{ fa_num($challenge->tasksCount()) }} کار · {{ fa_num($challenge->questionsCount()) }} پرسش · {{ fa_num($challenge->daysCount()) }} روز
+                                                {{ fa_num($challenge->tasksCount()) }} کار · {{ fa_num($challenge->questionsCount()) }} پرسش · {{ fa_num($challenge->totalDays()) }} روز
                                                 @if ($stats['super'] && $challenge->admin)
                                                     · مدیر: {{ $challenge->admin->name }}
                                                 @endif

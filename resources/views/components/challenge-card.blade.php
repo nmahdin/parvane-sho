@@ -26,7 +26,7 @@
                     · {{ fa_num($challenge->questionsCount()) }} پرسش
                 @endif
             </span>
-            <span>{{ fa_num($challenge->daysCount()) }} روز</span>
+            <span>{{ fa_num($challenge->totalDays()) }} روز</span>
         </div>
 
         <div class="flex flex-wrap items-center justify-between gap-2 border-t border-line pt-3">
@@ -34,7 +34,7 @@
 
             <span class="text-xs text-muted">
                 @if ($challenge->currentDayNumber())
-                    امروز روز {{ fa_num($challenge->currentDayNumber()) }} از {{ fa_num($challenge->daysCount()) }}
+                    امروز روز {{ fa_num($challenge->currentDayNumber()) }} از {{ fa_num($challenge->totalDays()) }}
                 @else
                     {{ $challenge->dateRangeLabel() }}
                 @endif

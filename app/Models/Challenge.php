@@ -329,6 +329,26 @@ class Challenge extends Model
         return $this->contentDayNumbers()->count();
     }
 
+    /**
+     * تعداد کل روزهای چالش — مستقل از این که چند روزش محتوا دارد.
+     * اگر تاریخ پایان ثبت شده باشد، از روز ۱ تا پایان؛ وگرنه بزرگ‌ترین روزی که
+     * محتوا دارد یا امروز چالش است. (قبلاً این عدد از روی روزهای محتوا حساب
+     * می‌شد و به همین دلیل با هر روز اشتباه نشان داده می‌شد.)
+     */
+    public function totalDays(): int
+    {
+        $planned = $this->plannedDaysCount();
+
+        if ($planned > 0) {
+            return $planned;
+        }
+
+        return (int) max(
+            (int) ($this->contentDayNumbers()->last() ?? 0),
+            (int) ($this->todayDayNumber() ?? 0)
+        );
+    }
+
     public function tasksCount(): int
     {
         return (int) ($this->tasks_count ?? $this->tasks->count());
@@ -601,15 +621,15 @@ class Challenge extends Model
      */
     public function currentDayNumber(): ?int
     {
-        $daysCount = $this->daysCount();
+        $totalDays = $this->totalDays();
 
-        if ($daysCount === 0 || ! $this->hasStarted()) {
+        if ($totalDays === 0 || ! $this->hasStarted()) {
             return null;
         }
 
         $passed = (int) $this->dayOneDate()->diffInDays(Carbon::today()->startOfDay(), false) + 1;
 
-        return max(1, min($daysCount, $passed));
+        return max(1, min($totalDays, $passed));
     }
 
     public function daysRemaining(): ?int

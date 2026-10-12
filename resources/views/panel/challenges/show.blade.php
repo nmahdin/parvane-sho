@@ -48,7 +48,7 @@
         <div class="mt-6 grid gap-4 border-t border-line pt-6 sm:grid-cols-3 xl:grid-cols-6">
             <div>
                 <p class="text-xs text-muted">روزها</p>
-                <p class="mt-1 text-lg font-bold text-ink">{{ fa_num($challenge->daysCount()) }}</p>
+                <p class="mt-1 text-lg font-bold text-ink">{{ fa_num($challenge->totalDays()) }}</p>
             </div>
             <div>
                 <p class="text-xs text-muted">کارها</p>
@@ -188,11 +188,6 @@
                         <div>
                             <label class="label" for="day-question-text">متن پرسش</label>
                             <input id="day-question-text" name="question" type="text" class="input" placeholder="مثلاً اگر یک روز را از دست بدهم چه می‌شود؟">
-                        </div>
-
-                        <div>
-                            <label class="label" for="day-question-answer">پاسخ</label>
-                            <textarea id="day-question-answer" name="answer" rows="3" class="input resize-y" placeholder="پاسخ روشن و کوتاه..."></textarea>
                         </div>
 
                         <div class="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
@@ -344,9 +339,11 @@
                                                 <p class="mt-1 text-[11px] text-muted/80">پرسیده‌شده توسط {{ $question->asked_by }}</p>
                                             @endif
 
-                                            <p class="mt-2 border-s-2 border-line ps-3 text-xs leading-6 text-ink/80">
-                                                {!! $question->answer ? \App\Support\RichText::toHtml($question->answer) : '<span class="text-muted/80">بدون پاسخ</span>' !!}
-                                            </p>
+                                            @if ($question->answer)
+                                                <p class="mt-2 border-s-2 border-line ps-3 text-xs leading-6 text-ink/80">
+                                                    {!! \App\Support\RichText::toHtml($question->answer) !!}
+                                                </p>
+                                            @endif
 
                                             <details class="mt-3">
                                                 <summary class="cursor-pointer text-xs font-medium text-brand-700">
@@ -423,11 +420,6 @@
                                                         <input type="text" name="question" value="{{ $question->question }}" required class="input">
                                                     </div>
 
-                                                    <div>
-                                                        <label class="label">پاسخ</label>
-                                                        <textarea name="answer" rows="3" class="input resize-y">{{ $question->answer }}</textarea>
-                                                    </div>
-
                                                     <label class="flex items-center gap-2 text-xs text-ink/80">
                                                         <input type="hidden" name="is_published" value="0">
                                                         <input type="checkbox" name="is_published" value="1" @checked($question->is_published) class="size-4 rounded border-line text-brand-600 focus:ring-brand-500">
@@ -482,11 +474,6 @@
                                 <div>
                                     <label class="label">متن پرسش</label>
                                     <input name="question" type="text" required class="input" placeholder="مثلاً این چالش برای چه کسانی مناسب است؟">
-                                </div>
-
-                                <div>
-                                    <label class="label">پاسخ</label>
-                                    <textarea name="answer" rows="3" class="input resize-y" placeholder="پاسخ روشن و کوتاه..."></textarea>
                                 </div>
 
                                 <div>

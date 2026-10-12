@@ -91,10 +91,12 @@
                             </div>
                         </div>
 
-                        <div class="flex items-center gap-2 rounded-2xl bg-brand-50 px-4 py-3 text-xs text-brand-700">
-                            <span>🔗</span>
-                            <span class="font-medium">کد اختصاصی:</span>
-                            <span class="tracking-[0.2em]" dir="ltr">k7m2p9qz</span>
+                        <div class="flex items-center gap-3 rounded-2xl bg-brand-50 px-4 py-3 text-xs text-brand-700">
+                            <span>🌿</span>
+                            <span class="font-medium">۳ از ۱۴ کار انجام شده</span>
+                            <span class="ms-auto h-1.5 w-24 overflow-hidden rounded-full bg-white">
+                                <span class="block h-full w-1/5 rounded-full bg-leaf"></span>
+                            </span>
                         </div>
                     </div>
 
@@ -121,7 +123,7 @@
                     @csrf
 
                     <input name="code" type="text" required dir="ltr" class="input flex-1 text-center tracking-[0.3em]"
-                           placeholder="k7m2p9qz" value="{{ old('code') }}" autocomplete="off" spellcheck="false">
+                           placeholder="کد اختصاصی خودت" value="{{ old('code') }}" autocomplete="off" spellcheck="false">
 
                     <button type="submit" class="btn btn-primary shrink-0">باز کردن داشبورد</button>
                 </form>
@@ -216,7 +218,7 @@
                             <p class="mt-0.5 text-xs text-ink/80">
                                 {{ $activeChallenge->dateRangeLabel() }}
                                 @if ($activeChallenge->currentDayNumber())
-                                    · امروز روز {{ fa_num($activeChallenge->currentDayNumber()) }} از {{ fa_num($activeChallenge->daysCount()) }}
+                                    · امروز روز {{ fa_num($activeChallenge->currentDayNumber()) }} از {{ fa_num($activeChallenge->totalDays()) }}
                                 @endif
                             </p>
                         </div>

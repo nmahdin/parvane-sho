@@ -12,7 +12,7 @@
     <section class="card">
         @if ($challenges->isEmpty())
             <div class="py-8 text-center">
-                <p class="text-3xl">🦋</p>
+                <img src="{{ asset('favicon.svg') }}" alt="" class="mx-auto size-14">
                 <p class="mt-3 text-sm text-ink/80">هنوز چالشی ساخته نشده است.</p>
                 <a href="{{ route('panel.challenges.create') }}" class="btn btn-primary mt-5">ساخت اولین چالش</a>
             </div>
@@ -65,7 +65,7 @@
 
                                 <td class="text-xs text-muted">{{ $challenge->dateRangeLabel() }}</td>
 
-                                <td class="text-xs text-ink/80">{{ fa_num($challenge->daysCount()) }} روز · {{ fa_num($challenge->tasksCount()) }} کار · {{ fa_num($challenge->questionsCount()) }} پرسش</td>
+                                <td class="text-xs text-ink/80">{{ fa_num($challenge->totalDays()) }} روز · {{ fa_num($challenge->tasksCount()) }} کار · {{ fa_num($challenge->questionsCount()) }} پرسش</td>
 
                                 <td class="text-sm">
                                     <a href="{{ route('panel.challenges.show', $challenge) }}#participants" class="text-ink hover:text-brand-700">

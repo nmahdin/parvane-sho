@@ -88,7 +88,7 @@
                             <p class="text-xs text-muted">روز جاری چالش</p>
                             <p class="mt-0.5 text-sm font-semibold text-forest">
                                 @if ($todayDay)
-                                    روز {{ fa_num($todayDay) }} از {{ fa_num($challenge->daysCount()) }}
+                                    روز {{ fa_num($todayDay) }} از {{ fa_num($challenge->totalDays()) }}
                                 @else
                                     چالش هنوز شروع نشده است
                                 @endif
@@ -103,7 +103,7 @@
                             <p class="text-xs text-muted">روزهای قفل‌شده</p>
                             @if ($challenge->lockedDaysCount() > 0)
                                 <p class="mt-0.5 text-sm font-semibold text-forest">
-                                    {{ fa_num($challenge->lockedDaysCount()) }} روز قفل است
+                                    {{ fa_num($challenge->lockedDaysCount()) }} روز
                                 </p>
                                 <p class="mt-0.5 text-[11px] text-muted">
                                     روز بعدی {{ $challenge->nextUnlockDate() ? fa_date($challenge->nextUnlockDate(), true) : '' }} باز می‌شود
@@ -181,8 +181,7 @@
 
                         @if ($locked)
                             <div class="locked-panel m-3">
-                                <p class="text-2xl">🔒</p>
-                                <p class="mt-2 text-sm font-medium text-forest">این روز هنوز باز نشده است</p>
+                                <p class="text-sm font-medium text-forest">این روز هنوز باز نشده است</p>
                                 <p class="mt-1 text-xs leading-6 text-muted">
                                     {{-- کارها و پرسش‌های این روز روزانه آزاد می‌شوند؛ نمی‌توانی از قبل ببینی‌شان --}}
                                     @if ($unlockLabel)

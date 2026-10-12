@@ -6,6 +6,10 @@
     <meta name="robots" content="noindex, nofollow">
     <meta name="theme-color" content="#075741">
 
+    <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
+    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="16x16 32x32 48x48">
+    <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
+
     <title>@yield('title', 'پنل مدیریت') — {{ $site['site_name'] ?? config('panel.site_name') }}</title>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
@@ -32,7 +36,7 @@
         <aside class="hidden w-64 shrink-0 lg:block">
             <div class="sticky top-6 space-y-6">
                 <a href="{{ route('panel.dashboard') }}" class="flex items-center gap-3">
-                    <span class="grid size-10 place-items-center rounded-2xl bg-gradient-to-tl from-forest to-leaf text-lg text-white shadow-sm">🦋</span>
+                    <img src="{{ asset('favicon.svg') }}" alt="پنل مدیریت" class="size-10 rounded-2xl bg-gradient-to-tl from-forest to-leaf p-1.5 shadow-sm">
                     <span>
                         <span class="block text-sm font-semibold text-ink">{{ $site['site_name'] ?? config('panel.site_name') }}</span>
                         <span class="block text-[11px] text-muted">پنل مدیریت چالش‌ها</span>
