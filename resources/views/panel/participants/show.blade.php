@@ -138,7 +138,11 @@
                                 </div>
                             </div>
 
-                            @if ($row['is_today'])
+                            @if ($day > 0)
+                                <p class="mt-1.5 text-[10px] text-muted/80">
+                                    {{ $row['is_today'] ? 'امروز · ' : '' }}{{ fa_date($challenge->dateForDay((int) $day)) }}
+                                </p>
+                            @elseif ($row['is_today'])
                                 <p class="mt-1.5 text-[10px] text-brand-700">امروز</p>
                             @endif
                         </div>

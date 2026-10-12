@@ -160,6 +160,41 @@ class Jalali
     }
 
     /**
+     * سال شمسی کبیسه است؟ (روش تقویم جلالی: ۳۳ ساله)
+     */
+    public static function isLeapJalaliYear(int $jy): bool
+    {
+        return ((($jy + 12) % 33) % 4) === 1;
+    }
+
+    /**
+     * تعداد روزهای یک ماه شمسی.
+     */
+    public static function jalaliMonthLength(int $jy, int $jm): int
+    {
+        if ($jm <= 6) {
+            return 31;
+        }
+
+        if ($jm <= 11) {
+            return 30;
+        }
+
+        return static::isLeapJalaliYear($jy) ? 30 : 29;
+    }
+
+    /**
+     * آیا این تاریخ شمسی معتبر است؟ (ماه ۱ تا ۱۲ و روز در محدوده همان ماه)
+     */
+    public static function isValidJalaliDate(int $jy, int $jm, int $jd): bool
+    {
+        return $jm >= 1
+            && $jm <= 12
+            && $jd >= 1
+            && $jd <= static::jalaliMonthLength($jy, $jm);
+    }
+
+    /**
      * تجزیه ورودی تاریخ فرم‌ها: «۱۴۰۵/۰۷/۲۰» (شمسی) یا «2026-10-12» (میلادی).
      */
     public static function parseInput(?string $value): ?Carbon
@@ -183,6 +218,12 @@ class Jalali
         [, $year, $month, $day] = array_map('intval', $matches);
 
         if ($year < 1700) {
+            // تاریخ شمسی است؛ اول درستی آن را بررسی می‌کنیم تا ورودی‌هایی
+            // مثل «۱۴۰۵/۱۳/۴۵» به تاریخ میلادی بی‌معنا تبدیل نشوند.
+            if (! static::isValidJalaliDate($year, $month, $day)) {
+                return null;
+            }
+
             [$year, $month, $day] = static::toGregorian($year, $month, $day);
         }
 

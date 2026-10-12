@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Panel;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Panel\Concerns\ResolvesChallengeDay;
 use App\Models\Challenge;
 use App\Models\ChallengeTask;
 use App\Support\TextList;
@@ -11,18 +12,23 @@ use Illuminate\Http\Request;
 
 class ChallengeTaskController extends Controller
 {
+    use ResolvesChallengeDay;
+
     public function store(Request $request, Challenge $challenge): RedirectResponse
     {
         $validated = $this->validateTask($request);
+        $dayNumber = $this->resolveDayNumber($request, $challenge);
 
         $challenge->tasks()->create([
-            'day_number' => $validated['day_number'] ?? null,
+            'day_number' => $dayNumber,
             'title' => $validated['title'],
             'description' => $validated['description'] ?? null,
-            'sort_order' => $this->nextSortOrder($challenge, $validated['day_number'] ?? null),
+            'sort_order' => $this->nextSortOrder($challenge, $dayNumber),
         ]);
 
-        return back()->with('status', 'کار جدید اضافه شد.');
+        return back()->with('status', $dayNumber
+            ? 'کار جدید برای روز '.fa_num($dayNumber).' اضافه شد.'
+            : 'کار جدید اضافه شد.');
     }
 
     /**
@@ -31,6 +37,7 @@ class ChallengeTaskController extends Controller
     public function bulkStore(Request $request, Challenge $challenge): RedirectResponse
     {
         $validated = $request->validate([
+            'date' => ['nullable', 'string', 'max:16', $this->jalaliDateRule()],
             'day_number' => ['nullable', 'integer', 'min:1', 'max:365'],
             'items' => ['required', 'string', 'max:10000'],
         ], [
@@ -43,7 +50,7 @@ class ChallengeTaskController extends Controller
             return back()->withErrors(['items' => 'هیچ کاری پیدا نشد؛ هر خط یک کار بنویسید.']);
         }
 
-        $day = $validated['day_number'] ?? null;
+        $day = $this->resolveDayNumber($request, $challenge);
         $sortOrder = $this->nextSortOrder($challenge, $day);
 
         foreach ($items as $title) {
@@ -64,7 +71,7 @@ class ChallengeTaskController extends Controller
         $validated = $this->validateTask($request);
 
         $task->update([
-            'day_number' => $validated['day_number'] ?? null,
+            'day_number' => $this->resolveDayNumber($request, $challenge),
             'title' => $validated['title'],
             'description' => $validated['description'] ?? null,
         ]);
@@ -122,6 +129,7 @@ class ChallengeTaskController extends Controller
     private function validateTask(Request $request): array
     {
         return $request->validate([
+            'date' => ['nullable', 'string', 'max:16', $this->jalaliDateRule()],
             'day_number' => ['nullable', 'integer', 'min:1', 'max:365'],
             'title' => ['required', 'string', 'max:190'],
             'description' => ['nullable', 'string', 'max:2000'],

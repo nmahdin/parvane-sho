@@ -12,6 +12,8 @@ const app = {
         this.initPrint();
         this.initPasswordToggles();
         this.initEmojiPickers();
+        this.initValueFillers();
+        this.initDayTypeForms();
         this.initJalaliDates();
     },
 
@@ -29,6 +31,54 @@ const app = {
 
                 input.value = button.getAttribute('data-emoji-value') ?? button.textContent.trim();
             });
+        });
+    },
+
+    /* پر کردن یک input با مقدار ثابت: data-fill-target="#input" data-fill-value="۱۴۰۵/۰۷/۲۱" */
+    initValueFillers() {
+        document.querySelectorAll('[data-fill-target]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const input = document.querySelector(button.getAttribute('data-fill-target'));
+                if (!input) return;
+
+                input.value = button.getAttribute('data-fill-value') ?? '';
+                input.dispatchEvent(new Event('change', { bubbles: true }));
+                input.focus();
+            });
+        });
+    },
+
+    /* فرم «افزودن به روز»: انتخاب نوع محتوا (کار یا پرسش) و نمایش فیلدهای مربوط به آن */
+    initDayTypeForms() {
+        document.querySelectorAll('form[data-day-type-form]').forEach((form) => {
+            const radios = Array.from(form.querySelectorAll('input[name="type"]'));
+            const groups = Array.from(form.querySelectorAll('[data-day-group]'));
+            const labels = Array.from(form.querySelectorAll('[data-day-type-label]'));
+
+            const sync = () => {
+                const value = radios.find((radio) => radio.checked)?.value ?? 'task';
+
+                groups.forEach((group) => {
+                    const active = group.getAttribute('data-day-group') === value;
+                    group.classList.toggle('hidden', !active);
+                    group.classList.toggle('grid', active);
+
+                    // فیلدهای گروه پنهان ارسال نمی‌شوند تا اعتبارسنجی مرورگر گیر نکند
+                    group.querySelectorAll('input, textarea, select').forEach((field) => {
+                        field.disabled = !active;
+                    });
+                });
+
+                labels.forEach((label) => {
+                    const active = label.getAttribute('data-day-type-label') === value;
+                    label.classList.toggle('bg-forest', active);
+                    label.classList.toggle('text-white', active);
+                    label.classList.toggle('ring-forest', active);
+                });
+            };
+
+            radios.forEach((radio) => radio.addEventListener('change', sync));
+            sync();
         });
     },
 

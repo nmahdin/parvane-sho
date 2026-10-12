@@ -18,7 +18,7 @@ class ParticipantDashboardController extends Controller
         $participant->load([
             'challenge.tasks',
             'challenge.tips',
-            'challenge.publishedQuestions',
+            'challenge.questions',
             'challenge.attachments',
         ]);
 

@@ -213,9 +213,73 @@ class Challenge extends Model
         return $this->tasks->groupBy(fn (ChallengeTask $task) => $task->day_number ?? 0);
     }
 
+    /**
+     * پرسش‌ها گروه‌بندی‌شده بر اساس روزی که برایشان تعیین شده است.
+     *
+     * @return Collection<int|string, Collection<int, ChallengeQuestion>>
+     */
+    public function questionsByDay(bool $onlyPublished = false): Collection
+    {
+        return $this->questions
+            ->when($onlyPublished, fn (Collection $questions) => $questions->where('is_published', true))
+            ->groupBy(fn (ChallengeQuestion $question) => $question->day_number ?? 0);
+    }
+
+    /**
+     * همه روزهای چالش که محتوا دارند (کار یا پرسش)، به ترتیب.
+     * روز صفر یعنی «محتواهای بدون روز».
+     *
+     * @return Collection<int, int>
+     */
+    public function contentDayNumbers(): Collection
+    {
+        return $this->tasks->pluck('day_number')
+            ->merge($this->questions->pluck('day_number'))
+            ->filter()
+            ->map(fn ($day) => (int) $day)
+            ->unique()
+            ->sort()
+            ->values();
+    }
+
+    /**
+     * کارها و پرسش‌های هر روز، کنار هم و به ترتیب روز.
+     * روز صفر یعنی محتواهایی که به روزی نسبت داده نشده‌اند.
+     *
+     * @return Collection<int|string, array{tasks: Collection<int, ChallengeTask>, questions: Collection<int, ChallengeQuestion>}>
+     */
+    public function contentByDay(bool $onlyPublishedQuestions = false): Collection
+    {
+        $tasks = $this->tasksByDay();
+        $questions = $this->questionsByDay($onlyPublishedQuestions);
+
+        return $tasks->keys()
+            ->merge($questions->keys())
+            ->unique()
+            ->sort()
+            ->values()
+            ->mapWithKeys(fn ($day) => [
+                $day => [
+                    'tasks' => $tasks->get($day) ?? collect(),
+                    'questions' => $questions->get($day) ?? collect(),
+                ],
+            ]);
+    }
+
+    /**
+     * تعداد روزهای چالش بر پایه کارها (پیشرفت شرکت‌کننده‌ها با کارها سنجیده می‌شود).
+     */
     public function daysCount(): int
     {
         return $this->tasks->pluck('day_number')->filter()->unique()->count() ?: $this->tasks->count();
+    }
+
+    /**
+     * تعداد روزهایی که محتوا دارند (کار یا پرسش).
+     */
+    public function contentDaysCount(): int
+    {
+        return $this->contentDayNumbers()->count();
     }
 
     public function tasksCount(): int
@@ -305,7 +369,37 @@ class Challenge extends Model
             return null;
         }
 
-        return $this->dayOneDate()->addDays($dayNumber - 1);
+        return $this->dateForDay($dayNumber);
+    }
+
+    /**
+     * تاریخ میلادی یک روز از چالش (روز ۱ = روز اول چالش)، بدون توجه به قفل بودن.
+     */
+    public function dateForDay(int $dayNumber): Carbon
+    {
+        return $this->dayOneDate()->addDays(max(1, $dayNumber) - 1);
+    }
+
+    /**
+     * شماره روز چالش برای یک تاریخ مشخص (روز ۱ = روز اول چالش).
+     */
+    public function dayNumberForDate(Carbon|\DateTimeInterface|string $date): int
+    {
+        $target = ($date instanceof Carbon ? $date->copy() : Carbon::parse($date))->startOfDay();
+
+        return max(1, (int) $this->dayOneDate()->diffInDays($target, false) + 1);
+    }
+
+    /**
+     * برچسب تاریخ یک روز، مثل «سه‌شنبه، ۲۱ مهر ۱۴۰۵».
+     */
+    public function dayDateLabel(?int $dayNumber): ?string
+    {
+        if (! $dayNumber || $dayNumber < 1) {
+            return null;
+        }
+
+        return fa_date($this->dateForDay($dayNumber), true);
     }
 
     public function isDayUnlocked(?int $dayNumber): bool
@@ -321,6 +415,14 @@ class Challenge extends Model
     public function isTaskLocked(ChallengeTask $task): bool
     {
         return ! $this->isDayUnlocked($task->day_number);
+    }
+
+    /**
+     * آیا این پرسش در روزی است که برای شرکت‌کننده‌ها هنوز قفل است؟
+     */
+    public function isQuestionLocked(ChallengeQuestion $question): bool
+    {
+        return ! $this->isDayUnlocked($question->day_number);
     }
 
     public function unlockLabel(?int $dayNumber): ?string
@@ -354,11 +456,8 @@ class Challenge extends Model
             return 0;
         }
 
-        return $this->tasks
-            ->pluck('day_number')
-            ->filter()
-            ->unique()
-            ->reject(fn ($day) => $this->isDayUnlocked((int) $day))
+        return $this->contentDayNumbers()
+            ->reject(fn (int $day) => $this->isDayUnlocked($day))
             ->count();
     }
 
@@ -371,11 +470,8 @@ class Challenge extends Model
             return null;
         }
 
-        $dates = $this->tasks
-            ->pluck('day_number')
-            ->filter()
-            ->unique()
-            ->map(fn ($day) => $this->dayUnlockDate((int) $day))
+        $dates = $this->contentDayNumbers()
+            ->map(fn (int $day) => $this->dayUnlockDate($day))
             ->filter(fn (?Carbon $date) => $date && $date->greaterThan(Carbon::today()->startOfDay()))
             ->sort();
 

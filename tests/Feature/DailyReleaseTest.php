@@ -43,7 +43,8 @@ class DailyReleaseTest extends TestCase
 
     public function test_locked_days_are_hidden_on_the_public_page(): void
     {
-        $challenge = $this->makeChallenge();
+        // چالش از امروز شروع می‌شود، پس روز دوم هنوز قفل است.
+        $challenge = $this->makeChallenge(['starts_on' => today()]);
         $challenge->tasks()->create(['day_number' => 1, 'title' => 'کار امروز']);
         $challenge->tasks()->create(['day_number' => 2, 'title' => 'کار فردا']);
 

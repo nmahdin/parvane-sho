@@ -32,7 +32,7 @@ class ChallengeController extends Controller
         return view('panel.challenges.form', [
             'challenge' => new Challenge([
                 'emoji' => '🦋',
-                'accent' => 'violet',
+                'accent' => 'jade',
                 'is_published' => true,
                 'starts_on' => today(),
             ]),
@@ -61,13 +61,21 @@ class ChallengeController extends Controller
             ->withCount(['completions as completed_count' => fn ($query) => $query->whereNotNull('completed_at')])
             ->get();
 
-        $lastDay = (int) $challenge->tasks->max('day_number');
+        $lastDay = (int) ($challenge->contentDayNumbers()->last() ?? 0);
+        $nextDayNumber = $lastDay > 0 ? min(365, $lastDay + 1) : 1;
+
+        // پیشنهاد پیش‌فرض تاریخ برای افزودن کار/پرسش: روز جاری چالش و اگر شروع نشده، روز بعدی خالی.
+        $defaultDay = $challenge->currentDayNumber() ?? $nextDayNumber;
 
         return view('panel.challenges.show', [
             'challenge' => $challenge,
             'participants' => $participants,
             'tasksCount' => $challenge->tasks->count(),
-            'nextDayNumber' => $challenge->tasks->isEmpty() ? 1 : min(365, $lastDay + 1),
+            'questionsCount' => $challenge->questions->count(),
+            'nextDayNumber' => $nextDayNumber,
+            'defaultDay' => $defaultDay,
+            'defaultDate' => Jalali::inputValue($challenge->dateForDay($defaultDay)),
+            'defaultDayLabel' => $challenge->dayDateLabel($defaultDay),
         ]);
     }
 

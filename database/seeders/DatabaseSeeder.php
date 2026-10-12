@@ -82,6 +82,7 @@ class DatabaseSeeder extends Seeder
 
         $challenge->questions()->createMany([
             [
+                'day_number' => 1,
                 'question' => 'اگر یک روز را از دست بدهم چه می‌شود؟',
                 'answer' => 'هیچ چیزی از بین نمی‌رود. می‌توانی همان روز را بعداً کامل کنی و زنجیره‌ات را ادامه بدهی. فقط عدد «روزهای پیوسته» ممکن است صفر شود، اما پیشرفت کلی‌ات حفظ می‌شود.',
                 'asked_by' => 'زهرا محمدی',
@@ -89,6 +90,7 @@ class DatabaseSeeder extends Seeder
                 'sort_order' => 1,
             ],
             [
+                'day_number' => 2,
                 'question' => 'باید کارها را همان روز انجام بدهم؟',
                 'answer' => 'ترجیحاً بله، ولی اگر عقب افتادی تا آخر چالش فرصت جبران داری.',
                 'asked_by' => null,
@@ -97,6 +99,7 @@ class DatabaseSeeder extends Seeder
             ],
             [
                 'question' => 'آیا می‌توانم چالش را با یک دوست انجام بدهم؟',
+                'day_number' => null,
                 'answer' => 'بله! کافی است نامش را به مسئول چالش بگویی تا در فهرست ثبت شود و کد اختصاصی خودش را بگیرد.',
                 'asked_by' => 'امیر رضایی',
                 'is_published' => true,

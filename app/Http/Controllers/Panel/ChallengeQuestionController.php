@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Panel;
 
 use App\Http\Controllers\Controller;
+use App\Http\Controllers\Panel\Concerns\ResolvesChallengeDay;
 use App\Models\Challenge;
 use App\Models\ChallengeQuestion;
 use Illuminate\Http\RedirectResponse;
@@ -10,19 +11,25 @@ use Illuminate\Http\Request;
 
 class ChallengeQuestionController extends Controller
 {
+    use ResolvesChallengeDay;
+
     public function store(Request $request, Challenge $challenge): RedirectResponse
     {
         $validated = $this->validated($request);
+        $dayNumber = $this->resolveDayNumber($request, $challenge);
 
         $challenge->questions()->create([
+            'day_number' => $dayNumber,
             'question' => $validated['question'],
             'answer' => $validated['answer'] ?? null,
             'asked_by' => $validated['asked_by'] ?? null,
             'is_published' => $request->boolean('is_published', true),
-            'sort_order' => (int) $challenge->questions()->max('sort_order') + 1,
+            'sort_order' => $this->nextSortOrder($challenge, $dayNumber),
         ]);
 
-        return back()->with('status', 'پرسش اضافه شد.');
+        return back()->with('status', $dayNumber
+            ? 'پرسش برای روز '.fa_num($dayNumber).' اضافه شد.'
+            : 'پرسش اضافه شد.');
     }
 
     public function update(Request $request, Challenge $challenge, ChallengeQuestion $question): RedirectResponse
@@ -32,6 +39,7 @@ class ChallengeQuestionController extends Controller
         $validated = $this->validated($request);
 
         $question->update([
+            'day_number' => $this->resolveDayNumber($request, $challenge),
             'question' => $validated['question'],
             'answer' => $validated['answer'] ?? null,
             'asked_by' => $validated['asked_by'] ?? null,
@@ -67,7 +75,14 @@ class ChallengeQuestionController extends Controller
 
         abort_unless(in_array($direction, ['up', 'down'], true), 404);
 
-        $siblings = $challenge->questions()->whereKeyNot($question->getKey())->get();
+        $siblings = $challenge->questions()
+            ->whereKeyNot($question->getKey())
+            ->when(
+                $question->day_number,
+                fn ($query) => $query->where('day_number', $question->day_number),
+                fn ($query) => $query->whereNull('day_number')
+            )
+            ->get();
 
         $neighbour = $direction === 'up'
             ? $siblings->where('sort_order', '<=', $question->sort_order)->last()
@@ -88,6 +103,8 @@ class ChallengeQuestionController extends Controller
     private function validated(Request $request): array
     {
         return $request->validate([
+            'date' => ['nullable', 'string', 'max:16', $this->jalaliDateRule()],
+            'day_number' => ['nullable', 'integer', 'min:1', 'max:365'],
             'question' => ['required', 'string', 'max:190'],
             'answer' => ['nullable', 'string', 'max:4000'],
             'asked_by' => ['nullable', 'string', 'max:120'],
@@ -98,6 +115,20 @@ class ChallengeQuestionController extends Controller
             'answer' => 'پاسخ',
             'asked_by' => 'پرسنده',
         ]);
+    }
+
+    /**
+     * ترتیب پرسش‌ها در همان روز (گروه) جداگانه شمرده می‌شود.
+     */
+    private function nextSortOrder(Challenge $challenge, ?int $dayNumber): int
+    {
+        return (int) $challenge->questions()
+            ->when(
+                $dayNumber,
+                fn ($query) => $query->where('day_number', $dayNumber),
+                fn ($query) => $query->whereNull('day_number')
+            )
+            ->max('sort_order') + 1;
     }
 
     private function ensureBelongsToChallenge(Challenge $challenge, ChallengeQuestion $question): void

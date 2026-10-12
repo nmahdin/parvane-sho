@@ -4,7 +4,7 @@
 
 @section('title', $challenge->title)
 @section('page-title', 'مدیریت چالش: '.$challenge->title)
-@section('page-subtitle', fa_num($participants->count()).' شرکت‌کننده · '.fa_num($tasksCount).' کار')
+@section('page-subtitle', fa_num($participants->count()).' شرکت‌کننده · '.fa_num($tasksCount).' کار · '.fa_num($questionsCount).' پرسش')
 
 @section('page-actions')
     <a href="{{ $challenge->publicUrl() }}" target="_blank" class="btn btn-white btn-sm">مشاهده در سایت ↗</a>
@@ -45,7 +45,7 @@
             </div>
         </div>
 
-        <div class="mt-6 grid gap-4 border-t border-line pt-6 sm:grid-cols-4">
+        <div class="mt-6 grid gap-4 border-t border-line pt-6 sm:grid-cols-5">
             <div>
                 <p class="text-xs text-muted">روزها</p>
                 <p class="mt-1 text-lg font-bold text-ink">{{ fa_num($challenge->daysCount()) }}</p>
@@ -53,6 +53,10 @@
             <div>
                 <p class="text-xs text-muted">کارها</p>
                 <p class="mt-1 text-lg font-bold text-ink">{{ fa_num($tasksCount) }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-muted">پرسش و پاسخ‌ها</p>
+                <p class="mt-1 text-lg font-bold text-ink">{{ fa_num($questionsCount) }}</p>
             </div>
             <div>
                 <p class="text-xs text-muted">شرکت‌کننده‌ها</p>
@@ -68,9 +72,8 @@
     {{-- ناوبری بخش‌های چالش --}}
     <nav class="flex gap-2 overflow-x-auto rounded-3xl bg-paper p-3 shadow-sm ring-1 ring-line">
         @foreach ([
-            ['#tasks', '📝 روزها و کارها'],
+            ['#tasks', '📝 روزها، کارها و پرسش‌ها'],
             ['#tips', '💡 نکات'],
-            ['#qa', '❓ پرسش و پاسخ'],
             ['#files', '📎 فایل‌ها'],
             ['#participants', '👥 شرکت‌کننده‌ها'],
         ] as [$href, $label])
@@ -78,154 +81,377 @@
         @endforeach
     </nav>
 
-    {{-- کارها --}}
+    {{-- روزها: کارها و پرسش و پاسخ --}}
     <section class="card scroll-mt-24" id="tasks">
         <div class="flex flex-wrap items-start justify-between gap-4">
             <div>
-                <h2 class="text-base">روزها و کارها</h2>
+                <h2 class="text-base">روزها: کارها و پرسش‌ها</h2>
                 <p class="mt-1 text-xs leading-6 text-muted">
-                    هر کار را به یک روز نسبت بده (مثلاً روز ۱، روز ۲ و ...). شرکت‌کننده‌ها همین کارها را در داشبورد خودشان تیک می‌زنند.
+                    برای هر کار یا پرسش، <span class="font-semibold text-ink">تاریخ همان روز</span> را انتخاب کن (روز ۱ = تاریخ شروع چالش).
+                    کارها و پرسش‌های هر روز با هم داخل کارت همان روز می‌نشینند و شرکت‌کننده‌ها هر روز فقط محتوای همان روز را می‌بینند.
                 </p>
 
                 @if ($challenge->releasesDaily())
                     <p class="mt-3 rounded-xl bg-gold/15 px-3 py-2 text-xs leading-6 text-ink ring-1 ring-gold/50">
-                        🔒 آزادسازی روزبه‌روز فعال است؛ برای شرکت‌کننده‌ها هر روز فقط کارهای روزهای بازشده قابل دیدن و تیک‌زدن است.
+                        🔒 آزادسازی روزبه‌روز فعال است؛ کارها و پرسش‌های هر روز تا تاریخ همان روز برای شرکت‌کننده‌ها پنهان می‌مانند.
                         خودت به عنوان مدیر همه روزها را می‌بینی.
                     </p>
                 @endif
             </div>
 
             <details class="w-full sm:w-auto">
-                <summary class="btn btn-primary btn-sm list-none">+ افزودن کار</summary>
+                <summary class="btn btn-primary btn-sm list-none">+ افزودن کار یا پرسش</summary>
 
-                <form method="POST" action="{{ route('panel.tasks.store', $challenge) }}" class="mt-4 grid gap-4 rounded-2xl bg-cream p-4 sm:grid-cols-[7rem_1fr]">
+                <form method="POST" action="{{ route('panel.days.store', $challenge) }}" data-day-type-form
+                      class="mt-4 grid w-full gap-4 rounded-2xl bg-cream p-4 text-right sm:max-w-2xl">
                     @csrf
 
-                    <div>
-                        <label class="label" for="task-day">روز</label>
-                        <input id="task-day" type="number" name="day_number" min="1" max="365" value="{{ $nextDayNumber }}" class="input">
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div>
+                            <label class="label" for="day-date">تاریخ روز</label>
+                            <input id="day-date" name="date" type="text" value="{{ old('date', $defaultDate) }}" dir="ltr"
+                                   data-jalali-picker autocomplete="off" class="input text-center">
+                            <p class="hint">روز خودکار حساب می‌شود؛ پیشنهاد: {{ $defaultDayLabel }} (روز {{ fa_num($defaultDay) }})</p>
+                        </div>
+
+                        <div>
+                            <span class="label">روزهای ساخته‌شده</span>
+                            <div class="flex flex-wrap gap-1.5">
+                                @foreach ($challenge->contentDayNumbers() as $dayChip)
+                                    <button type="button"
+                                            data-fill-target="#day-date"
+                                            data-fill-value="{{ \App\Support\Jalali::inputValue($challenge->dateForDay((int) $dayChip)) }}"
+                                            class="rounded-xl bg-paper px-2.5 py-1.5 text-[11px] text-ink/80 ring-1 ring-line transition hover:bg-gold/15">
+                                        روز {{ fa_num($dayChip) }} · {{ fa_date($challenge->dateForDay((int) $dayChip)) }}
+                                    </button>
+                                @endforeach
+
+                                <button type="button" data-fill-target="#day-date" data-fill-value=""
+                                        class="rounded-xl bg-paper px-2.5 py-1.5 text-[11px] text-ink/80 ring-1 ring-line transition hover:bg-gold/15">
+                                    بدون روز مشخص
+                                </button>
+                            </div>
+                        </div>
                     </div>
 
                     <div>
-                        <label class="label" for="task-title">عنوان کار</label>
-                        <input id="task-title" type="text" name="title" required class="input" placeholder="مثلاً ۲۰ دقیقه پیاده‌روی">
+                        <span class="label">چه چیزی اضافه شود؟</span>
+                        <div class="flex flex-wrap gap-2">
+                            <label data-day-type-label="task" class="cursor-pointer rounded-2xl px-4 py-2 text-xs ring-1 ring-line transition">
+                                <input type="radio" name="type" value="task" class="sr-only" @checked(old('type', 'task') !== 'question')> 📝 کار
+                            </label>
+
+                            <label data-day-type-label="question" class="cursor-pointer rounded-2xl px-4 py-2 text-xs ring-1 ring-line transition">
+                                <input type="radio" name="type" value="question" class="sr-only" @checked(old('type') === 'question')> ❓ پرسش و پاسخ
+                            </label>
+                        </div>
                     </div>
 
-                    <div class="sm:col-span-2">
-                        <label class="label" for="task-description">توضیح (اختیاری)</label>
-                        <textarea id="task-description" name="description" rows="2" class="input resize-y" placeholder="جزئیات یا شرط انجام کار..."></textarea>
+                    <div data-day-group="task" class="grid gap-4">
+                        <div>
+                            <label class="label" for="day-task-title">عنوان کار</label>
+                            <input id="day-task-title" name="title" type="text" class="input" placeholder="مثلاً ۲۰ دقیقه پیاده‌روی">
+                        </div>
+
+                        <div>
+                            <label class="label" for="day-task-description">توضیح کار (اختیاری)</label>
+                            <textarea id="day-task-description" name="description" rows="2" class="input resize-y" placeholder="جزئیات یا شرط انجام کار..."></textarea>
+                        </div>
                     </div>
 
-                    <div class="sm:col-span-2">
-                        <button type="submit" class="btn btn-primary">ذخیره کار</button>
+                    <div data-day-group="question" class="hidden gap-4">
+                        <div>
+                            <label class="label" for="day-question-text">متن پرسش</label>
+                            <input id="day-question-text" name="question" type="text" class="input" placeholder="مثلاً اگر یک روز را از دست بدهم چه می‌شود؟">
+                        </div>
+
+                        <div>
+                            <label class="label" for="day-question-answer">پاسخ</label>
+                            <textarea id="day-question-answer" name="answer" rows="3" class="input resize-y" placeholder="پاسخ روشن و کوتاه..."></textarea>
+                        </div>
+
+                        <div class="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
+                            <div>
+                                <label class="label" for="day-question-by">پرسنده (اختیاری)</label>
+                                <input id="day-question-by" name="asked_by" type="text" class="input" placeholder="نام شرکت‌کننده">
+                            </div>
+
+                            <label class="flex items-center gap-2 pb-3 text-xs text-ink/80">
+                                <input type="checkbox" name="is_published" value="1" checked class="size-4 rounded border-line text-brand-600 focus:ring-brand-500">
+                                نمایش در صفحه چالش
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <button type="submit" class="btn btn-primary">ذخیره در این روز</button>
                     </div>
                 </form>
             </details>
         </div>
 
         <div class="mt-6 space-y-5">
-            @forelse ($challenge->tasksByDay() as $day => $tasksOfDay)
+            @forelse ($challenge->contentByDay() as $day => $content)
+                @php($tasksOfDay = $content['tasks'])
+                @php($questionsOfDay = $content['questions'])
+                @php($dayNumber = (int) $day)
+                @php($isGeneral = $dayNumber === 0)
+                @php($dayDate = $isGeneral ? null : $challenge->dayDateLabel($dayNumber))
+
                 <div class="overflow-hidden rounded-3xl ring-1 ring-line">
                     <div class="flex flex-wrap items-center justify-between gap-3 bg-cream px-5 py-3">
                         <h3 class="flex flex-wrap items-center gap-2 text-sm font-semibold text-ink">
-                            {{ $day > 0 ? 'روز '.fa_num($day) : 'کارهای کلی' }}
-                            <span class="text-xs font-normal text-muted">{{ fa_num($tasksOfDay->count()) }} کار</span>
+                            {{ $isGeneral ? 'بدون روز مشخص' : 'روز '.fa_num($dayNumber) }}
 
-                            @if ($day > 0 && $challenge->releasesDaily())
-                                @if ($challenge->isDayUnlocked((int) $day))
+                            @if ($dayDate)
+                                <span class="text-xs font-normal text-muted">· {{ $dayDate }}</span>
+                            @endif
+
+                            <span class="text-xs font-normal text-muted">
+                                {{ fa_num($tasksOfDay->count()) }} کار
+                                @if ($questionsOfDay->isNotEmpty())
+                                    · {{ fa_num($questionsOfDay->count()) }} پرسش
+                                @endif
+                            </span>
+
+                            @if (! $isGeneral && $challenge->releasesDaily())
+                                @if ($challenge->isDayUnlocked($dayNumber))
                                     <span class="badge bg-leaf/10 text-forest ring-leaf/30">باز</span>
                                 @else
                                     <span class="badge bg-gold/15 text-ink ring-gold/50">
-                                        🔒 قفل@if ($challenge->unlockLabel((int) $day)) تا {{ $challenge->unlockLabel((int) $day) }} @endif
+                                        🔒 قفل@if ($challenge->unlockLabel($dayNumber)) تا {{ $challenge->unlockLabel($dayNumber) }} @endif
                                     </span>
                                 @endif
                             @endif
                         </h3>
                     </div>
 
-                    <ul class="divide-y divide-line bg-paper">
-                        @foreach ($tasksOfDay as $task)
-                            <li class="px-5 py-4">
-                                <div class="flex flex-wrap items-start justify-between gap-3">
-                                    <div class="min-w-0 flex-1">
-                                        <p class="text-sm font-medium text-ink">{{ $task->title }}</p>
-                                        @if ($task->description)
-                                            <p class="mt-1 text-xs leading-6 text-muted">{{ $task->description }}</p>
-                                        @endif
-                                    </div>
+                    {{-- کارهای این روز --}}
+                    @if ($tasksOfDay->isEmpty())
+                        <p class="bg-paper px-5 py-3 text-xs text-muted">برای این روز هنوز کاری ثبت نشده است.</p>
+                    @else
+                        <ul class="divide-y divide-line bg-paper">
+                            @foreach ($tasksOfDay as $task)
+                                <li class="px-5 py-4">
+                                    <div class="flex flex-wrap items-start justify-between gap-3">
+                                        <div class="min-w-0 flex-1">
+                                            <p class="text-sm font-medium text-ink">{{ $task->title }}</p>
+                                            @if ($task->description)
+                                                <p class="mt-1 text-xs leading-6 text-muted">{{ $task->description }}</p>
+                                            @endif
+                                        </div>
 
-                                    <div class="flex items-center gap-1">
-                                        <form method="POST" action="{{ route('panel.tasks.move', [$challenge, $task, 'up']) }}">
-                                            @csrf
-                                            @method('PATCH')
-                                            <button type="submit" class="btn btn-ghost btn-sm" aria-label="بالا">↑</button>
-                                        </form>
-
-                                        <form method="POST" action="{{ route('panel.tasks.move', [$challenge, $task, 'down']) }}">
-                                            @csrf
-                                            @method('PATCH')
-                                            <button type="submit" class="btn btn-ghost btn-sm" aria-label="پایین">↓</button>
-                                        </form>
-
-                                        <details>
-                                            <summary class="btn btn-ghost btn-sm list-none">ویرایش</summary>
-
-                                            <form method="POST" action="{{ route('panel.tasks.update', [$challenge, $task]) }}" class="mt-3 grid w-full max-w-xl gap-3 rounded-2xl bg-cream p-4 text-right sm:grid-cols-[7rem_1fr]">
+                                        <div class="flex items-center gap-1">
+                                            <form method="POST" action="{{ route('panel.tasks.move', [$challenge, $task, 'up']) }}">
                                                 @csrf
-                                                @method('PUT')
-
-                                                <div>
-                                                    <label class="label">روز</label>
-                                                    <input type="number" name="day_number" min="1" max="365" value="{{ $task->day_number }}" class="input">
-                                                </div>
-
-                                                <div>
-                                                    <label class="label">عنوان</label>
-                                                    <input type="text" name="title" value="{{ $task->title }}" required class="input">
-                                                </div>
-
-                                                <div class="sm:col-span-2">
-                                                    <label class="label">توضیح</label>
-                                                    <textarea name="description" rows="2" class="input resize-y">{{ $task->description }}</textarea>
-                                                </div>
-
-                                                <div class="sm:col-span-2">
-                                                    <button type="submit" class="btn btn-primary btn-sm">ذخیره</button>
-                                                </div>
+                                                @method('PATCH')
+                                                <button type="submit" class="btn btn-ghost btn-sm" aria-label="بالا">↑</button>
                                             </form>
-                                        </details>
 
-                                        <form method="POST" action="{{ route('panel.tasks.destroy', [$challenge, $task]) }}" data-confirm="این کار حذف شود؟ تیک‌های مربوط به آن هم پاک می‌شود.">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-danger btn-sm">حذف</button>
-                                        </form>
+                                            <form method="POST" action="{{ route('panel.tasks.move', [$challenge, $task, 'down']) }}">
+                                                @csrf
+                                                @method('PATCH')
+                                                <button type="submit" class="btn btn-ghost btn-sm" aria-label="پایین">↓</button>
+                                            </form>
+
+                                            <details>
+                                                <summary class="btn btn-ghost btn-sm list-none">ویرایش</summary>
+
+                                                <form method="POST" action="{{ route('panel.tasks.update', [$challenge, $task]) }}" class="mt-3 grid w-full max-w-xl gap-3 rounded-2xl bg-cream p-4 text-right sm:grid-cols-2">
+                                                    @csrf
+                                                    @method('PUT')
+
+                                                    <div>
+                                                        <label class="label">تاریخ روز</label>
+                                                        <input type="text" name="date" dir="ltr" data-jalali-picker class="input text-center"
+                                                               value="{{ \App\Support\Jalali::inputValue($challenge->dateForDay($task->day_number ?? 1)) }}">
+                                                        <p class="hint">با تغییر تاریخ، کار به آن روز منتقل می‌شود.</p>
+                                                    </div>
+
+                                                    <div>
+                                                        <label class="label">عنوان</label>
+                                                        <input type="text" name="title" value="{{ $task->title }}" required class="input">
+                                                    </div>
+
+                                                    <div class="sm:col-span-2">
+                                                        <label class="label">توضیح</label>
+                                                        <textarea name="description" rows="2" class="input resize-y">{{ $task->description }}</textarea>
+                                                    </div>
+
+                                                    <div class="sm:col-span-2">
+                                                        <button type="submit" class="btn btn-primary btn-sm">ذخیره</button>
+                                                    </div>
+                                                </form>
+                                            </details>
+
+                                            <form method="POST" action="{{ route('panel.tasks.destroy', [$challenge, $task]) }}" data-confirm="این کار حذف شود؟ تیک‌های مربوط به آن هم پاک می‌شود.">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-danger btn-sm">حذف</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @endif
+
+                    {{-- پرسش‌های همین روز --}}
+                    @if ($questionsOfDay->isNotEmpty())
+                        <div class="space-y-3 border-t border-line bg-paper px-5 py-4">
+                            <p class="flex items-center gap-2 text-xs font-semibold text-forest">
+                                <span>❓</span> پرسش و پاسخ این روز
+                            </p>
+
+                            @foreach ($questionsOfDay as $question)
+                                <div class="rounded-2xl bg-cream p-4">
+                                    <div class="flex flex-wrap items-start justify-between gap-3">
+                                        <div class="min-w-0 flex-1">
+                                            <div class="flex flex-wrap items-center gap-2">
+                                                <p class="text-sm font-medium text-ink">{{ $question->question }}</p>
+                                                <span class="badge {{ $question->is_published ? 'bg-leaf/10 text-forest ring-leaf/30' : 'bg-line text-ink/80 ring-line' }}">
+                                                    {{ $question->is_published ? 'نمایش داده می‌شود' : 'پنهان' }}
+                                                </span>
+                                            </div>
+
+                                            @if ($question->asked_by)
+                                                <p class="mt-1 text-[11px] text-muted/80">پرسیده‌شده توسط {{ $question->asked_by }}</p>
+                                            @endif
+
+                                            <p class="mt-2 border-s-2 border-line ps-3 text-xs leading-6 text-ink/80">
+                                                {!! $question->answer ? \App\Support\RichText::toHtml($question->answer) : '<span class="text-muted/80">بدون پاسخ</span>' !!}
+                                            </p>
+                                        </div>
+
+                                        <div class="flex items-center gap-1">
+                                            <form method="POST" action="{{ route('panel.questions.move', [$challenge, $question, 'up']) }}">
+                                                @csrf
+                                                @method('PATCH')
+                                                <button type="submit" class="btn btn-ghost btn-sm" aria-label="بالا">↑</button>
+                                            </form>
+
+                                            <form method="POST" action="{{ route('panel.questions.move', [$challenge, $question, 'down']) }}">
+                                                @csrf
+                                                @method('PATCH')
+                                                <button type="submit" class="btn btn-ghost btn-sm" aria-label="پایین">↓</button>
+                                            </form>
+
+                                            <form method="POST" action="{{ route('panel.questions.publish', [$challenge, $question]) }}">
+                                                @csrf
+                                                @method('PATCH')
+                                                <button type="submit" class="btn btn-white btn-sm">{{ $question->is_published ? 'پنهان کن' : 'نمایش بده' }}</button>
+                                            </form>
+
+                                            <details>
+                                                <summary class="btn btn-ghost btn-sm list-none">ویرایش</summary>
+
+                                                <form method="POST" action="{{ route('panel.questions.update', [$challenge, $question]) }}" class="mt-3 grid w-full max-w-lg gap-3 rounded-2xl bg-paper p-4 text-right ring-1 ring-line">
+                                                    @csrf
+                                                    @method('PUT')
+
+                                                    <div class="grid gap-3 sm:grid-cols-2">
+                                                        <div>
+                                                            <label class="label">تاریخ روز</label>
+                                                            <input type="text" name="date" dir="ltr" data-jalali-picker class="input text-center"
+                                                                   value="{{ $question->day_number ? \App\Support\Jalali::inputValue($challenge->dateForDay($question->day_number)) : '' }}">
+                                                            <p class="hint">خالی بگذاری، پرسش در «بدون روز مشخص» می‌نشیند.</p>
+                                                        </div>
+
+                                                        <div>
+                                                            <label class="label">پرسنده</label>
+                                                            <input type="text" name="asked_by" value="{{ $question->asked_by }}" class="input">
+                                                        </div>
+                                                    </div>
+
+                                                    <div>
+                                                        <label class="label">پرسش</label>
+                                                        <input type="text" name="question" value="{{ $question->question }}" required class="input">
+                                                    </div>
+
+                                                    <div>
+                                                        <label class="label">پاسخ</label>
+                                                        <textarea name="answer" rows="3" class="input resize-y">{{ $question->answer }}</textarea>
+                                                    </div>
+
+                                                    <label class="flex items-center gap-2 text-xs text-ink/80">
+                                                        <input type="checkbox" name="is_published" value="1" @checked($question->is_published) class="size-4 rounded border-line text-brand-600 focus:ring-brand-500">
+                                                        نمایش در صفحه چالش
+                                                    </label>
+
+                                                    <button type="submit" class="btn btn-primary btn-sm">ذخیره</button>
+                                                </form>
+                                            </details>
+
+                                            <form method="POST" action="{{ route('panel.questions.destroy', [$challenge, $question]) }}" data-confirm="این پرسش حذف شود؟">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-danger btn-sm">حذف</button>
+                                            </form>
+                                        </div>
                                     </div>
                                 </div>
-                            </li>
-                        @endforeach
-                    </ul>
+                            @endforeach
+                        </div>
+                    @endif
 
-                    @if ($day > 0)
-                        <details class="border-t border-line bg-cream/70 px-5 py-3">
-                            <summary class="cursor-pointer text-xs font-medium text-brand-700">+ افزودن چند کار به روز {{ fa_num($day) }}</summary>
+                    {{-- افزودن سریع به همین روز --}}
+                    <div class="grid gap-3 border-t border-line bg-cream/70 px-5 py-3 lg:grid-cols-2">
+                        <details>
+                            <summary class="cursor-pointer text-xs font-medium text-brand-700">+ افزودن چند کار به این روز</summary>
 
-                            <form method="POST" action="{{ route('panel.tasks.bulk', $challenge) }}" class="mt-4 max-w-2xl space-y-3 text-right">
+                            <form method="POST" action="{{ route('panel.tasks.bulk', $challenge) }}" class="mt-4 space-y-3 text-right">
                                 @csrf
-                                <input type="hidden" name="day_number" value="{{ $day }}">
 
-                                <label class="label" for="bulk-{{ $day }}">هر خط یک کار</label>
-                                <textarea id="bulk-{{ $day }}" name="items" rows="4" required class="input resize-y" placeholder="۲۰ دقیقه پیاده‌روی&#10;نوشتن سه جمله شکرگزاری&#10;۱۰ دقیقه تمرین تمرکز"></textarea>
+                                @if (! $isGeneral)
+                                    <input type="hidden" name="day_number" value="{{ $dayNumber }}">
+                                @endif
 
-                                <button type="submit" class="btn btn-primary btn-sm">افزودن به روز {{ fa_num($day) }}</button>
+                                <label class="label" for="bulk-{{ $dayNumber }}">هر خط یک کار</label>
+                                <textarea id="bulk-{{ $dayNumber }}" name="items" rows="4" required class="input resize-y" placeholder="۲۰ دقیقه پیاده‌روی&#10;نوشتن سه جمله شکرگزاری&#10;۱۰ دقیقه تمرین تمرکز"></textarea>
+
+                                <button type="submit" class="btn btn-primary btn-sm">افزودن به {{ $isGeneral ? 'بدون روز' : 'روز '.fa_num($dayNumber) }}</button>
                             </form>
                         </details>
-                    @endif
+
+                        <details>
+                            <summary class="cursor-pointer text-xs font-medium text-brand-700">+ افزودن پرسش به این روز</summary>
+
+                            <form method="POST" action="{{ route('panel.questions.store', $challenge) }}" class="mt-4 space-y-3 text-right">
+                                @csrf
+
+                                @if (! $isGeneral)
+                                    <input type="hidden" name="day_number" value="{{ $dayNumber }}">
+                                @endif
+
+                                <div>
+                                    <label class="label">متن پرسش</label>
+                                    <input name="question" type="text" required class="input" placeholder="مثلاً این چالش برای چه کسانی مناسب است؟">
+                                </div>
+
+                                <div>
+                                    <label class="label">پاسخ</label>
+                                    <textarea name="answer" rows="3" class="input resize-y" placeholder="پاسخ روشن و کوتاه..."></textarea>
+                                </div>
+
+                                <div>
+                                    <label class="label">پرسنده (اختیاری)</label>
+                                    <input name="asked_by" type="text" class="input">
+                                </div>
+
+                                <label class="flex items-center gap-2 text-xs text-ink/80">
+                                    <input type="checkbox" name="is_published" value="1" checked class="size-4 rounded border-line text-brand-600 focus:ring-brand-500">
+                                    نمایش در صفحه چالش
+                                </label>
+
+                                <button type="submit" class="btn btn-primary btn-sm">افزودن پرسش</button>
+                            </form>
+                        </details>
+                    </div>
                 </div>
             @empty
                 <div class="rounded-3xl bg-cream p-8 text-center">
                     <p class="text-2xl">📝</p>
-                    <p class="mt-3 text-sm text-ink/80">هنوز کاری برای این چالش ثبت نشده است. با دکمه «افزودن کار» شروع کن.</p>
+                    <p class="mt-3 text-sm text-ink/80">هنوز کاری برای این چالش ثبت نشده است. با دکمه «افزودن کار یا پرسش» شروع کن.</p>
                 </div>
             @endforelse
         </div>
@@ -328,130 +554,6 @@
                                 </details>
 
                                 <form method="POST" action="{{ route('panel.tips.destroy', [$challenge, $tip]) }}" data-confirm="این نکته حذف شود؟">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm">حذف</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
-                @endforeach
-            </div>
-        @endif
-    </section>
-
-    {{-- پرسش و پاسخ --}}
-    <section class="card scroll-mt-24" id="qa">
-        <div>
-            <h2 class="text-base">باکس پرسش و پاسخ</h2>
-            <p class="mt-1 text-xs leading-6 text-muted">
-                پرسش‌های پرتکرار شرکت‌کننده‌ها را اینجا با پاسخشان بنویس؛ در صفحه چالش و داشبورد هر نفر به شکل آکاردئون نمایش داده می‌شود.
-            </p>
-        </div>
-
-        <form method="POST" action="{{ route('panel.questions.store', $challenge) }}" class="mt-5 space-y-4 rounded-2xl bg-cream p-4">
-            @csrf
-
-            <div class="grid gap-4 sm:grid-cols-[1.4fr_1fr]">
-                <div>
-                    <label class="label" for="question-text">پرسش</label>
-                    <input id="question-text" name="question" type="text" required class="input" placeholder="مثلاً اگر یک روز را از دست بدهم چه می‌شود؟">
-                </div>
-
-                <div>
-                    <label class="label" for="question-by">پرسنده (اختیاری)</label>
-                    <input id="question-by" name="asked_by" type="text" class="input" placeholder="نام شرکت‌کننده">
-                </div>
-            </div>
-
-            <div>
-                <label class="label" for="question-answer">پاسخ</label>
-                <textarea id="question-answer" name="answer" rows="3" class="input resize-y" placeholder="پاسخ روشن و کوتاه..."></textarea>
-            </div>
-
-            <div class="flex flex-wrap items-center justify-between gap-3">
-                <label class="flex items-center gap-2 text-xs text-ink/80">
-                    <input type="checkbox" name="is_published" value="1" checked class="size-4 rounded border-line text-brand-600 focus:ring-brand-500">
-                    در صفحه چالش نمایش داده شود
-                </label>
-
-                <button type="submit" class="btn btn-primary btn-sm">افزودن پرسش</button>
-            </div>
-        </form>
-
-        @if ($challenge->questions->isEmpty())
-            <p class="mt-5 rounded-2xl bg-cream px-4 py-6 text-center text-xs text-muted">هنوز پرسشی ثبت نشده است.</p>
-        @else
-            <div class="mt-5 space-y-3">
-                @foreach ($challenge->questions as $question)
-                    <div class="rounded-3xl bg-cream p-4">
-                        <div class="flex flex-wrap items-start justify-between gap-3">
-                            <div class="min-w-0 flex-1">
-                                <div class="flex flex-wrap items-center gap-2">
-                                    <p class="text-sm font-medium text-ink">{{ $question->question }}</p>
-                                    <span class="badge {{ $question->is_published ? 'bg-leaf/10 text-forest ring-leaf/30' : 'bg-line text-ink/80 ring-line' }}">
-                                        {{ $question->is_published ? 'نمایش داده می‌شود' : 'پنهان' }}
-                                    </span>
-                                </div>
-
-                                @if ($question->asked_by)
-                                    <p class="mt-1 text-[11px] text-muted/80">پرسیده‌شده توسط {{ $question->asked_by }}</p>
-                                @endif
-
-                                <p class="mt-2 border-s-2 border-line ps-3 text-xs leading-6 text-ink/80">
-                                    {!! $question->answer ? \App\Support\RichText::toHtml($question->answer) : '<span class="text-muted/80">بدون پاسخ</span>' !!}
-                                </p>
-                            </div>
-
-                            <div class="flex items-center gap-1">
-                                <form method="POST" action="{{ route('panel.questions.move', [$challenge, $question, 'up']) }}">
-                                    @csrf
-                                    @method('PATCH')
-                                    <button type="submit" class="btn btn-ghost btn-sm" aria-label="بالا">↑</button>
-                                </form>
-                                <form method="POST" action="{{ route('panel.questions.move', [$challenge, $question, 'down']) }}">
-                                    @csrf
-                                    @method('PATCH')
-                                    <button type="submit" class="btn btn-ghost btn-sm" aria-label="پایین">↓</button>
-                                </form>
-
-                                <form method="POST" action="{{ route('panel.questions.publish', [$challenge, $question]) }}">
-                                    @csrf
-                                    @method('PATCH')
-                                    <button type="submit" class="btn btn-white btn-sm">{{ $question->is_published ? 'پنهان کن' : 'نمایش بده' }}</button>
-                                </form>
-
-                                <details>
-                                    <summary class="btn btn-ghost btn-sm list-none">ویرایش</summary>
-                                    <form method="POST" action="{{ route('panel.questions.update', [$challenge, $question]) }}" class="mt-3 grid w-full max-w-lg gap-3 rounded-2xl bg-paper p-4 text-right ring-1 ring-line">
-                                        @csrf
-                                        @method('PUT')
-
-                                        <div>
-                                            <label class="label">پرسش</label>
-                                            <input type="text" name="question" value="{{ $question->question }}" required class="input">
-                                        </div>
-
-                                        <div>
-                                            <label class="label">پاسخ</label>
-                                            <textarea name="answer" rows="3" class="input resize-y">{{ $question->answer }}</textarea>
-                                        </div>
-
-                                        <div>
-                                            <label class="label">پرسنده</label>
-                                            <input type="text" name="asked_by" value="{{ $question->asked_by }}" class="input">
-                                        </div>
-
-                                        <label class="flex items-center gap-2 text-xs text-ink/80">
-                                            <input type="checkbox" name="is_published" value="1" @checked($question->is_published) class="size-4 rounded border-line text-brand-600 focus:ring-brand-500">
-                                            نمایش در صفحه چالش
-                                        </label>
-
-                                        <button type="submit" class="btn btn-primary btn-sm">ذخیره</button>
-                                    </form>
-                                </details>
-
-                                <form method="POST" action="{{ route('panel.questions.destroy', [$challenge, $question]) }}" data-confirm="این پرسش حذف شود؟">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn btn-danger btn-sm">حذف</button>

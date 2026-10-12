@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
-    <meta name="theme-color" content="#7c3aed">
+    <meta name="theme-color" content="#075741">
 
     <title>ورود به پنل مدیریت — {{ $site['site_name'] ?? config('panel.site_name') }}</title>
 
