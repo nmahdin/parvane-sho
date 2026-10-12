@@ -18,7 +18,7 @@
             </div>
         @else
             <div class="table-wrap">
-                <table class="table">
+                <table class="table table-cards">
                     <thead>
                         <tr>
                             <th>چالش</th>
@@ -33,7 +33,7 @@
                     <tbody>
                         @foreach ($challenges as $challenge)
                             <tr>
-                                <td>
+                                <td data-label="">
                                     <div class="flex items-center gap-3">
                                         <span class="grid size-9 place-items-center rounded-xl bg-cream">{{ $challenge->emoji }}</span>
                                         <div class="min-w-0">
@@ -54,7 +54,7 @@
                                     </div>
                                 </td>
 
-                                <td>
+                                <td data-label="وضعیت">
                                     <div class="flex flex-col items-start gap-1.5">
                                         <span class="badge {{ $challenge->statusClasses() }}">{{ $challenge->statusLabel() }}</span>
                                         <span class="text-[11px] {{ $challenge->is_published ? 'text-forest' : 'text-muted/80' }}">
@@ -63,19 +63,19 @@
                                     </div>
                                 </td>
 
-                                <td class="text-xs text-muted">{{ $challenge->dateRangeLabel() }}</td>
+                                <td data-label="بازه" class="text-xs text-muted">{{ $challenge->dateRangeLabel() }}</td>
 
-                                <td class="text-xs text-ink/80">{{ fa_num($challenge->totalDays()) }} روز · {{ fa_num($challenge->tasksCount()) }} کار · {{ fa_num($challenge->questionsCount()) }} پرسش</td>
+                                <td data-label="روز / کار" class="text-xs text-ink/80">{{ fa_num($challenge->totalDays()) }} روز · {{ fa_num($challenge->tasksCount()) }} کار · {{ fa_num($challenge->questionsCount()) }} پرسش</td>
 
-                                <td class="text-sm">
+                                <td data-label="شرکت‌کننده" class="text-sm">
                                     <a href="{{ route('panel.challenges.show', $challenge) }}#participants" class="text-ink hover:text-brand-700">
                                         {{ fa_num($challenge->participants_count) }} نفر
                                     </a>
                                 </td>
 
-                                <td><x-progress-bar :percent="$challenge->progressPercent()" :class="$challenge->styleValue('bar')" show-label /></td>
+                                <td data-label="پیشرفت"><x-progress-bar :percent="$challenge->progressPercent()" :class="$challenge->styleValue('bar')" show-label /></td>
 
-                                <td>
+                                <td data-label="">
                                     <div class="flex items-center justify-end gap-1">
                                         <a href="{{ route('panel.challenges.show', $challenge) }}" class="btn btn-ghost btn-sm">مدیریت</a>
                                         <a href="{{ route('panel.challenges.edit', $challenge) }}" class="btn btn-ghost btn-sm">ویرایش</a>

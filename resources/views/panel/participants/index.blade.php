@@ -75,7 +75,7 @@
             </div>
 
             <div class="table-wrap mt-4">
-                <table class="table">
+                <table class="table table-cards">
                     <thead>
                         <tr>
                             <th>نام</th>
@@ -96,7 +96,7 @@
                             @endphp
 
                             <tr>
-                                <td>
+                                <td data-label="">
                                     <a href="{{ route('panel.participants.show', $participant) }}" class="flex items-center gap-3">
                                         <span class="grid size-9 place-items-center rounded-xl bg-cream text-xs font-bold text-ink/80">{{ mb_substr($participant->name, 0, 1) }}</span>
                                         <span>
@@ -108,37 +108,37 @@
                                     </a>
                                 </td>
 
-                                <td>
+                                <td data-label="چالش">
                                     <a href="{{ route('panel.challenges.show', $participant->challenge) }}" class="text-xs text-ink/80 hover:text-brand-700">
                                         {{ $participant->challenge->emoji }} {{ $participant->challenge->title }}
                                     </a>
                                 </td>
 
-                                <td>
+                                <td data-label="پیشرفت">
                                     <x-progress-bar :percent="$progress" :class="$participant->challenge->styleValue('bar')" show-label />
                                     <p class="mt-1.5 text-[11px] text-muted">{{ fa_num($participant->completedItems()) }} از {{ fa_num($participant->totalItems()) }} مورد</p>
                                 </td>
 
-                                <td>
+                                <td data-label="وضعیت">
                                     <span class="badge {{ $statusInfo['classes'] }}">{{ $statusInfo['label'] }}</span>
                                 </td>
 
-                                <td class="text-xs text-muted">
+                                <td data-label="آخرین فعالیت" class="text-xs text-muted">
                                     {{ $participant->last_completed_at ? fa_datetime($participant->last_completed_at) : '—' }}
                                 </td>
 
-                                <td class="text-xs text-muted">
+                                <td data-label="آخرین بازدید" class="text-xs text-muted">
                                     {{ $participant->last_seen_at ? fa_datetime($participant->last_seen_at) : 'هنوز باز نکرده' }}
                                 </td>
 
-                                <td>
+                                <td data-label="لینک اختصاصی">
                                     <div class="flex items-center gap-2">
                                         <input id="row-link-{{ $participant->id }}" type="text" readonly value="{{ route('participant.show', $participant) }}" class="input py-2 text-[11px]" dir="ltr">
                                         <button type="button" class="btn btn-soft btn-sm shrink-0" data-copy-target="#row-link-{{ $participant->id }}">کپی</button>
                                     </div>
                                 </td>
 
-                                <td>
+                                <td data-label="">
                                     <div class="flex items-center justify-end gap-1">
                                         <a href="{{ route('panel.participants.show', $participant) }}" class="btn btn-ghost btn-sm">وضعیت</a>
                                         <a href="{{ route('participant.show', $participant) }}" target="_blank" class="btn btn-ghost btn-sm">داشبورد ↗</a>

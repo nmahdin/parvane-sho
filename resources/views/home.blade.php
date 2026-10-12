@@ -13,7 +13,7 @@
         <div class="pointer-events-none absolute -top-24 end-0 size-72 rounded-full bg-jade/15 blur-3xl"></div>
         <div class="pointer-events-none absolute top-24 start-0 size-72 rounded-full bg-leaf/15 blur-3xl"></div>
 
-        <div class="relative mx-auto max-w-6xl px-4 pt-16 pb-12 sm:px-6 lg:pt-24">
+        <div class="relative mx-auto max-w-6xl px-4 pt-10 pb-10 sm:px-6 sm:pt-16 lg:pt-24">
             <div class="grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr]">
                 <div>
                     <span class="badge bg-paper text-brand-700 ring-brand-200">
@@ -32,7 +32,7 @@
                         {{ $site['site_tagline'] ?? config('panel.site_tagline') }}
                     </p>
 
-                    <div class="mt-8 flex flex-wrap items-center gap-3">
+                    <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
                         <a href="{{ route('challenges.index') }}" class="btn btn-primary px-5 py-3">دیدن چالش‌ها</a>
                         <a href="{{ route('participant.lookup') }}" class="btn btn-white px-5 py-3">کد اختصاصی من را دارم</a>
                     </div>
@@ -144,13 +144,13 @@
                     </p>
                 </div>
 
-                <form method="POST" action="{{ route('participant.lookup.attempt') }}" class="flex flex-wrap items-center gap-3 sm:flex-nowrap">
+                <form method="POST" action="{{ route('participant.lookup.attempt') }}" class="flex flex-col items-stretch gap-3 sm:flex-row sm:flex-nowrap sm:items-center">
                     @csrf
 
                     <input name="code" type="text" required dir="ltr" class="input flex-1 text-center tracking-[0.3em]"
                            placeholder="کد اختصاصی خودت" value="{{ old('code') }}" autocomplete="off" spellcheck="false">
 
-                    <button type="submit" class="btn btn-primary shrink-0">باز کردن داشبورد</button>
+                    <button type="submit" class="btn btn-primary w-full shrink-0 sm:w-auto">باز کردن داشبورد</button>
                 </form>
             </div>
 

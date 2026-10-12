@@ -26,7 +26,9 @@
             <a href="{{ route('participant.lookup') }}" class="btn btn-primary btn-sm ms-2">کد اختصاصی من</a>
         </nav>
 
-        <button type="button" data-menu-toggle="#mobile-menu" class="btn btn-ghost ms-auto sm:hidden" aria-label="منو">
+        <a href="{{ route('participant.lookup') }}" class="btn btn-soft btn-sm ms-auto shrink-0 sm:hidden">کد من</a>
+
+        <button type="button" data-menu-toggle="#mobile-menu" class="btn btn-ghost sm:hidden" aria-label="منو">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.8" stroke="currentColor" class="size-5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
             </svg>

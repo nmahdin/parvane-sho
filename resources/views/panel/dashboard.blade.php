@@ -42,7 +42,7 @@
             </div>
         @else
             <div class="table-wrap mt-5">
-                <table class="table">
+                <table class="table table-cards">
                     <thead>
                         <tr>
                             <th>چالش</th>
@@ -56,7 +56,7 @@
                     <tbody>
                         @foreach ($challenges as $challenge)
                             <tr>
-                                <td>
+                                <td data-label="">
                                     <div class="flex items-center gap-3">
                                         <span class="grid size-9 place-items-center rounded-xl bg-cream">{{ $challenge->emoji }}</span>
                                         <div class="min-w-0">
@@ -73,17 +73,17 @@
                                     </div>
                                 </td>
 
-                                <td><span class="badge {{ $challenge->statusClasses() }}">{{ $challenge->statusLabel() }}</span></td>
+                                <td data-label="وضعیت"><span class="badge {{ $challenge->statusClasses() }}">{{ $challenge->statusLabel() }}</span></td>
 
-                                <td class="text-xs text-muted">{{ $challenge->dateRangeLabel() }}</td>
+                                <td data-label="بازه" class="text-xs text-muted">{{ $challenge->dateRangeLabel() }}</td>
 
-                                <td class="text-sm">{{ fa_num($challenge->participants_count) }} نفر</td>
+                                <td data-label="شرکت‌کننده" class="text-sm">{{ fa_num($challenge->participants_count) }} نفر</td>
 
-                                <td>
+                                <td data-label="پیشرفت">
                                     <x-progress-bar :percent="$challenge->progressPercent()" :class="$challenge->styleValue('bar')" show-label />
                                 </td>
 
-                                <td>
+                                <td data-label="">
                                     <div class="flex items-center justify-end gap-1">
                                         <a href="{{ route('panel.challenges.show', $challenge) }}" class="btn btn-ghost btn-sm">مدیریت</a>
                                         <a href="{{ $challenge->publicUrl() }}" target="_blank" class="btn btn-ghost btn-sm">سایت ↗</a>

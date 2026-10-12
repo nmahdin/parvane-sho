@@ -25,17 +25,17 @@
 @endpush
 
 @section('content')
-    <section class="mx-auto max-w-5xl px-4 pt-12 sm:px-6">
+    <section class="mx-auto max-w-5xl px-4 pt-6 sm:px-6 sm:pt-12">
         <x-flash />
 
         {{-- سرصفحه اختصاصی --}}
         <div class="mt-4 overflow-hidden rounded-[2rem] bg-paper shadow-sm ring-1 ring-line">
-            <div class="flex flex-wrap items-center justify-between gap-6 bg-gradient-to-tl {{ $style['gradient'] }} px-6 py-8 text-white sm:px-10">
+            <div class="flex flex-wrap items-center justify-between gap-5 bg-gradient-to-tl {{ $style['gradient'] }} px-5 py-6 text-white sm:gap-6 sm:px-10 sm:py-8">
                 <div class="flex items-center gap-4">
-                    <span class="grid size-14 place-items-center rounded-3xl bg-white/15 text-xl font-bold backdrop-blur">{{ $initial }}</span>
+                    <span class="grid size-12 place-items-center rounded-2xl bg-white/15 text-lg font-bold backdrop-blur sm:size-14 sm:rounded-3xl sm:text-xl">{{ $initial }}</span>
                     <div>
                         <p class="text-xs text-white/75">داشبورد اختصاصی چالش</p>
-                        <h1 class="mt-1 text-2xl text-white">سلام {{ $participant->name }} 👋</h1>
+                        <h1 class="mt-1 text-xl text-white sm:text-2xl">سلام {{ $participant->name }} 👋</h1>
                         <p class="mt-1.5 text-xs text-white/80">{{ $challenge->emoji }} {{ $challenge->title }}</p>
                     </div>
                 </div>
@@ -286,7 +286,7 @@
                                                         </div>
 
                                                         <div class="flex flex-wrap items-center gap-2">
-                                                            <button type="submit" class="btn btn-primary btn-sm">
+                                                            <button type="submit" class="btn btn-primary btn-sm w-full sm:w-auto">
                                                                 {{ $myAnswer ? 'ذخیره ویرایش' : 'ثبت پاسخ' }}
                                                             </button>
 

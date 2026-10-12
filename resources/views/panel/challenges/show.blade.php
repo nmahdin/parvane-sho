@@ -688,7 +688,7 @@
             <p class="mt-5 rounded-2xl bg-cream px-4 py-6 text-center text-xs text-muted">هنوز فایلی ضمیمه نشده است.</p>
         @else
             <div class="table-wrap mt-5">
-                <table class="table">
+                <table class="table table-cards">
                     <thead>
                         <tr>
                             <th>فایل</th>
@@ -700,7 +700,7 @@
                     <tbody>
                         @foreach ($challenge->attachments as $attachment)
                             <tr>
-                                <td>
+                                <td data-label="">
                                     <div class="flex items-center gap-3">
                                         <span class="grid size-9 place-items-center rounded-xl bg-cream text-base">{{ $attachment->icon() }}</span>
                                         <div class="min-w-0">
@@ -710,10 +710,10 @@
                                     </div>
                                 </td>
 
-                                <td class="text-xs text-muted">{{ $attachment->sizeForHumans() }}</td>
-                                <td class="text-xs text-muted">{{ fa_num($attachment->downloads) }} بار</td>
+                                <td data-label="حجم" class="text-xs text-muted">{{ $attachment->sizeForHumans() }}</td>
+                                <td data-label="دانلود" class="text-xs text-muted">{{ fa_num($attachment->downloads) }} بار</td>
 
-                                <td>
+                                <td data-label="">
                                     <div class="flex items-center justify-end gap-1">
                                         <a href="{{ $attachment->url() }}" class="btn btn-ghost btn-sm">دانلود</a>
 
@@ -778,7 +778,7 @@
             </div>
         @else
             <div class="table-wrap mt-6">
-                <table class="table">
+                <table class="table table-cards">
                     <thead>
                         <tr>
                             <th>نام</th>
@@ -793,7 +793,7 @@
                             @php($percent = $participant->progressPercent())
 
                             <tr>
-                                <td>
+                                <td data-label="">
                                     <div class="flex items-center gap-3">
                                         <span class="grid size-9 place-items-center rounded-xl bg-cream text-xs font-bold text-ink/80">{{ mb_substr($participant->name, 0, 1) }}</span>
                                         <div>
@@ -805,23 +805,23 @@
                                     </div>
                                 </td>
 
-                                <td>
+                                <td data-label="پیشرفت">
                                     <x-progress-bar :percent="$percent" :class="$style['bar']" show-label />
                                     <p class="mt-1.5 text-[11px] text-muted">{{ fa_num($participant->completedItems()) }} از {{ fa_num($participant->totalItems()) }} مورد (کار و پرسش)</p>
                                 </td>
 
-                                <td>
+                                <td data-label="لینک اختصاصی">
                                     <div class="flex items-center gap-2">
                                         <input id="link-{{ $participant->id }}" type="text" readonly value="{{ route('participant.show', $participant) }}" class="input py-2 text-[11px]" dir="ltr">
                                         <button type="button" class="btn btn-soft btn-sm shrink-0" data-copy-target="#link-{{ $participant->id }}">کپی</button>
                                     </div>
                                 </td>
 
-                                <td class="text-xs text-muted">
+                                <td data-label="آخرین بازدید" class="text-xs text-muted">
                                     {{ $participant->last_seen_at ? fa_datetime($participant->last_seen_at) : 'هنوز باز نکرده' }}
                                 </td>
 
-                                <td>
+                                <td data-label="">
                                     <div class="flex items-center justify-end gap-1">
                                         <a href="{{ route('participant.show', $participant) }}" target="_blank" class="btn btn-ghost btn-sm">داشبورد ↗</a>
 

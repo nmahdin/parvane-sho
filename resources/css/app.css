@@ -103,7 +103,7 @@
     }
 
     .card {
-        @apply rounded-3xl bg-paper p-6 shadow-sm ring-1 ring-line;
+        @apply rounded-3xl bg-paper p-5 shadow-sm ring-1 ring-line sm:p-6;
     }
 
     .input {
@@ -162,6 +162,113 @@
 
 .animate-rise {
     animation: riseIn 0.4s ease both;
+}
+
+/* ----------------------------------------------------------------------
+   موبایل: دسترسی راحت‌تر و نمایش مناسب‌تر
+   ---------------------------------------------------------------------- */
+@media (max-width: 767px) {
+    /* تراشه‌های انتخاب روز و نوع محتوا در پنل: به اندازه انگشت */
+    label[data-day-type-label],
+    button[data-fill-target] {
+        display: inline-flex;
+        min-height: 2.25rem;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* فیلدها روی موبایل ۱۶ پیکسل باشند تا iOS صفحه را زوم نکند */
+    .input,
+    input.input,
+    textarea.input,
+    select.input {
+        font-size: 1rem;
+    }
+
+    /* دکمه‌ها به اندازه انگشت */
+    .btn {
+        min-height: 2.75rem;
+    }
+
+    .btn-sm {
+        min-height: 2.25rem;
+    }
+
+    /* جدول‌های «table-cards» روی موبایل به کارت تبدیل می‌شوند */
+    .table-wrap {
+        overflow: visible;
+    }
+
+    table.table-cards {
+        display: block;
+        min-width: 0;
+    }
+
+    table.table-cards thead {
+        display: none;
+    }
+
+    table.table-cards tbody {
+        display: block;
+    }
+
+    table.table-cards tbody tr {
+        display: block;
+        padding: 0.9rem 0.25rem;
+        border-top: 1px solid var(--color-line);
+    }
+
+    table.table-cards tbody tr:first-child {
+        border-top: 0;
+    }
+
+    table.table-cards tbody td {
+        display: flex;
+        width: auto;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        padding: 0.35rem 0;
+        border: 0;
+        text-align: right;
+    }
+
+    table.table-cards tbody td::before {
+        content: attr(data-label);
+        flex: none;
+        font-size: 0.72rem;
+        color: var(--color-muted);
+    }
+
+    /* سلول‌های بی‌عنوان (سرِ کارت یا ردیف دکمه‌ها) تمام‌عرض می‌مانند */
+    table.table-cards tbody td[data-label=''] {
+        display: block;
+        padding-top: 0.5rem;
+    }
+
+    table.table-cards tbody td[data-label='']::before {
+        display: none;
+    }
+
+    table.table-cards tbody td > * {
+        min-width: 0;
+    }
+
+    /* محتوای سلول‌ها فضای باقی‌مانده را می‌گیرد تا فیلدها و دکمه‌ها جا شوند */
+    table.table-cards tbody td:not([data-label='']) > div {
+        flex: 1 1 auto;
+    }
+
+    /* ردیف دکمه‌های هر کارت */
+    table.table-cards tbody td[data-label=''] > div {
+        flex-wrap: wrap;
+        justify-content: flex-start;
+    }
+}
+
+/* فاصله امن پایین صفحه برای نوار پایین موبایل */
+.safe-bottom {
+    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
 }
 
 @media print {

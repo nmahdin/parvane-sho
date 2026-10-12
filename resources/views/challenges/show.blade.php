@@ -139,7 +139,7 @@
                     @endphp
 
                     <div class="overflow-hidden rounded-3xl bg-paper shadow-sm ring-1 {{ $isToday ? 'ring-2 ring-jade' : 'ring-line' }}">
-                        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-line px-6 py-4">
+                        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-3.5 sm:px-6 sm:py-4">
                             <div class="flex items-center gap-3">
                                 <span class="grid size-9 place-items-center rounded-xl text-xs font-bold {{ $locked ? 'bg-line/60 text-muted' : $style['bg'].' '.$style['text'] }}">
                                     {{ $locked ? '🔒' : fa_num($day > 0 ? $day : '★') }}
@@ -197,7 +197,7 @@
                             @if ($tasks->isNotEmpty())
                                 <ul class="divide-y divide-line">
                                     @foreach ($tasks as $task)
-                                        <li class="px-6 py-4">
+                                        <li class="px-4 py-3.5 sm:px-6 sm:py-4">
                                             <p class="text-sm font-medium text-ink">{{ $task->title }}</p>
                                             @if ($task->description)
                                                 <p class="mt-1.5 text-xs leading-6 text-muted">{{ $task->description }}</p>
