@@ -1,3 +1,5 @@
+@props(['showErrors' => true])
+
 @if (session('status'))
     <div class="animate-rise flex items-start gap-3 rounded-2xl bg-leaf/10 px-4 py-3 text-sm text-forest ring-1 ring-leaf/30">
         <span class="mt-0.5">✅</span>
@@ -12,7 +14,7 @@
     </div>
 @endif
 
-@if ($errors->any())
+@if ($showErrors && $errors->any())
     <div class="animate-rise flex items-start gap-3 rounded-2xl bg-danger-soft px-4 py-3 text-sm text-danger ring-1 ring-danger/20">
         <span class="mt-0.5">⚠️</span>
         <ul class="space-y-1">

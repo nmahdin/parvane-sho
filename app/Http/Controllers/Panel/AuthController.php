@@ -18,10 +18,16 @@ use Throwable;
  */
 class AuthController extends Controller
 {
-    public function showLogin(): View
+    public function showLogin(Request $request): View|RedirectResponse
     {
+        // اگر همین حالا با یک حساب وارد شده باشد، به جای پرتاب کردنش به
+        // داشبورد، فرم ورود را با یک یادآوری نشان می‌دهیم تا بتواند با حساب
+        // دیگری (مثلاً مدیری که تازه ساخته) هم وارد شود.
+        $current = Auth::guard('admin')->user();
+
         return view('panel.login', [
             'databaseReady' => $this->databaseReady(),
+            'currentAdmin' => $current instanceof Admin ? $current : null,
         ]);
     }
 
@@ -46,7 +52,8 @@ class AuthController extends Controller
             'password' => 'رمز عبور',
         ]);
 
-        $throttleKey = 'panel-login:'.$request->ip().'|'.mb_strtolower($validated['username']);
+        $username = trim($validated['username']);
+        $throttleKey = 'panel-login:'.$request->ip().'|'.mb_strtolower($username);
         $maxAttempts = (int) config('panel.login_max_attempts');
         $decaySeconds = (int) config('panel.login_decay_seconds');
 
@@ -58,21 +65,53 @@ class AuthController extends Controller
             ]);
         }
 
-        $credentials = [
-            'username' => trim($validated['username']),
-            'password' => $validated['password'],
-        ];
+        // نام کاربری را بدون حساسیت به بزرگی و کوچکی حروف و فاصله‌های اضافه
+        // پیدا می‌کنیم؛ اگر کسی «Maryam» ساخته باشد، ورود با «maryam» هم
+        // باید کار کند (مخصوصاً روی SQLite که مقایسه به بزرگی/کوچکی حساس است).
+        $candidates = Admin::query()
+            ->whereRaw('LOWER(username) = ?', [mb_strtolower($username)])
+            ->orderByDesc('is_super')
+            ->orderBy('id')
+            ->get();
 
-        if (! Auth::guard('admin')->attempt($credentials)) {
+        if ($candidates->isEmpty()) {
             RateLimiter::hit($throttleKey, $decaySeconds);
 
             throw ValidationException::withMessages([
-                'username' => 'نام کاربری یا رمز عبور درست نیست.',
+                'username' => 'این نام کاربری در پنل ثبت نشده است. املای آن را بررسی کن یا از مدیر اصلی بخواه آن را بسازد.',
             ]);
         }
 
-        /** @var Admin $admin */
-        $admin = Auth::guard('admin')->user();
+        $admin = null;
+
+        // رمز را اول دقیقاً همان‌طور که تایپ شده و بعد بدون فاصله‌های اضافه
+        // امتحان می‌کنیم تا رمزهایی که قبلاً با فاصلهٔ اشتباهی ساخته شده‌اند
+        // هم کار کنند.
+        $passwords = array_values(array_unique([
+            $validated['password'],
+            trim($validated['password']),
+        ]));
+
+        foreach ($candidates as $candidate) {
+            foreach ($passwords as $password) {
+                if (Auth::guard('admin')->attempt([
+                    'username' => $candidate->username,
+                    'password' => $password,
+                ])) {
+                    $admin = $candidate;
+
+                    break 2;
+                }
+            }
+        }
+
+        if (! $admin instanceof Admin) {
+            RateLimiter::hit($throttleKey, $decaySeconds);
+
+            throw ValidationException::withMessages([
+                'username' => 'نام کاربری درست است ولی رمز عبور نمی‌خواند. دقت کن حروف بزرگ و کوچک، فاصله‌های اضافه و زبان صفحه‌کلید (فارسی/انگلیسی) درست باشد؛ اگر رمز را فراموش کرده‌ای، از ترمینال دستور «php artisan parvane:admin '.$candidates->first()->username.' --password=رمز-جدید» را اجرا کن.',
+            ]);
+        }
 
         if (! $admin->isActive()) {
             Auth::guard('admin')->logout();

@@ -3,7 +3,6 @@
 use App\Http\Middleware\ConfigureSessionCookie;
 use App\Http\Middleware\EnsureAdminIsSuper;
 use App\Http\Middleware\EnsurePanelIsAuthenticated;
-use App\Http\Middleware\RedirectIfPanelAuthenticated;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
@@ -25,7 +24,6 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->alias([
             'panel.auth' => EnsurePanelIsAuthenticated::class,
-            'panel.guest' => RedirectIfPanelAuthenticated::class,
             'panel.super' => EnsureAdminIsSuper::class,
         ]);
     })

@@ -22,7 +22,8 @@
         </div>
 
         <div class="animate-rise rounded-[2rem] bg-paper p-7 shadow-xl ring-1 ring-line">
-            <x-flash />
+            {{-- خطاهای فرم زیر خود فیلدها نشان داده می‌شوند؛ اینجا تکرارشان نکن --}}
+            <x-flash :show-errors="false" />
 
             @if (! ($databaseReady ?? true))
                 <div class="mb-5 rounded-2xl bg-danger-soft px-4 py-3 text-xs leading-6 text-danger ring-1 ring-danger/20">
@@ -31,6 +32,24 @@
                         جدول مدیران ساخته نشده یا هنوز مدیری در آن نیست. در ترمینال پروژه این دستور را اجرا کن:
                     </p>
                     <p class="mt-2 rounded-xl bg-paper px-3 py-2 text-center font-mono text-[11px] text-ink" dir="ltr">php artisan migrate --seed</p>
+                </div>
+            @endif
+
+            @if ($currentAdmin ?? null)
+                <div class="mb-5 rounded-2xl bg-jade/10 px-4 py-3 text-xs leading-6 text-ink ring-1 ring-jade/25">
+                    <p class="font-semibold">
+                        هم‌اکنون با حساب «{{ $currentAdmin->name }}» ({{ $currentAdmin->username }}) وارد هستی.
+                    </p>
+                    <p class="mt-1">
+                        برای ورود با حساب دیگری، نام کاربری و رمز همان حساب را پایین وارد کن. برای برگشتن به پنل
+                        <a href="{{ route('panel.dashboard') }}" class="font-semibold text-jade underline">اینجا</a>
+                        را بزن.
+                    </p>
+
+                    <form method="POST" action="{{ route('panel.logout') }}" class="mt-2">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-ghost">خروج از این حساب</button>
+                    </form>
                 </div>
             @endif
 

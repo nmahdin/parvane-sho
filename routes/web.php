@@ -51,10 +51,10 @@ Route::put('/p/{participant}/note', [ParticipantDashboardController::class, 'upd
 */
 
 Route::prefix('panel')->name('panel.')->group(function () {
-    Route::middleware('panel.guest')->group(function () {
-        Route::get('login', [AuthController::class, 'showLogin'])->name('login');
-        Route::post('login', [AuthController::class, 'login'])->name('login.attempt');
-    });
+    // ورود: به‌جای پرتاب کردنِ مدیرِ واردشده به داشبورد، فرم ورود نشان داده
+    // می‌شود تا بتواند با حساب دیگری هم وارد شود (کنترل در AuthController).
+    Route::get('login', [AuthController::class, 'showLogin'])->name('login');
+    Route::post('login', [AuthController::class, 'login'])->name('login.attempt');
 
     Route::middleware('panel.auth')->group(function () {
         Route::post('logout', [AuthController::class, 'logout'])->name('logout');

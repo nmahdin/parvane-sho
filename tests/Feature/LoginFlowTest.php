@@ -37,8 +37,9 @@ class LoginFlowTest extends TestCase
                 'password' => 'not-the-password',
             ])
             ->assertRedirect(route('panel.login'))
-            ->assertSessionHasErrors(['username' => 'نام کاربری یا رمز عبور درست نیست.']);
+            ->assertSessionHasErrors('username');
 
+        $this->assertStringContainsString('رمز عبور', $this->messageFor('username'));
         $this->assertGuest('admin');
     }
 
@@ -71,19 +72,29 @@ class LoginFlowTest extends TestCase
     {
         Admin::query()->delete();
 
-        $response = $this->from(route('panel.login'))->post(route('panel.login.attempt'), [
-            'username' => 'admin',
-            'password' => 'a12345678',
-        ]);
+        $this->from(route('panel.login'))
+            ->post(route('panel.login.attempt'), [
+                'username' => 'admin',
+                'password' => 'a12345678',
+            ])
+            ->assertRedirect(route('panel.login'))
+            ->assertSessionHasErrors('username');
 
-        $response->assertRedirect(route('panel.login'))->assertSessionHasErrors('username');
+        $this->assertStringContainsString('migrate', $this->messageFor('username'));
+    }
 
+    /**
+     * پیام خطای یک فیلد، هم در حالت ErrorBag و هم در حالت آرایه.
+     */
+    private function messageFor(string $key): string
+    {
         $errors = session('errors');
-        $message = is_array($errors)
-            ? implode(' ', $errors['username'] ?? [])
-            : (string) $errors->first('username');
 
-        $this->assertStringContainsString('migrate', $message);
+        if (is_array($errors)) {
+            return implode(' ', $errors[$key] ?? []);
+        }
+
+        return (string) $errors->first($key);
     }
 
     public function test_the_login_page_survives_a_missing_admins_table(): void

@@ -52,8 +52,42 @@ class PanelSetupCommand extends Command
         $this->line('  رمز عبور: <fg=green>'.config('panel.default_admin_password').'</>');
         $this->newLine();
         $this->components->warn('اگر این رمز را از قبل عوض کرده‌ای، همان رمز قبلی معتبر است.');
+        $this->renderStatus();
 
         return self::SUCCESS;
+    }
+
+    /**
+     * گزارش کوتاه وضعیت، تا اگر چیزی سر جایش نبود همان اول معلوم شود.
+     */
+    private function renderStatus(): void
+    {
+        $connection = (string) config('database.default');
+        $database = (string) config("database.connections.{$connection}.database", '');
+        $pending = $this->pendingMigrations();
+
+        $this->newLine();
+        $this->line('  <fg=gray>گزارش وضعیت</>');
+        $this->line('  دیتابیس: '.$connection.' — '.$database);
+        $this->line('  مهاجرت‌های اجرانشده: '.fa_num($pending));
+        $this->line('  تعداد مدیران: '.fa_num((int) Admin::query()->count()));
+        $this->line('  فهرست مدیران و عوض کردن رمزشان: <fg=green>php artisan parvane:admin --list</>');
+
+        if ($pending > 0) {
+            $this->components->warn('چند مهاجرت اجرا نشده است؛ اگر بخشی از پنل کار نکرد «php artisan migrate --force» را بزن.');
+        }
+    }
+
+    private function pendingMigrations(): int
+    {
+        try {
+            $migrator = app('migrator');
+            $files = array_keys($migrator->getMigrationFiles(database_path('migrations')));
+
+            return count(array_diff($files, $migrator->getRepository()->getRan()));
+        } catch (Throwable) {
+            return 0;
+        }
     }
 
     /**

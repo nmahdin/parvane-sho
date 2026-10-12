@@ -4,12 +4,13 @@ namespace App\Http\Controllers\Panel;
 
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
+use Closure;
 use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
 
 /**
  * مدیریت مدیران — فقط مدیر اصلی به این بخش دسترسی دارد.
@@ -32,9 +33,11 @@ class AdminController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        $this->normalizeInput($request);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:120'],
-            'username' => ['required', 'string', 'max:60', 'regex:/^[a-zA-Z0-9._-]+$/', Rule::unique('admins', 'username')],
+            'username' => ['required', 'string', 'max:60', 'regex:/^[a-zA-Z0-9._-]+$/', $this->usernameIsFree()],
             'password' => ['required', 'string', 'min:6', 'max:190', 'confirmed'],
             'is_super' => ['nullable', 'boolean'],
         ], [
@@ -52,9 +55,9 @@ class AdminController extends Controller
         ]);
 
         $admin = Admin::create([
-            'name' => $validated['name'],
-            'username' => $validated['username'],
-            'password' => $validated['password'],
+            'name' => trim($validated['name']),
+            'username' => trim($validated['username']),
+            'password' => trim($validated['password']),
             'is_super' => $request->boolean('is_super'),
             'is_active' => true,
         ]);
@@ -67,9 +70,11 @@ class AdminController extends Controller
 
     public function update(Request $request, Admin $admin): RedirectResponse
     {
+        $this->normalizeInput($request);
+
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:120'],
-            'username' => ['required', 'string', 'max:60', 'regex:/^[a-zA-Z0-9._-]+$/', Rule::unique('admins', 'username')->ignore($admin->getKey())],
+            'username' => ['required', 'string', 'max:60', 'regex:/^[a-zA-Z0-9._-]+$/', $this->usernameIsFree($admin->getKey())],
             'password' => ['nullable', 'string', 'min:6', 'max:190', 'confirmed'],
         ], [
             'name.required' => 'نام مدیر را وارد کنید.',
@@ -85,12 +90,12 @@ class AdminController extends Controller
         ]);
 
         $data = [
-            'name' => $validated['name'],
-            'username' => $validated['username'],
+            'name' => trim($validated['name']),
+            'username' => trim($validated['username']),
         ];
 
         if (filled($validated['password'] ?? null)) {
-            $data['password'] = $validated['password'];
+            $data['password'] = trim($validated['password']);
         }
 
         // مدیر اصلی نمی‌تواند نقش خودش را از «مدیر اصلی» به «مدیر چالش» تغییر دهد
@@ -103,6 +108,38 @@ class AdminController extends Controller
         return redirect()
             ->route('panel.admins.index')
             ->with('status', 'اطلاعات مدیر «'.$admin->name.'» ذخیره شد.');
+    }
+
+    /**
+     * فاصله‌های اضافهٔ ابتدا و انتهای نام/نام کاربری/رمز را می‌گیرد؛ منبع
+     * رایج «ساختم ولی نمی‌تواند وارد شود» همین فاصله‌های ناخواسته است.
+     */
+    private function normalizeInput(Request $request): void
+    {
+        $request->merge([
+            'name' => trim((string) $request->input('name')),
+            'username' => trim((string) $request->input('username')),
+            'password' => trim((string) $request->input('password')),
+            'password_confirmation' => trim((string) $request->input('password_confirmation')),
+        ]);
+    }
+
+    /**
+     * نام کاربری یکتا باشد، بدون حساسیت به بزرگی و کوچکی حروف
+     * (SQLite در مقایسهٔ متن به بزرگی/کوچکی حساس است).
+     */
+    private function usernameIsFree(?int $ignoreId = null): Closure
+    {
+        return function (string $attribute, mixed $value, Closure $fail) use ($ignoreId): void {
+            $taken = Admin::query()
+                ->whereRaw('LOWER(username) = ?', [mb_strtolower((string) $value)])
+                ->when($ignoreId, fn (Builder $query) => $query->whereKeyNot($ignoreId))
+                ->exists();
+
+            if ($taken) {
+                $fail('این نام کاربری قبلاً ثبت شده است.');
+            }
+        };
     }
 
     public function toggle(Admin $admin): RedirectResponse
