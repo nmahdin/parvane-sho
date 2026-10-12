@@ -110,27 +110,73 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->seedDemoAttachment($challenge);
+        $this->seedDemoParticipants($challenge);
+    }
 
-        $names = ['زهرا محمدی', 'امیر رضایی', 'نگار کریمی'];
+    /**
+     * سه شرکت‌کننده نمونه با وضعیت‌های متفاوت: یکی تقریباً کامل، یکی در میانه
+     * راه و یکی هنوز شروع‌نکرده. پاسخ پرسش‌ها هم اینجا ساخته می‌شود تا هم
+     * پیشرفت واقعی باشد و هم مدیر پاسخ‌ها و «جواب نداده»ها را ببیند.
+     */
+    private function seedDemoParticipants(Challenge $challenge): void
+    {
         $tasks = $challenge->tasks()->get();
+        $questions = $challenge->questions()->orderBy('sort_order')->get();
 
-        foreach ($names as $index => $name) {
+        // [نام, تعداد کارهای انجام‌شده, شماره پرسش‌هایی که پاسخ داده‌اند]
+        $people = [
+            ['name' => 'زهرا محمدی', 'tasks' => 6, 'answers' => [0, 1, 2]],
+            ['name' => 'امیر رضایی', 'tasks' => 3, 'answers' => [0]],
+            ['name' => 'نگار کریمی', 'tasks' => 0, 'answers' => []],
+        ];
+
+        foreach ($people as $index => $person) {
             $participant = $challenge->participants()->create([
-                'name' => $name,
-                'note' => null,
+                'name' => $person['name'],
+                'contact' => $index === 0 ? '@zahra' : null,
+                'last_seen_at' => Carbon::now()->subHours($index * 5),
             ]);
 
-            // هر نفر کمی از کارهای روزهای بازشده را انجام داده است
-            $unlockedTasks = $tasks->filter(fn ($task) => $challenge->isDayUnlocked($task->day_number))->values();
-            $completed = $unlockedTasks->take(max(1, min($unlockedTasks->count(), 8 - ($index * 3))));
+            // کارها را از روزهای اول (باز‌شده‌ها) به ترتیب تیک می‌زنیم
+            $unlockedTasks = $tasks
+                ->filter(fn ($task) => $challenge->isDayUnlocked($task->day_number))
+                ->values()
+                ->take($person['tasks']);
 
-            foreach ($completed as $offset => $task) {
+            foreach ($unlockedTasks as $offset => $task) {
                 $participant->completions()->create([
                     'challenge_task_id' => $task->id,
-                    'completed_at' => Carbon::today()->subDays(max(0, $task->day_number ? 3 - $offset % 3 : 0))->setTime(9 + ($offset % 8), 15),
+                    'completed_at' => Carbon::today()
+                        ->subDays(max(0, 2 - intdiv($offset, 2)))
+                        ->setTime(9 + ($offset % 6), 20),
+                ]);
+            }
+
+            foreach ($person['answers'] as $offset) {
+                $question = $questions->get($offset);
+
+                if (! $question) {
+                    continue;
+                }
+
+                $participant->questionAnswers()->create([
+                    'challenge_question_id' => $question->id,
+                    'body' => $this->demoAnswer($person['name'], $question->question),
                 ]);
             }
         }
+    }
+
+    /**
+     * متن پاسخ نمونه برای هر پرسش.
+     */
+    private function demoAnswer(string $name, string $question): string
+    {
+        return match (true) {
+            str_contains($question, 'یک روز را از دست بدهم') => 'برای من هم پیش آمده؛ دیدم چیزی خراب نمی‌شود و فقط زنجیره‌ام صفر شد، برای همین این بار سعی می‌کنم همان روز را جبران کنم.',
+            str_contains($question, 'همان روز انجام') => 'من عصرها بعد از کار انجام می‌دهم؛ غروب سختی دارم که این کارها به بخش ثابت روزم تبدیل شده.',
+            default => $name.' هستم و این چالش برایم تمرین خوبی است تا منظم‌تر بمانم.',
+        };
     }
 
     /**

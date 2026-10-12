@@ -155,9 +155,10 @@ class QuestionAnswerTest extends TestCase
             ->assertSee('پاسخ‌های شرکت‌کننده‌ها')
             ->assertSee('زهرا محمدی');
 
+        // صفحه وضعیت او: کارها و پرسش‌ها روز به روز، همراه با پاسخش
         $this->get(route('panel.participants.show', $participant))
             ->assertOk()
-            ->assertSee('پاسخ‌های او به پرسش‌ها')
+            ->assertSee('کارها و پرسش‌های او، روز به روز')
             ->assertSee('پاسخ زهرا برای مدیر')
             ->assertSee('امروز بابت چه چیزی شکرگزار بودی؟');
     }

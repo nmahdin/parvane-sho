@@ -3,8 +3,10 @@
 @php
     $style = $challenge->style();
     $progress = $participant->progressPercent();
-    $completed = $participant->completedCount();
-    $total = $participant->totalTasks();
+    $completed = $participant->completedItems();
+    $total = $participant->totalItems();
+    $completedTasks = $participant->completedCount();
+    $dayBreakdown = $participant->dayBreakdown();
     $initial = mb_substr(trim($participant->name), 0, 1);
     $openQuestions = $challenge->questions
         ->where('is_published', true)
@@ -57,13 +59,13 @@
                 <div class="card">
                     <div class="flex flex-wrap items-center justify-between gap-4">
                         <div>
-                            <h2 class="text-lg">کارهای من</h2>
+                            <h2 class="text-lg">کارها و پرسش‌های من</h2>
                             <p class="mt-1.5 text-xs leading-6 text-muted">
-                                {{ fa_num($completed) }} از {{ fa_num($total) }} کار انجام شده است.
+                                {{ fa_num($completed) }} از {{ fa_num($total) }} مورد انجام شده است
                                 @if ($challenge->questionsCount() > 0)
-                                    · {{ fa_num($challenge->questionsCount()) }} پرسش و پاسخ هم در این چالش هست
-                                    <span class="text-forest">({{ fa_num($answeredQuestions) }} پاسخ داده‌ای)</span>.
+                                    ({{ fa_num($completedTasks) }} کار تیک‌خورده و {{ fa_num($participant->answeredQuestionsCount()) }} پرسش پاسخ‌داده‌شده از {{ fa_num($challenge->questionsCount()) }} پرسش)
                                 @endif
+                                .
                                 @if ($challenge->currentDayNumber())
                                     امروز روز {{ fa_num($challenge->currentDayNumber()) }} این چالش است.
                                 @endif
@@ -141,8 +143,10 @@
                         $locked = ! $challenge->isDayUnlocked($dayNumber);
                         $unlockLabel = $challenge->unlockLabel($dayNumber);
                         $isToday = $dayNumber !== null && $challenge->currentDayNumber() === $dayNumber;
-                        $doneInDay = $tasks->filter(fn ($task) => $participant->isTaskDone($task))->count();
-                        $dayComplete = $doneInDay === $tasks->count();
+                        $dayRow = $dayBreakdown[(int) $day] ?? null;
+                        $doneInDay = $dayRow['done'] ?? 0;
+                        $totalInDay = $dayRow['total'] ?? 0;
+                        $dayComplete = (bool) ($dayRow['complete'] ?? false);
                     @endphp
 
                     <div id="day-{{ $day }}" class="overflow-hidden rounded-3xl bg-paper shadow-sm ring-1 {{ $isToday ? 'ring-2 ring-jade' : 'ring-line' }}">
@@ -171,9 +175,9 @@
 
                             @unless ($locked)
                                 <span class="text-xs {{ $dayComplete ? 'text-forest' : 'text-muted' }}">
-                                    {{ fa_num($doneInDay) }} از {{ fa_num($tasks->count()) }} کار
+                                    {{ fa_num($doneInDay) }} از {{ fa_num($totalInDay) }} مورد
                                     @if ($dayQuestions->isNotEmpty())
-                                        · {{ fa_num($dayQuestions->count()) }} پرسش
+                                        · {{ fa_num($dayRow['questions_done'] ?? 0) }} از {{ fa_num($dayQuestions->count()) }} پرسش
                                     @endif
                                 </span>
                             @endunless
@@ -344,7 +348,7 @@
             {{-- ستون کنار --}}
             <aside class="no-print space-y-6 lg:sticky lg:top-24 lg:self-start">
                 <div class="card text-center">
-                    <x-progress-ring :percent="$progress" :class="$style['stroke']" caption="پیشرفت من" />
+                    <x-progress-ring :percent="$progress" :class="$style['stroke']" caption="پیشرفت (کار + پرسش)" />
 
                     <div class="mt-6 grid grid-cols-2 gap-3 text-center">
                         <div class="rounded-2xl bg-cream px-3 py-3">
@@ -356,8 +360,10 @@
                             <p class="mt-1 text-lg font-bold text-ink">{{ fa_num($participant->bestStreak()) }}</p>
                         </div>
                         <div class="rounded-2xl bg-cream px-3 py-3">
-                            <p class="text-[11px] text-muted">کار انجام‌شده</p>
-                            <p class="mt-1 text-lg font-bold text-ink">{{ fa_num($completed) }}</p>
+                            <p class="text-[11px] text-muted">مورد انجام‌شده</p>
+                            <p class="mt-1 text-lg font-bold text-ink">
+                                {{ fa_num($completed) }}<span class="text-sm font-normal text-muted"> / {{ fa_num($total) }}</span>
+                            </p>
                         </div>
                         <div class="rounded-2xl bg-cream px-3 py-3">
                             <p class="text-[11px] text-muted">پرسش پاسخ‌داده</p>

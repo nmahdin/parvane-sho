@@ -5,8 +5,7 @@
 @section('page-subtitle', 'ساخت مدیر جدید، تغییر رمز و فعال/غیرفعال‌کردن حساب‌ها')
 
 @section('content')
-    <x-flash />
-
+    {{-- پیام‌ها یک‌بار در چیدمان پنل نمایش داده می‌شوند --}}
     <section class="card">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div>

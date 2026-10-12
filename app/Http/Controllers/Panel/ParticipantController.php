@@ -47,7 +47,7 @@ class ParticipantController extends Controller
 
         $participants = Participant::query()
             ->visibleToAdmin($admin)
-            ->with(['challenge.tasks'])
+            ->with(['challenge.tasks', 'challenge.questions', 'questionAnswers'])
             ->withCount(['completions as completed_count' => fn ($query) => $query->whereNotNull('completed_at')])
             ->withMax('completions as last_completed_at', 'completed_at')
             ->when($search !== '', fn ($query) => $query->where('name', 'like', '%'.$search.'%'))
@@ -110,6 +110,8 @@ class ParticipantController extends Controller
     private function stats(): array
     {
         $all = Participant::query()
+            ->visibleToAdmin(Auth::guard('admin')->user())
+            ->with(['challenge.tasks', 'challenge.questions', 'questionAnswers'])
             ->withCount(['completions as completed_count' => fn ($query) => $query->whereNotNull('completed_at')])
             ->get();
 
@@ -201,7 +203,7 @@ class ParticipantController extends Controller
      */
     public function show(Participant $participant): View
     {
-        $participant->load(['challenge.tasks', 'challenge.questions', 'completions']);
+        $participant->load(['challenge.tasks', 'challenge.questions', 'completions', 'questionAnswers']);
 
         $challenge = $participant->challenge;
         $breakdown = $participant->dayBreakdown();
@@ -212,13 +214,17 @@ class ParticipantController extends Controller
             'challenge' => $challenge,
             'breakdown' => $breakdown,
             'questionCounts' => $challenge->questionsByDay()->map->count(),
-            'answers' => $participant->questionAnswers()->with('question')->latest('updated_at')->get(),
+            'dayContent' => $challenge->contentByDay(),
             'activity' => $activity,
             'recent' => $participant->recentCompletions(10),
             'times' => $participant->completionTimes(),
             'stats' => [
                 'completed' => $participant->completedCount(),
                 'total' => $participant->totalTasks(),
+                'answered' => $participant->answeredQuestionsCount(),
+                'questions' => $participant->questionsCount(),
+                'items_done' => $participant->completedItems(),
+                'items_total' => $participant->totalItems(),
                 'progress' => $participant->progressPercent(),
                 'streak' => $participant->currentStreak(),
                 'best_streak' => $participant->bestStreak(),

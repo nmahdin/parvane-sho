@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Panel;
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
 use App\Models\Challenge;
+use App\Models\Participant;
 use App\Support\Jalali;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -72,8 +73,12 @@ class ChallengeController extends Controller
         $challenge->load(['tasks', 'tips', 'questions.answers.participant', 'attachments']);
 
         $participants = $challenge->participants()
+            ->with(['completions', 'questionAnswers'])
             ->withCount(['completions as completed_count' => fn ($query) => $query->whereNotNull('completed_at')])
-            ->get();
+            ->get()
+            // همان نمونه چالشِ بارگذاری‌شده را به شرکت‌کننده‌ها می‌دهیم تا
+            // شمردن موارد و پیشرفت، کوئری اضافه نزند.
+            ->each(fn (Participant $participant) => $participant->setRelation('challenge', $challenge));
 
         $lastDay = (int) ($challenge->contentDayNumbers()->last() ?? 0);
         $nextDayNumber = $lastDay > 0 ? min(365, $lastDay + 1) : 1;

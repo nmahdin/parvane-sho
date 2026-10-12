@@ -26,7 +26,7 @@ class DashboardController extends Controller
 
         $participants = Participant::query()
             ->visibleToAdmin($admin)
-            ->with(['challenge.tasks'])
+            ->with(['challenge.tasks', 'challenge.questions', 'questionAnswers'])
             ->withCount(['completions as completed_count' => fn ($query) => $query->whereNotNull('completed_at')])
             ->orderByDesc('completed_count')
             ->orderBy('name')

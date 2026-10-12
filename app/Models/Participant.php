@@ -174,6 +174,15 @@ class Participant extends Model
         return count($this->completedTaskIds());
     }
 
+    /**
+     * کش پاسخ‌ها را پاک می‌کند (بعد از ثبت/برداشتن پاسخ).
+     */
+    public function refreshAnswers(): void
+    {
+        $this->answers = null;
+        $this->unsetRelation('questionAnswers');
+    }
+
     public function totalTasks(): int
     {
         if ($this->relationLoaded('challenge') && $this->challenge->relationLoaded('tasks')) {
@@ -183,32 +192,116 @@ class Participant extends Model
         return ChallengeTask::where('challenge_id', $this->challenge_id)->count();
     }
 
+    /**
+     * پرسش‌های منتشرشده چالش (همان‌هایی که شرکت‌کننده می‌بیند و باید پاسخ بدهد).
+     *
+     * @return Collection<int, ChallengeQuestion>
+     */
+    public function challengeQuestions(): Collection
+    {
+        if ($this->relationLoaded('challenge') && $this->challenge->relationLoaded('questions')) {
+            return $this->challenge->questions->where('is_published', true)->values();
+        }
+
+        return ChallengeQuestion::query()
+            ->where('challenge_id', $this->challenge_id)
+            ->where('is_published', true)
+            ->get();
+    }
+
+    public function questionsCount(): int
+    {
+        return $this->challengeQuestions()->count();
+    }
+
+    /**
+     * پاسخ‌های این شرکت‌کننده، کلیدشان شناسه پرسش است.
+     *
+     * @return array<int, ChallengeQuestionAnswer>
+     */
+    public function answersByQuestionId(): array
+    {
+        if ($this->answers !== null) {
+            return $this->answers;
+        }
+
+        $answers = $this->relationLoaded('questionAnswers')
+            ? $this->questionAnswers
+            : $this->questionAnswers()->get();
+
+        return $this->answers = $answers
+            ->mapWithKeys(fn (ChallengeQuestionAnswer $answer) => [(int) $answer->challenge_question_id => $answer])
+            ->all();
+    }
+
+    private ?array $answers = null;
+
+    public function answerFor(?ChallengeQuestion $question): ?ChallengeQuestionAnswer
+    {
+        return $question ? ($this->answersByQuestionId()[(int) $question->id] ?? null) : null;
+    }
+
+    public function isQuestionAnswered(?ChallengeQuestion $question): bool
+    {
+        return $this->answerFor($question) !== null;
+    }
+
+    /**
+     * تعداد پرسش‌هایی که پاسخ داده است (از بین پرسش‌های منتشرشده چالش).
+     */
+    public function answeredQuestionsCount(): int
+    {
+        $publishedIds = $this->challengeQuestions()->pluck('id')->map(fn ($id) => (int) $id)->all();
+
+        return count(array_intersect(array_keys($this->answersByQuestionId()), $publishedIds));
+    }
+
+    /**
+     * کل مواردی که این شرکت‌کننده باید انجام بدهد: همه کارها + همه پرسش‌ها.
+     */
+    public function totalItems(): int
+    {
+        return $this->totalTasks() + $this->questionsCount();
+    }
+
+    /**
+     * موارد انجام‌شده: کارهای تیک‌خورده + پرسش‌های پاسخ‌داده‌شده.
+     */
+    public function completedItems(): int
+    {
+        return $this->completedCount() + $this->answeredQuestionsCount();
+    }
+
+    /**
+     * درصد پیشرفت: کارها و پرسش‌ها با هم شمرده می‌شوند.
+     */
     public function progressPercent(): int
     {
-        $total = $this->totalTasks();
+        $total = $this->totalItems();
 
         if ($total === 0) {
             return 0;
         }
 
-        return (int) round(min(1, $this->completedCount() / $total) * 100);
+        return (int) round(min(1, $this->completedItems() / $total) * 100);
     }
 
     /**
-     * Days (day numbers) where every task is completed.
+     * Days (day numbers) where every task is completed and every question answered.
      *
      * @return array<int, int>
      */
     public function completedDays(): array
     {
-        $tasks = $this->challenge->tasks->groupBy(fn (ChallengeTask $task) => $task->day_number ?? 0);
-        $done = $this->completedTaskIds();
+        $days = [];
 
-        return $tasks
-            ->filter(fn ($dayTasks) => $dayTasks->every(fn (ChallengeTask $task) => in_array((int) $task->id, $done, true)))
-            ->keys()
-            ->map(fn ($day) => (int) $day)
-            ->all();
+        foreach ($this->dayBreakdown() as $day => $row) {
+            if ($row['complete']) {
+                $days[] = (int) $day;
+            }
+        }
+
+        return $days;
     }
 
     /**
@@ -276,22 +369,39 @@ class Participant extends Model
 
     /**
      * وضعیت روزبه‌روز شرکت‌کننده در چالش.
+     * هر روز هم کارهایش شمرده می‌شود و هم پرسش‌هایش؛ روزی کامل است که
+     * همه کارهای آن تیک خورده باشند و به همه پرسش‌هایش پاسخ داده شده باشد.
      *
-     * @return array<int, array{total: int, done: int, complete: bool, is_today: bool, is_past: bool}>
+     * @return array<int, array{total: int, done: int, tasks_total: int, tasks_done: int, questions_total: int, questions_done: int, complete: bool, is_today: bool, is_past: bool}>
      */
     public function dayBreakdown(): array
     {
         $times = $this->completionTimes();
         $currentDay = $this->challenge->currentDayNumber();
+
+        $tasksByDay = $this->challenge->tasks->groupBy(fn (ChallengeTask $task) => $task->day_number ?? 0);
+        $questionsByDay = $this->challengeQuestions()->groupBy(fn (ChallengeQuestion $question) => $question->day_number ?? 0);
+
         $breakdown = [];
 
-        foreach ($this->challenge->tasks->groupBy(fn (ChallengeTask $task) => $task->day_number ?? 0) as $day => $tasks) {
-            $done = $tasks->filter(fn (ChallengeTask $task) => isset($times[(int) $task->id]))->count();
+        foreach ($tasksByDay->keys()->merge($questionsByDay->keys())->unique()->sort()->values() as $day) {
+            $tasks = $tasksByDay->get($day) ?? collect();
+            $questions = $questionsByDay->get($day) ?? collect();
+
+            $tasksDone = $tasks->filter(fn (ChallengeTask $task) => isset($times[(int) $task->id]))->count();
+            $questionsDone = $questions->filter(fn (ChallengeQuestion $question) => $this->isQuestionAnswered($question))->count();
+
+            $total = $tasks->count() + $questions->count();
+            $done = $tasksDone + $questionsDone;
 
             $breakdown[(int) $day] = [
-                'total' => $tasks->count(),
+                'total' => $total,
                 'done' => $done,
-                'complete' => $done === $tasks->count(),
+                'tasks_total' => $tasks->count(),
+                'tasks_done' => $tasksDone,
+                'questions_total' => $questions->count(),
+                'questions_done' => $questionsDone,
+                'complete' => $total > 0 && $done === $total,
                 'is_today' => $currentDay !== null && (int) $day === $currentDay,
                 'is_past' => $currentDay !== null && (int) $day < $currentDay,
             ];
@@ -322,7 +432,7 @@ class Participant extends Model
     }
 
     /**
-     * تعداد کارهای انجام‌شده در هر روز از آخرین :days روز: [Y-m-d => count].
+     * تعداد موارد انجام‌شده (کار تیک‌خورده و پاسخ پرسش) در هر روز از آخرین :days روز: [Y-m-d => count].
      *
      * @return array<string, int>
      */
@@ -334,8 +444,14 @@ class Participant extends Model
             $activity[Carbon::today()->subDays($i)->toDateString()] = 0;
         }
 
-        foreach ($this->completionTimes() as $time) {
-            $key = $time->toDateString();
+        $moments = array_values($this->completionTimes());
+
+        foreach ($this->answersByQuestionId() as $answer) {
+            $moments[] = $answer->updated_at;
+        }
+
+        foreach ($moments as $time) {
+            $key = Carbon::parse($time)->toDateString();
 
             if (array_key_exists($key, $activity)) {
                 $activity[$key]++;
@@ -366,8 +482,8 @@ class Participant extends Model
      */
     public function activityStatus(): array
     {
-        $total = $this->totalTasks();
-        $done = $this->completedCount();
+        $total = $this->totalItems();
+        $done = $this->completedItems();
 
         if ($total === 0) {
             return ['label' => 'بدون کار', 'classes' => 'bg-cream text-muted ring-line', 'tone' => 'muted'];

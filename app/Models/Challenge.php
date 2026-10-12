@@ -384,22 +384,31 @@ class Challenge extends Model
     }
 
     /**
-     * Percentage of tasks that all participants have completed.
+     * درصد پیشرفت کلی چالش: کارهای تیک‌خورده و پرسش‌های پاسخ‌داده‌شده،
+     * نسبت به کل کارها و پرسش‌هایی که باید انجام شوند.
      */
     public function progressPercent(): int
     {
-        $tasks = $this->tasks()->count();
+        $items = $this->tasks()->count() + $this->publishedQuestions()->count();
         $participants = $this->participants()->count();
 
-        if ($tasks === 0 || $participants === 0) {
+        if ($items === 0 || $participants === 0) {
             return 0;
         }
 
-        $completed = TaskCompletion::query()
-            ->whereIn('participant_id', $this->participants()->select('id'))
+        $participantIds = $this->participants()->select('id');
+
+        $done = TaskCompletion::query()
+            ->whereIn('participant_id', $participantIds)
+            ->whereNotNull('completed_at')
             ->count();
 
-        return (int) round(min(1, $completed / ($tasks * $participants)) * 100);
+        $answered = ChallengeQuestionAnswer::query()
+            ->whereIn('participant_id', $this->participants()->select('id'))
+            ->whereHas('question', fn ($query) => $query->where('is_published', true))
+            ->count();
+
+        return (int) round(min(1, ($done + $answered) / ($items * $participants)) * 100);
     }
 
     public function status(): string

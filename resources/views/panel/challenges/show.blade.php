@@ -749,7 +749,7 @@
                     </thead>
                     <tbody>
                         @foreach ($participants as $participant)
-                            @php($percent = $tasksCount > 0 ? (int) round($participant->completed_count / $tasksCount * 100) : 0)
+                            @php($percent = $participant->progressPercent())
 
                             <tr>
                                 <td>
@@ -766,7 +766,7 @@
 
                                 <td>
                                     <x-progress-bar :percent="$percent" :class="$style['bar']" show-label />
-                                    <p class="mt-1.5 text-[11px] text-muted">{{ fa_num($participant->completed_count) }} از {{ fa_num($tasksCount) }} کار</p>
+                                    <p class="mt-1.5 text-[11px] text-muted">{{ fa_num($participant->completedItems()) }} از {{ fa_num($participant->totalItems()) }} مورد (کار و پرسش)</p>
                                 </td>
 
                                 <td>

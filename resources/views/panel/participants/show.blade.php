@@ -61,10 +61,14 @@
             </div>
         </div>
 
-        <div class="mt-6 grid gap-4 border-t border-line pt-6 sm:grid-cols-3 xl:grid-cols-6">
+        <div class="mt-6 grid gap-4 border-t border-line pt-6 sm:grid-cols-3 xl:grid-cols-7">
             <div>
                 <p class="text-xs text-muted">کار انجام‌شده</p>
                 <p class="mt-1 text-lg font-bold text-ink">{{ fa_num($stats['completed']) }} از {{ fa_num($stats['total']) }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-muted">پرسش پاسخ‌داده</p>
+                <p class="mt-1 text-lg font-bold text-ink">{{ fa_num($stats['answered']) }} از {{ fa_num($stats['questions']) }}</p>
             </div>
             <div>
                 <p class="text-xs text-muted">روزهای کامل</p>
@@ -96,7 +100,7 @@
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <div>
                         <h2 class="text-base">وضعیت روز به روز</h2>
-                        <p class="mt-1 text-xs text-muted">هر خانه یک روز از چالش است؛ عددها نشان می‌دهد چند کار از آن روز انجام شده.</p>
+                        <p class="mt-1 text-xs text-muted">هر خانه یک روز از چالش است؛ عددها نشان می‌دهد چند مورد از آن روز (کار + پرسش) انجام شده است.</p>
                     </div>
 
                     @if ($stats['current_day'])
@@ -154,52 +158,10 @@
                 </div>
             </section>
 
-            {{-- پاسخ‌های او به پرسش‌های چالش --}}
-            <section class="card">
-                <div class="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                        <h2 class="text-base">پاسخ‌های او به پرسش‌ها</h2>
-                        <p class="mt-1 text-xs leading-6 text-muted">
-                            هر پاسخی که برای پرسش‌های چالش نوشته است، اینجا همراه با تاریخ ثبت می‌شود.
-                        </p>
-                    </div>
-
-                    <span class="badge {{ $answers->isNotEmpty() ? 'bg-jade/10 text-jade ring-jade/30' : 'bg-cream text-muted ring-line' }}">
-                        {{ fa_num($answers->count()) }} پاسخ
-                    </span>
-                </div>
-
-                @if ($answers->isEmpty())
-                    <p class="mt-5 rounded-2xl bg-cream px-4 py-6 text-center text-xs text-muted">
-                        هنوز به هیچ پرسشی پاسخ نداده است.
-                    </p>
-                @else
-                    <div class="mt-5 space-y-3">
-                        @foreach ($answers as $answer)
-                            <div class="rounded-2xl bg-cream p-4">
-                                <div class="flex flex-wrap items-start justify-between gap-2">
-                                    <p class="text-sm font-medium text-ink">
-                                        {{ $answer->question->question ?? 'پرسش حذف‌شده' }}
-                                    </p>
-
-                                    <span class="shrink-0 text-[11px] text-muted/80">{{ fa_datetime($answer->updated_at) }}</span>
-                                </div>
-
-                                @if ($answer->question?->day_number)
-                                    <p class="mt-1 text-[11px] text-muted/80">{{ $answer->question->dayLabel() }}</p>
-                                @endif
-
-                                <p class="mt-2 whitespace-pre-line border-s-2 border-line ps-3 text-xs leading-6 text-ink/80">{{ $answer->body }}</p>
-                            </div>
-                        @endforeach
-                    </div>
-                @endif
-            </section>
-
             {{-- نمودار فعالیت --}}
             <section class="card">
                 <h2 class="text-base">فعالیت ۱۴ روز اخیر</h2>
-                <p class="mt-1 text-xs text-muted">هر ستون یک روز است؛ ارتفاع نشان می‌دهد آن روز چند کار انجام داده است.</p>
+                <p class="mt-1 text-xs text-muted">هر ستون یک روز است؛ ارتفاع نشان می‌دهد آن روز چند مورد (کار یا پاسخ پرسش) انجام داده است.</p>
 
                 <div class="mt-6 flex items-end justify-between gap-1.5">
                     @foreach ($activity as $date => $count)
@@ -221,36 +183,64 @@
                 </div>
             </section>
 
-            {{-- تیک‌زدن کارها --}}
+            {{-- کارها و پرسش‌های او، روز به روز --}}
             <section class="card">
-                <h2 class="text-base">کارهای او</h2>
-                <p class="mt-1 text-xs text-muted">
-                    می‌توانی از اینجا هم به‌جای او تیک بزنی یا تیک را برداری (مثلاً وقتی خودش اطلاع داده است).
-                </p>
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <h2 class="text-base">{{ $challenge->emoji }} کارها و پرسش‌های او، روز به روز</h2>
+                        <p class="mt-1 text-xs leading-6 text-muted">
+                            هر روز، کارهایش (با تیک) و پرسش‌هایش (با پاسخ) کنار هم آمده است؛
+                            پرسش‌هایی که پاسخ نداده‌اند با «جواب نداده است» مشخص شده‌اند.
+                            می‌توانی کارها را از همین‌جا هم به‌جای او تیک بزنی.
+                        </p>
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-2">
+                        <span class="badge bg-leaf/10 text-forest ring-leaf/30">✓ {{ fa_num($stats['completed']) }} کار</span>
+                        <span class="badge {{ $stats['answered'] > 0 ? 'bg-jade/10 text-jade ring-jade/30' : 'bg-cream text-muted ring-line' }}">
+                            ❓ {{ fa_num($stats['answered']) }} از {{ fa_num($stats['questions']) }} پرسش
+                        </span>
+                    </div>
+                </div>
 
                 <div class="mt-5 space-y-5">
-                    @forelse ($challenge->tasksByDay() as $day => $tasks)
-                        @php($row = $breakdown[(int) $day] ?? null)
+                    @forelse ($dayContent as $day => $content)
+                        @php
+                            $dayTasks = $content['tasks'];
+                            $dayQuestions = $content['questions'];
+                            $row = $breakdown[(int) $day] ?? null;
+                            $locked = ! $challenge->isDayUnlocked($day > 0 ? (int) $day : null);
+                        @endphp
 
                         <div class="overflow-hidden rounded-3xl ring-1 ring-line">
-                            <div class="flex items-center justify-between bg-cream px-5 py-3">
-                                <p class="text-sm font-semibold text-ink">{{ $day > 0 ? 'روز '.fa_num($day) : 'کارهای کلی' }}</p>
+                            <div class="flex flex-wrap items-center justify-between gap-2 bg-cream px-5 py-3">
+                                <p class="flex items-center gap-2 text-sm font-semibold text-ink">
+                                    {{ $day > 0 ? 'روز '.fa_num($day) : 'موارد بدون روز مشخص' }}
+                                    @if ($locked)
+                                        <span class="badge bg-gold/15 text-ink ring-gold/50">قفل</span>
+                                    @elseif ($row && $row['complete'])
+                                        <span class="badge bg-leaf/10 text-forest ring-leaf/30">کامل ✓</span>
+                                    @endif
+                                </p>
 
                                 @if ($row)
                                     <span class="text-xs {{ $row['complete'] ? 'text-forest' : 'text-muted' }}">
-                                        {{ fa_num($row['done']) }} از {{ fa_num($row['total']) }}
+                                        {{ fa_num($row['done']) }} از {{ fa_num($row['total']) }} مورد
+                                        @if ($row['questions_total'] > 0)
+                                            · {{ fa_num($row['questions_done']) }} از {{ fa_num($row['questions_total']) }} پرسش
+                                        @endif
                                     </span>
                                 @endif
                             </div>
 
                             <div class="space-y-2 p-3">
-                                @foreach ($tasks as $task)
+                                @foreach ($dayTasks as $task)
                                     @php($done = $participant->isTaskDone($task))
 
                                     <form method="POST" action="{{ route('panel.participants.tasks.toggle', [$participant, $task]) }}">
                                         @csrf
 
-                                        <button type="submit" class="flex w-full items-start gap-3 rounded-2xl px-3 py-3 text-right transition {{ $done ? 'bg-leaf/10 hover:bg-leaf/10' : 'bg-cream hover:bg-line/60' }}">
+                                        <button type="submit" class="flex w-full items-start gap-3 rounded-2xl px-3 py-3 text-right transition {{ $done ? 'bg-leaf/10 hover:bg-leaf/15' : 'bg-cream hover:bg-line/60' }}">
                                             <span class="mt-0.5 grid size-6 shrink-0 place-items-center rounded-lg text-xs font-bold {{ $done ? 'bg-leaf text-white' : 'bg-paper text-transparent ring-1 ring-line' }}">✓</span>
 
                                             <span class="min-w-0 flex-1">
@@ -260,16 +250,45 @@
                                                 @endif
                                             </span>
 
-                                            @if ($done && ($times[(int) $task->id] ?? null))
-                                                <span class="shrink-0 text-[10px] text-muted/80">{{ fa_datetime($times[(int) $task->id]) }}</span>
-                                            @endif
+                                            <span class="shrink-0 text-[10px] {{ $done ? 'text-muted/80' : 'text-danger' }}">
+                                                @if ($done && ($times[(int) $task->id] ?? null))
+                                                    {{ fa_datetime($times[(int) $task->id]) }}
+                                                @else
+                                                    انجام نشده
+                                                @endif
+                                            </span>
                                         </button>
                                     </form>
+                                @endforeach
+
+                                @foreach ($dayQuestions as $question)
+                                    @php($answer = $participant->answerFor($question))
+
+                                    <div class="rounded-2xl px-3 py-3 ring-1 {{ $answer ? 'bg-jade/5 ring-jade/25' : 'bg-paper ring-line' }}">
+                                        <div class="flex items-start gap-3">
+                                            <span class="mt-0.5 grid size-6 shrink-0 place-items-center rounded-lg bg-jade/10 text-[11px] font-bold text-jade">❓</span>
+
+                                            <div class="min-w-0 flex-1">
+                                                <p class="text-sm font-medium text-ink">{{ $question->question }}</p>
+
+                                                @if ($question->asked_by)
+                                                    <p class="mt-1 text-[11px] text-muted/80">پرسیده‌شده توسط {{ $question->asked_by }}</p>
+                                                @endif
+
+                                                @if ($answer)
+                                                    <p class="mt-2 whitespace-pre-line border-s-2 border-jade/40 ps-3 text-xs leading-6 text-ink/80">{{ $answer->body }}</p>
+                                                    <p class="mt-1.5 text-[10px] text-muted/80">آخرین ویرایش پاسخ: {{ fa_datetime($answer->updated_at) }}</p>
+                                                @else
+                                                    <p class="mt-2 rounded-xl bg-danger-soft px-3 py-2 text-xs font-medium text-danger">جواب نداده است</p>
+                                                @endif
+                                            </div>
+                                        </div>
+                                    </div>
                                 @endforeach
                             </div>
                         </div>
                     @empty
-                        <p class="rounded-2xl bg-cream p-6 text-center text-sm text-muted">کاری برای این چالش ثبت نشده است.</p>
+                        <p class="rounded-2xl bg-cream p-6 text-center text-sm text-muted">کاری یا پرسشی برای این چالش ثبت نشده است.</p>
                     @endforelse
                 </div>
             </section>
@@ -278,7 +297,7 @@
         <aside class="space-y-6">
             {{-- حلقه پیشرفت --}}
             <section class="card text-center">
-                <x-progress-ring :percent="$stats['progress']" :class="$style['stroke']" caption="پیشرفت" />
+                <x-progress-ring :percent="$stats['progress']" :class="$style['stroke']" caption="پیشرفت (کار + پرسش)" />
 
                 <div class="mt-5 grid grid-cols-2 gap-3 text-center">
                     <div class="rounded-2xl bg-cream px-3 py-3">

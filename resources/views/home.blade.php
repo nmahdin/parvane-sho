@@ -53,56 +53,81 @@
                     </dl>
                 </div>
 
-                {{-- پیش‌نمایش داشبورد شرکت‌کننده --}}
+                {{-- پیش‌نمایش داشبورد شرکت‌کننده — با داده‌های واقعی همین سایت --}}
                 <div class="relative">
-                    <div class="card animate-rise space-y-5 p-7">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-3">
-                                <span class="grid size-11 place-items-center rounded-2xl bg-gradient-to-tl from-forest to-leaf text-white">پ</span>
-                                <div>
-                                    <p class="text-sm font-semibold text-ink">داشبورد اختصاصی تو</p>
-                                    <p class="text-xs text-muted">فقط با یک کد کوتاه، بدون ثبت‌نام</p>
+                    @if ($hero)
+                        @php
+                            $heroChallenge = $hero['challenge'];
+                            $heroParticipant = $hero['participant'];
+                        @endphp
+
+                        <div class="card animate-rise space-y-5 p-7">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <span class="grid size-11 place-items-center rounded-2xl bg-gradient-to-tl {{ $heroChallenge->style()['gradient'] }} text-white">
+                                        {{ $heroChallenge->emoji }}
+                                    </span>
+                                    <div>
+                                        <p class="text-sm font-semibold text-ink">داشبورد اختصاصی شرکت‌کننده</p>
+                                        <p class="text-xs text-muted">{{ $heroChallenge->title }}</p>
+                                    </div>
+                                </div>
+                                <span class="badge {{ $heroChallenge->statusClasses() }}">{{ $heroChallenge->statusLabel() }}</span>
+                            </div>
+
+                            <div class="flex items-center gap-5">
+                                <x-progress-ring :percent="$hero['progress']" :size="112" :stroke-width="10" :class="$heroChallenge->styleValue('stroke')" caption="پیشرفت" />
+
+                                <div class="space-y-3 text-sm">
+                                    <p class="flex items-center gap-2 text-ink/80"><span>🔥</span> {{ fa_num($hero['streak']) }} روز پیوسته</p>
+                                    <p class="flex items-center gap-2 text-ink/80"><span>✅</span> {{ fa_num($hero['completed']) }} مورد انجام‌شده</p>
+                                    <p class="flex items-center gap-2 text-ink/80"><span>🎯</span> {{ fa_num(max(0, $hero['total'] - $hero['completed'])) }} مورد باقی‌مانده</p>
                                 </div>
                             </div>
-                            <span class="badge bg-leaf/10 text-forest ring-leaf/30">فعال</span>
-                        </div>
 
-                        <div class="flex items-center gap-5">
-                            <x-progress-ring :percent="68" :size="112" :stroke-width="10" caption="پیشرفت" />
-                            <div class="space-y-3 text-sm">
-                                <p class="flex items-center gap-2 text-ink/80"><span>🔥</span> ۵ روز پیوسته</p>
-                                <p class="flex items-center gap-2 text-ink/80"><span>✅</span> ۱۷ کار انجام‌شده</p>
-                                <p class="flex items-center gap-2 text-ink/80"><span>🎯</span> ۸ کار باقی‌مانده</p>
+                            @if ($hero['tasks']->isNotEmpty())
+                                <div class="space-y-2">
+                                    @foreach ($hero['tasks'] as $heroTask)
+                                        @php($heroDone = $heroParticipant->isTaskDone($heroTask))
+
+                                        <div class="flex items-center gap-3 rounded-2xl bg-cream px-4 py-3 text-sm">
+                                            <span class="grid size-6 place-items-center rounded-lg text-xs {{ $heroDone ? 'bg-leaf text-white' : 'bg-line text-muted' }}">
+                                                {{ $heroDone ? '✓' : '' }}
+                                            </span>
+                                            <span class="{{ $heroDone ? 'text-muted line-through' : 'text-ink' }}">{{ $heroTask->title }}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+
+                            <div class="flex items-center gap-3 rounded-2xl bg-brand-50 px-4 py-3 text-xs text-brand-700">
+                                <span>🌿</span>
+                                <span class="font-medium">
+                                    {{ fa_num($hero['completed']) }} از {{ fa_num($hero['total']) }} مورد
+                                    @if ($hero['questions'] > 0)
+                                        · {{ fa_num($hero['answered']) }} پرسش پاسخ داده
+                                    @endif
+                                </span>
+                                <span class="ms-auto h-1.5 w-24 overflow-hidden rounded-full bg-white">
+                                    <span class="block h-full rounded-full bg-leaf" style="width: {{ $hero['progress'] }}%"></span>
+                                </span>
                             </div>
                         </div>
 
-                        <div class="space-y-2">
-                            <div class="flex items-center gap-3 rounded-2xl bg-cream px-4 py-3 text-sm">
-                                <span class="grid size-6 place-items-center rounded-lg bg-leaf text-xs text-white">✓</span>
-                                <span class="text-muted line-through">۲۰ دقیقه پیاده‌روی</span>
-                            </div>
-                            <div class="flex items-center gap-3 rounded-2xl bg-cream px-4 py-3 text-sm">
-                                <span class="grid size-6 place-items-center rounded-lg bg-line text-xs text-muted"></span>
-                                <span class="text-ink">نوشتن سه جمله شکرگزاری</span>
-                            </div>
-                            <div class="flex items-center gap-3 rounded-2xl bg-cream px-4 py-3 text-sm">
-                                <span class="grid size-6 place-items-center rounded-lg bg-line text-xs text-muted"></span>
-                                <span class="text-ink">۱۰ دقیقه تمرین تمرکز</span>
-                            </div>
+                        <div class="pointer-events-none absolute -bottom-6 -start-6 hidden rounded-2xl bg-paper px-4 py-3 text-xs shadow-lg ring-1 ring-line sm:block">
+                            پیشرفت هر نفر همین‌جا زنده به‌روز می‌شود ✨
                         </div>
-
-                        <div class="flex items-center gap-3 rounded-2xl bg-brand-50 px-4 py-3 text-xs text-brand-700">
-                            <span>🌿</span>
-                            <span class="font-medium">۳ از ۱۴ کار انجام شده</span>
-                            <span class="ms-auto h-1.5 w-24 overflow-hidden rounded-full bg-white">
-                                <span class="block h-full w-1/5 rounded-full bg-leaf"></span>
-                            </span>
+                    @else
+                        <div class="card animate-rise p-7 text-center">
+                            <p class="text-3xl">🌱</p>
+                            <p class="mt-3 text-sm font-semibold text-ink">هنوز کسی در چالشی ثبت نشده است</p>
+                            <p class="mt-2 text-xs leading-6 text-muted">
+                                به‌محض این‌که اولین چالش را بسازی و نام شرکت‌کننده‌ها را وارد کنی،
+                                پیشرفت واقعی‌شان همین‌جا نمایش داده می‌شود.
+                            </p>
+                            <a href="{{ route('challenges.index') }}" class="btn btn-soft mt-4">دیدن چالش‌ها</a>
                         </div>
-                    </div>
-
-                    <div class="pointer-events-none absolute -bottom-6 -start-6 hidden rounded-2xl bg-paper px-4 py-3 text-xs shadow-lg ring-1 ring-line sm:block">
-                        پیشرفتت را همان روز می‌بینی ✨
-                    </div>
+                    @endif
                 </div>
             </div>
         </div>

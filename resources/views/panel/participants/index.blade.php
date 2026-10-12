@@ -116,7 +116,7 @@
 
                                 <td>
                                     <x-progress-bar :percent="$progress" :class="$participant->challenge->styleValue('bar')" show-label />
-                                    <p class="mt-1.5 text-[11px] text-muted">{{ fa_num($participant->completed_count) }} از {{ fa_num($participant->totalTasks()) }} کار</p>
+                                    <p class="mt-1.5 text-[11px] text-muted">{{ fa_num($participant->completedItems()) }} از {{ fa_num($participant->totalItems()) }} مورد</p>
                                 </td>
 
                                 <td>

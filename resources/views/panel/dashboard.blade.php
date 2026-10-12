@@ -136,7 +136,7 @@
                                         </span>
                                     </span>
 
-                                    <span class="shrink-0 text-[11px] text-muted">{{ fa_num($participant->completed_count) }} کار</span>
+                                    <span class="shrink-0 text-[11px] text-muted">{{ fa_num($participant->completedItems()) }} از {{ fa_num($participant->totalItems()) }} مورد</span>
                                 </a>
                             @endforeach
                         </div>
@@ -168,7 +168,7 @@
                                 <span class="text-[11px] text-muted">{{ $participant->challenge->title }}</span>
                             </span>
 
-                            <span class="badge bg-leaf/10 text-forest ring-leaf/30">{{ fa_num($participant->completed_count) }} کار</span>
+                            <span class="badge bg-leaf/10 text-forest ring-leaf/30">{{ fa_num($participant->completedItems()) }} مورد از {{ fa_num($participant->totalItems()) }}</span>
                         </li>
                     @endforeach
                 </ol>
