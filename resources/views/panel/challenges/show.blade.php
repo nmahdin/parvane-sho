@@ -80,7 +80,7 @@
     {{-- ناوبری بخش‌های چالش --}}
     <nav class="flex gap-2 overflow-x-auto rounded-3xl bg-paper p-3 shadow-sm ring-1 ring-line">
         @foreach ([
-            ['#tasks', '📝 روزها، کارها و پرسش‌ها'],
+            ['#days', '📅 روزها، کارها و پرسش‌ها'],
             ['#tips', '💡 نکات'],
             ['#files', '📎 فایل‌ها'],
             ['#participants', '👥 شرکت‌کننده‌ها'],
@@ -89,27 +89,30 @@
         @endforeach
     </nav>
 
-    {{-- روزها: کارها و پرسش و پاسخ --}}
+    {{-- باکس روزها: برای هر روز، عنوان و توضیح و کار و پرسش و نکته --}}
+    <span id="days" class="block scroll-mt-24"></span>
     <section class="card scroll-mt-24" id="tasks">
         <div class="flex flex-wrap items-start justify-between gap-4">
             <div>
-                <h2 class="text-base">روزها: کارها و پرسش‌ها</h2>
+                <h2 class="text-base">روزهای چالش</h2>
                 <p class="mt-1 text-xs leading-6 text-muted">
-                    برای هر کار یا پرسش، <span class="font-semibold text-ink">تاریخ همان روز</span> را انتخاب کن (روز ۱ = تاریخ شروع چالش)؛
-                    روزهای گذشته هم در فهرست روزها هستند و بعداً هم می‌توانی برایشان کار یا پرسش اضافه کنی.
-                    کارها و پرسش‌های هر روز با هم داخل کارت همان روز می‌نشینند و شرکت‌کننده‌ها هر روز فقط محتوای همان روز را می‌بینند.
+                    روزهای چالش <span class="font-semibold text-ink">خودکار از تاریخ شروع و پایان</span> ساخته می‌شوند و از همان اول فعال‌اند
+                    (روز ۱ = تاریخ شروع چالش)؛ لازم نیست اول کاری بسازی تا روز ظهور کند.
+                    روی هر روز بزن تا باز شود و برای همان روز، <span class="font-semibold text-ink">عنوان و توضیحات</span> بگذاری و
+                    <span class="font-semibold text-ink">کار</span>، <span class="font-semibold text-ink">پرسش</span> و
+                    <span class="font-semibold text-ink">نکته</span> تعریف کنی.
                 </p>
 
                 @if ($challenge->releasesDaily())
                     <p class="mt-3 rounded-xl bg-gold/15 px-3 py-2 text-xs leading-6 text-ink ring-1 ring-gold/50">
-                        🔒 آزادسازی روزبه‌روز فعال است؛ کارها و پرسش‌های هر روز تا تاریخ همان روز برای شرکت‌کننده‌ها پنهان می‌مانند.
+                        🔒 آزادسازی روزبه‌روز فعال است؛ محتوای هر روز تا تاریخ همان روز برای شرکت‌کننده‌ها پنهان می‌ماند.
                         خودت به عنوان مدیر همه روزها را می‌بینی.
                     </p>
                 @endif
             </div>
 
             <details class="w-full sm:w-auto">
-                <summary class="btn btn-primary btn-sm list-none">+ افزودن کار یا پرسش</summary>
+                <summary class="btn btn-primary btn-sm list-none">+ افزودن سریع به یک روز دیگر</summary>
 
                 <form method="POST" action="{{ route('panel.days.store', $challenge) }}" data-day-type-form
                       class="mt-4 grid w-full gap-4 rounded-2xl bg-cream p-4 text-right sm:max-w-2xl">
@@ -216,37 +219,83 @@
         </div>
 
         <div class="mt-6 space-y-5">
-            @forelse ($challenge->contentByDay() as $day => $content)
-                @php($tasksOfDay = $content['tasks'])
-                @php($questionsOfDay = $content['questions'])
-                @php($dayNumber = (int) $day)
-                @php($isGeneral = $dayNumber === 0)
-                @php($dayDate = $isGeneral ? null : $challenge->dayDateLabel($dayNumber))
+            @foreach ($days as $day)
+                @php($dayNumber = (int) $day['number'])
+                @php($isGeneral = (bool) $day['is_general'])
+                @php($dayDate = $day['date_label'])
+                @php($tasksOfDay = $day['tasks'])
+                @php($questionsOfDay = $day['questions'])
+                @php($dayTips = $day['tips'])
 
-                <div class="overflow-hidden rounded-3xl ring-1 ring-line">
-                    <div class="flex flex-wrap items-center justify-between gap-3 bg-cream px-5 py-3">
-                        <h3 class="flex flex-wrap items-center gap-2 text-sm font-semibold text-ink">
+                <details id="day-{{ $dayNumber }}" class="group overflow-hidden rounded-3xl ring-1 ring-line" @if ($day['open']) open @endif>
+                    <summary class="flex cursor-pointer flex-wrap items-center justify-between gap-3 bg-cream px-4 py-3 sm:px-5">
+                        <span class="flex flex-wrap items-center gap-2 text-sm font-semibold text-ink">
+                            <span class="grid size-8 shrink-0 place-items-center rounded-xl text-xs font-bold {{ $day['is_today'] ? 'bg-jade text-white' : ($day['has_content'] ? 'bg-paper text-ink ring-1 ring-line' : 'bg-line/60 text-muted') }}">
+                                {{ $isGeneral ? '★' : ($day['unlocked'] ? fa_num($dayNumber) : '🔒') }}
+                            </span>
+
                             {{ $isGeneral ? 'بدون روز مشخص' : 'روز '.fa_num($dayNumber) }}
 
                             @if ($dayDate)
                                 <span class="text-xs font-normal text-muted">· {{ $dayDate }}</span>
                             @endif
 
-                            <span class="text-xs font-normal text-muted">
-                                {{ fa_num($tasksOfDay->count()) }} کار@if ($questionsOfDay->isNotEmpty()) · {{ fa_num($questionsOfDay->count()) }} پرسش @endif
-                            </span>
-
-                            @if (! $isGeneral && $challenge->releasesDaily())
-                                @if ($challenge->isDayUnlocked($dayNumber))
-                                    <span class="badge bg-leaf/10 text-forest ring-leaf/30">باز</span>
-                                @else
-                                    <span class="badge bg-gold/15 text-ink ring-gold/50">
-                                        🔒 قفل@if ($challenge->unlockLabel($dayNumber)) تا {{ $challenge->unlockLabel($dayNumber) }} @endif
-                                    </span>
-                                @endif
+                            @if ($day['is_today'])
+                                <span class="badge bg-jade/10 text-jade ring-jade/30">امروز</span>
+                            @elseif (! $isGeneral && ! $day['unlocked'])
+                                <span class="badge bg-gold/15 text-ink ring-gold/50">باز نشده</span>
                             @endif
-                        </h3>
-                    </div>
+
+                            @if ($day['title'])
+                                <span class="text-xs font-normal text-ink/70">· {{ $day['title'] }}</span>
+                            @endif
+                        </span>
+
+                        <span class="flex items-center gap-3 text-xs text-muted">
+                            <span>
+                                {{ fa_num($day['counts']['tasks']) }} کار
+                                @if ($day['counts']['questions'] > 0) · {{ fa_num($day['counts']['questions']) }} پرسش @endif
+                                @if ($day['counts']['tips'] > 0) · {{ fa_num($day['counts']['tips']) }} نکته @endif
+                            </span>
+                            <span class="text-muted/70 transition group-open:rotate-180">⌄</span>
+                        </span>
+                    </summary>
+
+                    @unless ($isGeneral)
+                        {{-- عنوان و توضیحات همین روز --}}
+                        <div class="border-t border-line/60 bg-paper px-4 py-3 sm:px-5">
+                            <details class="rounded-2xl bg-cream/70 ring-1 ring-line">
+                                <summary class="cursor-pointer px-4 py-2.5 text-xs font-semibold text-ink">
+                                    ✏️ عنوان و توضیحات این روز
+                                    <span class="font-normal text-muted">
+                                        @if ($day['title'])
+                                            — {{ $day['title'] }}
+                                        @else
+                                            — هنوز چیزی نوشته نشده
+                                        @endif
+                                    </span>
+                                </summary>
+
+                                <form method="POST" action="{{ route('panel.days.update', [$challenge, $dayNumber]) }}" class="space-y-3 border-t border-line px-4 py-4 text-right">
+                                    @csrf
+                                    @method('PUT')
+
+                                    <div>
+                                        <label class="label" for="day-title-{{ $dayNumber }}">عنوان این روز</label>
+                                        <input id="day-title-{{ $dayNumber }}" name="title" type="text" maxlength="190" value="{{ $day['title'] }}" class="input" placeholder="مثلاً روز شکرگزاری از آدم‌ها">
+                                    </div>
+
+                                    <div>
+                                        <label class="label" for="day-description-{{ $dayNumber }}">توضیحات این روز</label>
+                                        <textarea id="day-description-{{ $dayNumber }}" name="description" rows="4" class="input resize-y" placeholder="چند خط دربارهٔ هدف این روز، تمرین‌ها یا نکته‌هایش...">{{ $day['description'] }}</textarea>
+                                        <p class="hint">این متن بالای کارها و پرسش‌های همان روز به شرکت‌کننده نشان داده می‌شود.</p>
+                                    </div>
+
+                                    <button type="submit" class="btn btn-primary btn-sm">ذخیره عنوان و توضیحات</button>
+                                </form>
+                            </details>
+                        </div>
+                    @endunless
 
                     {{-- کارهای این روز --}}
                     @if ($tasksOfDay->isEmpty())
@@ -494,7 +543,6 @@
                     @endif
 
                     {{-- نکته‌های این روز --}}
-                    @php($dayTips = $challenge->tipsForDay($isGeneral ? null : $dayNumber))
                     <div class="border-t border-line/60 bg-gold/5 px-5 py-4">
                         <div class="flex flex-wrap items-center justify-between gap-3">
                             <h4 class="flex flex-wrap items-center gap-2 text-xs font-semibold text-ink">
@@ -566,13 +614,8 @@
                             </form>
                         </details>
                     </div>
-                </div>
-            @empty
-                <div class="rounded-3xl bg-cream p-8 text-center">
-                    <p class="text-2xl">📝</p>
-                    <p class="mt-3 text-sm text-ink/80">هنوز کاری برای این چالش ثبت نشده است. با دکمه «افزودن کار یا پرسش» شروع کن.</p>
-                </div>
-            @endforelse
+                </details>
+            @endforeach
         </div>
     </section>
 

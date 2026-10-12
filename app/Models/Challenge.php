@@ -151,6 +151,52 @@ class Challenge extends Model
     }
 
     /**
+     * شماره روزهایی که باید در «باکس روزها» نشان داده شوند: از ۱ تا تعداد
+     * روزهای چالش (بر اساس تاریخ شروع و پایان) و اگر محتوایی برای روزهای
+     * بعدی ثبت شده باشد، تا همان روز.
+     *
+     * @return Collection<int, int>
+     */
+    public function dayBoxNumbers(): Collection
+    {
+        $last = max(
+            1,
+            $this->totalDays(),
+            (int) ($this->contentDayNumbers()->last() ?? 0)
+        );
+
+        return collect(range(1, min(365, $last)));
+    }
+
+    /**
+     * تنظیمات (عنوان/توضیح) یک روز، اگر ثبت شده باشد.
+     */
+    public function dayFor(?int $dayNumber): ?ChallengeDay
+    {
+        if (! $dayNumber || $dayNumber < 1) {
+            return null;
+        }
+
+        return $this->days->firstWhere('day_number', $dayNumber);
+    }
+
+    /**
+     * عنوان یک روز (اگر مدیر گذاشته باشد).
+     */
+    public function dayTitle(?int $dayNumber): ?string
+    {
+        return $this->dayFor($dayNumber)?->title;
+    }
+
+    /**
+     * توضیحات یک روز (اگر مدیر گذاشته باشد).
+     */
+    public function dayDescription(?int $dayNumber): ?string
+    {
+        return $this->dayFor($dayNumber)?->description;
+    }
+
+    /**
      * نکته‌های یک روز مشخص. روز `null` یا ۰ یعنی نکته‌های کلی چالش.
      *
      * @return Collection<int, ChallengeTip>
@@ -279,6 +325,16 @@ class Challenge extends Model
     }
 
     /**
+     * روزهای چالش (عنوان و توضیح هر روز).
+     *
+     * @return HasMany<ChallengeDay, $this>
+     */
+    public function days(): HasMany
+    {
+        return $this->hasMany(ChallengeDay::class)->orderBy('day_number');
+    }
+
+    /**
      * @return HasMany<ChallengeTip, $this>
      */
     public function tips(): HasMany
@@ -381,6 +437,38 @@ class Challenge extends Model
                     'tips' => $tips->get($day) ?? collect(),
                 ],
             ]);
+    }
+
+    /**
+     * «برنامه روزها» برای نمایش روزبه‌روز: از روز ۱ تا آخرین روز چالش
+     * (بر اساس تاریخ شروع و پایان) و اگر محتوای بدون روز مشخص وجود داشته
+     * باشد، یک روز ۰ هم اول فهرست می‌آید.
+     *
+     * روزها پیش‌فرض فعال‌اند؛ یعنی حتی روزی که هنوز کاری در آن ثبت نشده هم در
+     * فهرست هست و مدیر می‌تواند بعداً برایش کار، پرسش، نکته و توضیح بگذارد.
+     *
+     * @return Collection<int, array{day: int, settings: ?ChallengeDay, tasks: Collection, questions: Collection, tips: Collection}>
+     */
+    public function dayPlan(bool $onlyPublishedQuestions = true): Collection
+    {
+        $tasks = $this->tasksByDay();
+        $questions = $this->questionsByDay($onlyPublishedQuestions);
+        $tips = $this->tipsByDay();
+        $settings = $this->days->keyBy('day_number');
+
+        $numbers = $this->dayBoxNumbers();
+
+        if ($tasks->has(0) || $questions->has(0) || $tips->has(0)) {
+            $numbers = collect([0])->merge($numbers);
+        }
+
+        return $numbers->mapWithKeys(fn (int $day) => [$day => [
+            'day' => $day,
+            'settings' => $settings->get($day),
+            'tasks' => $tasks->get($day) ?? collect(),
+            'questions' => $questions->get($day) ?? collect(),
+            'tips' => $tips->get($day) ?? collect(),
+        ]]);
     }
 
     /**

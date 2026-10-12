@@ -65,6 +65,39 @@ class ChallengeDayController extends Controller
         return back()->with('status', $this->savedMessage('کار', $dayNumber));
     }
 
+    /**
+     * ذخیره عنوان و توضیحات یک روز از چالش.
+     */
+    public function update(Request $request, Challenge $challenge, int $dayNumber): RedirectResponse
+    {
+        abort_unless($dayNumber >= 1 && $dayNumber <= 365, 404);
+
+        $validated = $request->validate([
+            'title' => ['nullable', 'string', 'max:190'],
+            'description' => ['nullable', 'string', 'max:5000'],
+        ], [], [
+            'title' => 'عنوان روز',
+            'description' => 'توضیحات روز',
+        ]);
+
+        $day = $challenge->days()->firstOrNew(['day_number' => $dayNumber]);
+
+        $day->title = trim((string) ($validated['title'] ?? '')) ?: null;
+        $day->description = trim((string) ($validated['description'] ?? '')) ?: null;
+
+        if (! $day->hasContent()) {
+            if ($day->exists) {
+                $day->delete();
+            }
+
+            return back()->with('status', 'عنوان و توضیحات روز '.fa_num($dayNumber).' خالی شد.');
+        }
+
+        $day->save();
+
+        return back()->with('status', 'عنوان و توضیحات روز '.fa_num($dayNumber).' ذخیره شد.');
+    }
+
     private function savedMessage(string $label, ?int $dayNumber): string
     {
         return $dayNumber

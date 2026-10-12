@@ -128,7 +128,7 @@
                     </span>
                 </div>
 
-                @forelse ($challenge->contentByDay(true) as $day => $content)
+                @forelse ($challenge->dayPlan(true) as $day => $content)
                     @php
                         $tasks = $content['tasks'];
                         $dayQuestions = $content['questions'];
@@ -138,7 +138,7 @@
                         $isToday = $dayNumber !== null && $challenge->currentDayNumber() === $dayNumber;
                     @endphp
 
-                    <div class="overflow-hidden rounded-3xl bg-paper shadow-sm ring-1 {{ $isToday ? 'ring-2 ring-jade' : 'ring-line' }}">
+                    <div id="day-{{ $day }}" class="overflow-hidden rounded-3xl bg-paper shadow-sm ring-1 {{ $isToday ? 'ring-2 ring-jade' : 'ring-line' }}">
                         <div class="flex flex-wrap items-center justify-between gap-2 border-b border-line px-4 py-3.5 sm:px-6 sm:py-4">
                             <div class="flex items-center gap-3">
                                 <span class="grid size-9 place-items-center rounded-xl text-xs font-bold {{ $locked ? 'bg-line/60 text-muted' : $style['bg'].' '.$style['text'] }}">
@@ -159,6 +159,10 @@
                                             <span class="badge bg-gold/15 text-ink ring-gold/50">قفل</span>
                                         @endif
                                     </h3>
+
+                                    @if ($dayNumber && ! $locked && $challenge->dayTitle($dayNumber))
+                                        <p class="mt-1 text-xs font-semibold text-forest">{{ $challenge->dayTitle($dayNumber) }}</p>
+                                    @endif
 
                                     @if ($locked)
                                         <p class="mt-1 text-[11px] text-muted">
@@ -198,6 +202,12 @@
                                 @endif
                             </div>
                         @else
+                            @if ($dayNumber && $challenge->dayDescription($dayNumber))
+                                <div class="border-b border-line/60 bg-cream/60 px-4 py-4 text-xs leading-7 text-ink/85 sm:px-6">
+                                    {!! \App\Support\RichText::toHtml($challenge->dayDescription($dayNumber)) !!}
+                                </div>
+                            @endif
+
                             @if ($tasks->isNotEmpty())
                                 <ul class="divide-y divide-line">
                                     @foreach ($tasks as $task)

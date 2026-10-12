@@ -58,7 +58,7 @@
                     <div>
                         <label for="starts_on" class="label">تاریخ شروع</label>
                         <div class="relative">
-                            <input id="starts_on" name="starts_on" type="text" data-jalali-picker value="{{ old('starts_on', \App\Support\Jalali::inputValue($challenge->starts_on)) }}" class="input pe-11" placeholder="۱۴۰۵/۰۷/۲۰" inputmode="numeric">
+                            <input id="starts_on" name="starts_on" type="text" data-jalali-picker data-day-range-start value="{{ old('starts_on', \App\Support\Jalali::inputValue($challenge->starts_on)) }}" class="input pe-11" placeholder="۱۴۰۵/۰۷/۲۰" inputmode="numeric">
                             <span class="pointer-events-none absolute inset-y-0 end-0 grid w-11 place-items-center text-muted/80">🗓️</span>
                         </div>
                         <p class="hint">با تقویم انتخاب کن یا دستی مثل ۱۴۰۵/۰۷/۲۰ بنویس. برای آزادسازی روزبه‌روز، همین تاریخ روز اول چالش است.</p>
@@ -67,12 +67,17 @@
                     <div>
                         <label for="ends_on" class="label">تاریخ پایان</label>
                         <div class="relative">
-                            <input id="ends_on" name="ends_on" type="text" data-jalali-picker value="{{ old('ends_on', \App\Support\Jalali::inputValue($challenge->ends_on)) }}" class="input pe-11" placeholder="۱۴۰۵/۰۸/۱۰" inputmode="numeric">
+                            <input id="ends_on" name="ends_on" type="text" data-jalali-picker data-day-range-end value="{{ old('ends_on', \App\Support\Jalali::inputValue($challenge->ends_on)) }}" class="input pe-11" placeholder="۱۴۰۵/۰۸/۱۰" inputmode="numeric">
                             <span class="pointer-events-none absolute inset-y-0 end-0 grid w-11 place-items-center text-muted/80">🗓️</span>
                         </div>
                         <p class="hint">نمی‌تواند قبل از تاریخ شروع باشد.</p>
                     </div>
                 </div>
+
+                <p class="rounded-2xl bg-brand-50/70 px-4 py-3 text-xs leading-6 text-ink ring-1 ring-line">
+                    🗓️ با این بازه، چالش <span class="font-bold text-brand-700" data-day-range-output>{{ fa_num($challenge->totalDays()) }} روز</span> می‌شود؛
+                    روزها از همین بازه ساخته می‌شوند و از روز اول تا آخرین روز به‌طور پیش‌فرض فعال‌اند — نیازی به فعال‌کردن دستی روزها نیست.
+                </p>
             </section>
 
             <div class="space-y-6">

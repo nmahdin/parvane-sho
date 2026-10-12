@@ -72,6 +72,7 @@ class ChallengeExport
     {
         $challenge->loadMissing([
             'tasks',
+            'days',
             'tips',
             'questions.answers',
             'participants.completions',
@@ -223,8 +224,10 @@ class ChallengeExport
         }
 
         foreach (range(1, max(1, $challenge->totalDays())) as $day) {
+            $title = $challenge->dayTitle($day);
+
             $columns[] = [
-                'label' => 'روز '.fa_num($day).' ('.fa_date($challenge->dateForDay($day)).')',
+                'label' => 'روز '.fa_num($day).' ('.fa_date($challenge->dateForDay($day)).')'.($title ? ' — '.$title : ''),
                 'day' => $day,
             ];
         }
@@ -373,7 +376,10 @@ class ChallengeExport
             return 'بدون روز مشخص';
         }
 
-        return 'روز '.fa_num($day).' از '.fa_num($challenge->totalDays());
+        $label = 'روز '.fa_num($day).' از '.fa_num($challenge->totalDays());
+        $title = $challenge->dayTitle($day);
+
+        return $title ? $label.' — '.$title : $label;
     }
 
     private static function dayDate(Challenge $challenge, ?int $day): string

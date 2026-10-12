@@ -198,7 +198,7 @@ class ParticipantController extends Controller
      */
     public function show(Participant $participant): View
     {
-        $participant->load(['challenge.tasks', 'challenge.questions', 'completions', 'questionAnswers']);
+        $participant->load(['challenge.tasks', 'challenge.questions', 'challenge.days', 'completions', 'questionAnswers']);
 
         $challenge = $participant->challenge;
         $breakdown = $participant->dayBreakdown();

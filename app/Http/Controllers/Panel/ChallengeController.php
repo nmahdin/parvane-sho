@@ -5,7 +5,9 @@ namespace App\Http\Controllers\Panel;
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
 use App\Models\Challenge;
+use App\Models\ChallengeQuestion;
 use App\Models\ChallengeTask;
+use App\Models\ChallengeTip;
 use App\Models\Participant;
 use App\Support\Jalali;
 use Illuminate\Contracts\View\View;
@@ -71,7 +73,7 @@ class ChallengeController extends Controller
 
     public function show(Challenge $challenge): View
     {
-        $challenge->load(['tasks', 'tips', 'questions.answers.participant', 'attachments']);
+        $challenge->load(['tasks', 'tips', 'days', 'questions.answers.participant', 'attachments']);
 
         $participants = $challenge->participants()
             ->with(['completions', 'questionAnswers'])
@@ -98,6 +100,7 @@ class ChallengeController extends Controller
             'taskStatuses' => $taskStatuses,
             'tasksCount' => $challenge->tasks->count(),
             'questionsCount' => $challenge->questions->count(),
+            'days' => $this->dayBoxes($challenge),
             'nextDayNumber' => $nextDayNumber,
             'defaultDay' => $defaultDay,
             'defaultDate' => Jalali::inputValue($challenge->dateForDay($defaultDay)),
@@ -112,6 +115,114 @@ class ChallengeController extends Controller
                 'count' => $challenge->dayCounts($day)['total'],
             ]),
         ]);
+    }
+
+    /**
+     * «باکس روزها»: برای هر روز از چالش (بر اساس تاریخ شروع و پایان) یک باکس
+     * با تاریخ، وضعیت باز/بسته، عنوان و توضیح و کارها/پرسش‌ها/نکته‌های همان روز.
+     * روزهای چالش پیش‌فرض فعال‌اند، حتی اگر هنوز محتوایی نداشته باشند.
+     *
+     * @return list<array<string, mixed>>
+     */
+    private function dayBoxes(Challenge $challenge): array
+    {
+        $tasks = $challenge->tasksByDay();
+        $questions = $challenge->questionsByDay();
+        $tips = $challenge->tipsByDay();
+        $settings = $challenge->days->keyBy('day_number');
+
+        $boxes = [];
+
+        // گروه «بدون روز مشخص» همیشه اول فهرست می‌آید تا با داشبورد
+        // شرکت‌کننده و صفحه چالش یکی باشد (روز ۰ = موارد بدون روز).
+        if ($tasks->has(0) || $questions->has(0) || $tips->has(0)) {
+            $boxes[] = $this->dayBox(
+                challenge: $challenge,
+                dayNumber: 0,
+                tasks: $tasks->get(0) ?? collect(),
+                questions: $questions->get(0) ?? collect(),
+                tips: $tips->get(0) ?? collect(),
+            );
+        }
+
+        foreach ($challenge->dayBoxNumbers() as $dayNumber) {
+            $boxes[] = $this->dayBox(
+                challenge: $challenge,
+                dayNumber: $dayNumber,
+                tasks: $tasks->get($dayNumber) ?? collect(),
+                questions: $questions->get($dayNumber) ?? collect(),
+                tips: $tips->get($dayNumber) ?? collect(),
+                title: $settings->get($dayNumber)?->title,
+                description: $settings->get($dayNumber)?->description,
+            );
+        }
+
+        // پیش‌فرض: باکس امروز باز باشد؛ اگر چالش شروع نشده، اولین روزی که محتوا دارد.
+        $hasToday = collect($boxes)->contains(fn (array $box) => $box['is_today']);
+        $firstWithContent = null;
+        $firstEmpty = null;
+
+        foreach ($boxes as $index => $box) {
+            if ($firstWithContent === null && $box['has_content']) {
+                $firstWithContent = $index;
+            }
+
+            if ($firstEmpty === null && ! $box['is_general'] && ! $box['has_content']) {
+                $firstEmpty = $index;
+            }
+        }
+
+        foreach ($boxes as $index => $box) {
+            $boxes[$index]['open'] = $box['is_today']
+                || (! $hasToday && $index === ($firstWithContent ?? $firstEmpty ?? 0));
+        }
+
+        return $boxes;
+    }
+
+    /**
+     * ساخت داده‌های یک باکس روز.
+     *
+     * @param  Collection<int, ChallengeTask>  $tasks
+     * @param  Collection<int, ChallengeQuestion>  $questions
+     * @param  Collection<int, ChallengeTip>  $tips
+     * @return array<string, mixed>
+     */
+    private function dayBox(
+        Challenge $challenge,
+        int $dayNumber,
+        Collection $tasks,
+        Collection $questions,
+        Collection $tips,
+        ?string $title = null,
+        ?string $description = null,
+    ): array {
+        $isGeneral = $dayNumber < 1;
+
+        return [
+            'number' => $dayNumber,
+            'is_general' => $isGeneral,
+            'date_label' => $isGeneral ? null : $challenge->dayDateLabel($dayNumber),
+            'date' => $isGeneral ? null : $challenge->dateForDay($dayNumber),
+            'unlocked' => $isGeneral || $challenge->isDayUnlocked($dayNumber),
+            'is_today' => ! $isGeneral && $challenge->currentDayNumber() === $dayNumber,
+            'title' => $title,
+            'description' => $description,
+            'tasks' => $tasks,
+            'questions' => $questions,
+            'tips' => $tips,
+            'counts' => [
+                'tasks' => $tasks->count(),
+                'questions' => $questions->count(),
+                'tips' => $tips->count(),
+                'total' => $tasks->count() + $questions->count(),
+            ],
+            'has_content' => $tasks->isNotEmpty()
+                || $questions->isNotEmpty()
+                || $tips->isNotEmpty()
+                || filled($title)
+                || filled($description),
+        ];
     }
 
     public function edit(Challenge $challenge): View

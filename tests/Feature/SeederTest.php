@@ -55,6 +55,16 @@ class SeederTest extends TestCase
         $this->assertSame(1, $challenge->attachments()->count());
         $this->assertSame(3, $challenge->participants()->count());
 
+        // عنوان و توضیحات هر روز از چالش (باکس روزها)
+        $this->assertSame(7, $challenge->days()->count(), 'برای هر روز چالش نمونه یک عنوان ثبت شده است.');
+        $this->assertSame('آشنایی با شکرگزاری', $challenge->dayTitle(1));
+        $this->assertNotNull($challenge->dayDescription(7));
+
+        // متن چندخطی روزها خط جدید واقعی دارد (نه «\n» خام)
+        $this->assertStringContainsString("\n", (string) $challenge->dayDescription(1));
+        $this->assertStringNotContainsString('\\n', (string) $challenge->dayDescription(7));
+        $this->assertNull($challenge->dayTitle(99), 'روزهای بیرون از چالش عنوان ندارند.');
+
         // مدیران هم از سیدر می‌آیند: مدیر اصلی + دو مدیر چالش نمونه
         $this->assertSame(3, Admin::query()->count());
         $this->assertTrue(Admin::query()->where('username', 'admin')->firstOrFail()->isSuper());

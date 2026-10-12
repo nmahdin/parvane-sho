@@ -208,7 +208,7 @@
                     </a>
                 @endif
 
-                @forelse ($challenge->contentByDay(true) as $day => $content)
+                @forelse ($challenge->dayPlan(true) as $day => $content)
                     @php
                         $tasks = $content['tasks'];
                         $dayQuestions = $content['questions'];
@@ -243,6 +243,10 @@
                                             <span class="badge bg-gold/15 text-ink ring-gold/50">قفل</span>
                                         @endif
                                     </h3>
+
+                                    @if ($dayNumber && ! $locked && $challenge->dayTitle($dayNumber))
+                                        <p class="mt-1 text-xs font-semibold text-forest">{{ $challenge->dayTitle($dayNumber) }}</p>
+                                    @endif
 
                                     @if ($locked && $unlockLabel)
                                         <p class="mt-1 text-[11px] text-muted">{{ $unlockLabel }} باز می‌شود</p>
@@ -285,6 +289,12 @@
                                 @endif
                             </div>
                         @else
+                        @if ($dayNumber && $challenge->dayDescription($dayNumber))
+                            <div class="border-b border-line/60 bg-cream/60 px-4 py-4 text-xs leading-7 text-ink/85 sm:px-5">
+                                {!! \App\Support\RichText::toHtml($challenge->dayDescription($dayNumber)) !!}
+                            </div>
+                        @endif
+
                         <div class="space-y-2 p-3">
                             @foreach ($tasks as $task)
                                 @php($done = $participant->isTaskDone($task))

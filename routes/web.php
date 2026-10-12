@@ -76,6 +76,7 @@ Route::prefix('panel')->name('panel.')->group(function () {
 
         // افزودن کار یا پرسش به یک روز مشخص (تاریخ‌محور)
         Route::post('challenges/{challenge}/day', [ChallengeDayController::class, 'store'])->name('days.store');
+        Route::put('challenges/{challenge}/days/{dayNumber}', [ChallengeDayController::class, 'update'])->name('days.update');
 
         // کارهای هر روز چالش
         Route::post('challenges/{challenge}/tasks', [ChallengeTaskController::class, 'store'])->name('tasks.store');

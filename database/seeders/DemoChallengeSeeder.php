@@ -16,10 +16,43 @@ class DemoChallengeSeeder extends Seeder
 {
     public const SLUG = 'shokr-gozari-7';
 
+    /**
+     * عنوان و توضیح هر روز از چالش نمونه؛ روزها خودشان از بازه تاریخ شروع و
+     * پایان ساخته می‌شوند و این فهرست فقط «باکس هر روز» را پر می‌کند.
+     *
+     * @var array<int, array{0: string, 1: string}>
+     */
+    public const DEMO_DAYS = [
+        1 => ['آشنایی با شکرگزاری', 'امروز فقط شروع می‌کنیم: سه چیز کوچک که بابتشان خوشحالی را بنویس و سه نفس آرام بکش.
+هدف این روز توجه به چیزهایی است که معمولاً نادیده می‌گیریم.'],
+        2 => ['حرکت و آب', 'امروز بدن هم سهم دارد: بیست دقیقه پیاده‌روی بدون گوشی و برنامه‌ریزی برای آب کافی.
+اگر وقت کم داری، پیاده‌روی را به دو نوبت ده‌دقیقه‌ای بشکن.'],
+        3 => ['آرام‌کردن ذهن', 'روز سوم درباره آرام‌کردن ذهن است؛ تمرین تنفس و ده دقیقه سکوت بدون صفحه.
+همین دو کار کوچک، تمرکزت را برای بقیه روز بهتر می‌کند.'],
+        4 => ['محبت به دیگران', 'امروز یک تعریف صادقانه به کسی بگو و برای یک دوست قدیمی پیام محبت‌آمیز بفرست.
+شکرگزاری وقتی به دیگران هم می‌رسد، اثر بیشتری دارد.'],
+        5 => ['تمرکز و نظم کوچک', 'بیست‌وپنج دقیقه بدون موبایل کار کن و یک گوشه کوچک از فضای اطرافت را مرتب کن.
+نظم کوچک، حالِ درونی را هم مرتب می‌کند.'],
+        6 => ['مهربانی در عمل', 'یک کمک کوچک به یک نفر بکن و سه دقیقه نرمش کن.
+مهربانی لازم نیست بزرگ باشد؛ فقط لازم است واقعی باشد.'],
+        7 => ['جمع‌بندی هفته', 'روز آخر: هفته را مرور کن، سه درس بنویس و یک هدف کوچک برای هفته بعد انتخاب کن.
+به خودت هم یک جایزه کوچک بده.'],
+    ];
+
     public function run(): void
     {
         if (Challenge::query()->exists()) {
             $this->say('چالش از قبل وجود دارد؛ چالش نمونه ساخته نشد.');
+
+            // اگر سایت از قبل ساخته شده بود، عنوان و توضیح روزهای چالش نمونه را
+            // تکمیل می‌کنیم (روزهای موجود دست‌نخورده می‌مانند).
+            $filled = self::seedDaysFor(
+                Challenge::query()->where('slug', self::SLUG)->first()
+            );
+
+            if ($filled > 0) {
+                $this->say('عنوان و توضیح '.$filled.' روز برای «باکس روزها»ی چالش نمونه ثبت شد.');
+            }
 
             return;
         }
@@ -43,6 +76,7 @@ class DemoChallengeSeeder extends Seeder
         ]);
 
         $this->seedTasks($challenge);
+        $this->seedDays($challenge);
         $this->seedTips($challenge);
         $this->seedDayTips($challenge);
         $this->seedQuestions($challenge);
@@ -108,6 +142,54 @@ class DemoChallengeSeeder extends Seeder
                 ]);
             }
         }
+    }
+
+    /**
+     * عنوان و توضیح هر روز از چالش؛ روزها پیش‌فرض از بازه شروع و پایان ساخته
+     * می‌شوند و اینجا برای هرکدام یک عنوان و یک توضیح نمونه می‌گذاریم.
+     */
+    private function seedDays(Challenge $challenge): void
+    {
+        self::seedDaysFor($challenge);
+    }
+
+    /**
+     * ثبت عنوان و توضیح روزها برای یک چالش (فقط روزهایی که هنوز ثبت نشده‌اند).
+     * روی چالش موجود هم قابل استفاده است تا سایت‌های قدیمی به‌روز شوند.
+     *
+     * @return int تعداد روزهایی که تازه ثبت شدند
+     */
+    public static function seedDaysFor(?Challenge $challenge): int
+    {
+        if (! $challenge) {
+            return 0;
+        }
+
+        $created = 0;
+
+        foreach (self::DEMO_DAYS as $day => [$title, $description]) {
+            $existing = $challenge->days()->where('day_number', $day)->first();
+
+            if ($existing) {
+                // اگر سایت قبلاً ساخته شده و متن روزها با «\n» خام ذخیره شده
+                // بود، همان‌جا اصلاحش می‌کنیم تا متن چندخطی درست دیده شود.
+                if ($existing->description && str_contains($existing->description, '\\n')) {
+                    $existing->update(['description' => str_replace('\\n', "\n", $existing->description)]);
+                }
+
+                continue;
+            }
+
+            $challenge->days()->create([
+                'day_number' => $day,
+                'title' => $title,
+                'description' => $description,
+            ]);
+
+            $created++;
+        }
+
+        return $created;
     }
 
     /**

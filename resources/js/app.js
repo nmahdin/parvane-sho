@@ -15,7 +15,44 @@ const app = {
         this.initValueFillers();
         this.initDayTypeForms();
         this.initDayPreviews();
+        this.initDayRangeCount();
         this.initJalaliDates();
+    },
+
+    /* شمارش زنده روزهای چالش از بازه تاریخ شروع و پایان:
+       data-day-range-start / data-day-range-end روی دو input و
+       data-day-range-output روی عنصری که تعداد روزها را نشان می‌دهد. */
+    initDayRangeCount() {
+        const startInput = document.querySelector('[data-day-range-start]');
+        const endInput = document.querySelector('[data-day-range-end]');
+        const output = document.querySelector('[data-day-range-output]');
+
+        if (!startInput || !endInput || !output) return;
+
+        const dayLength = 24 * 60 * 60 * 1000;
+
+        const update = () => {
+            const start = jalaliInputToDate(startInput.value);
+            const end = jalaliInputToDate(endInput.value);
+
+            if (!start || !end) {
+                output.textContent = '—';
+                return;
+            }
+
+            const days = Math.round((end - start) / dayLength) + 1;
+
+            output.textContent = days > 0
+                ? `${toPersianDigits(days)} روز`
+                : 'بازه اشتباه است';
+        };
+
+        [startInput, endInput].forEach((input) => {
+            input.addEventListener('input', update);
+            input.addEventListener('change', update);
+        });
+
+        update();
     },
 
     /* مدال انتخاب تاریخ شمسی روی input های دارای data-jalali-picker */

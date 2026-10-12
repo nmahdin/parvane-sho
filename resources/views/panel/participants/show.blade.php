@@ -230,6 +230,11 @@
                                     @if ($day > 0)
                                         <span class="text-[11px] font-normal text-muted">· {{ fa_date($challenge->dateForDay((int) $day)) }}</span>
                                     @endif
+
+                                    @if ($day > 0 && $challenge->dayTitle((int) $day))
+                                        <span class="badge bg-brand-50 text-brand-700">{{ $challenge->dayTitle((int) $day) }}</span>
+                                    @endif
+
                                     @if ($locked)
                                         <span class="badge bg-gold/15 text-ink ring-gold/50">قفل</span>
                                     @elseif ($row && $row['complete'])
