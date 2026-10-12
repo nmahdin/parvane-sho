@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Panel;
 use App\Http\Controllers\Controller;
 use App\Models\Admin;
 use App\Models\Challenge;
+use App\Models\ChallengeTask;
 use App\Models\Participant;
 use App\Support\Jalali;
 use Illuminate\Contracts\View\View;
@@ -80,6 +81,11 @@ class ChallengeController extends Controller
             // شمردن موارد و پیشرفت، کوئری اضافه نزند.
             ->each(fn (Participant $participant) => $participant->setRelation('challenge', $challenge));
 
+        // وضعیت هر کار: چه کسانی انجام داده‌اند و چه کسانی نداده‌اند.
+        $taskStatuses = $challenge->tasks
+            ->mapWithKeys(fn (ChallengeTask $task) => [$task->getKey() => $task->statusForParticipants($participants)])
+            ->all();
+
         $lastDay = (int) ($challenge->contentDayNumbers()->last() ?? 0);
         $nextDayNumber = $lastDay > 0 ? min(365, $lastDay + 1) : 1;
 
@@ -89,6 +95,7 @@ class ChallengeController extends Controller
         return view('panel.challenges.show', [
             'challenge' => $challenge,
             'participants' => $participants,
+            'taskStatuses' => $taskStatuses,
             'tasksCount' => $challenge->tasks->count(),
             'questionsCount' => $challenge->questions->count(),
             'nextDayNumber' => $nextDayNumber,

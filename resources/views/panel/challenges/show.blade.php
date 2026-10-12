@@ -8,6 +8,7 @@
 
 @section('page-actions')
     <a href="{{ $challenge->publicUrl() }}" target="_blank" class="btn btn-white btn-sm">مشاهده در سایت ↗</a>
+    <a href="{{ route('panel.challenges.export', $challenge) }}" class="btn btn-white btn-sm">⬇️ خروجی اکسل</a>
     <a href="{{ route('panel.challenges.edit', $challenge) }}" class="btn btn-soft btn-sm">ویرایش مشخصات</a>
 @endsection
 
@@ -256,6 +257,53 @@
                                             <p class="text-sm font-medium text-ink">{{ $task->title }}</p>
                                             @if ($task->description)
                                                 <p class="mt-1 text-xs leading-6 text-muted">{{ $task->description }}</p>
+                                            @endif
+
+                                            @php($taskStatus = $taskStatuses[$task->id] ?? null)
+
+                                            @if ($taskStatus)
+                                                <details class="mt-3">
+                                                    <summary class="cursor-pointer text-xs font-medium text-brand-700">
+                                                        چه کسانی انجام داده‌اند؟ ({{ fa_num(count($taskStatus['done'])) }} از {{ fa_num($taskStatus['total']) }})
+                                                    </summary>
+
+                                                    <div class="mt-3 grid gap-2 lg:grid-cols-2">
+                                                        <div class="rounded-2xl bg-cream p-3 ring-1 ring-line">
+                                                            <p class="text-[11px] font-semibold text-forest">انجام داده‌اند ({{ fa_num(count($taskStatus['done'])) }})</p>
+
+                                                            @if ($taskStatus['done'] === [])
+                                                                <p class="mt-2 text-[11px] text-muted">هنوز کسی این کار را تیک نزده است.</p>
+                                                            @else
+                                                                <ul class="mt-2 space-y-1.5">
+                                                                    @foreach ($taskStatus['done'] as $row)
+                                                                        <li class="flex flex-wrap items-center justify-between gap-2 text-[11px]">
+                                                                            <a href="{{ route('panel.participants.show', $row['participant']) }}"
+                                                                               class="font-semibold text-forest hover:text-brand-700">{{ $row['participant']->name }}</a>
+                                                                            <span class="text-muted/80">{{ fa_datetime($row['completed_at']) }}</span>
+                                                                        </li>
+                                                                    @endforeach
+                                                                </ul>
+                                                            @endif
+                                                        </div>
+
+                                                        <div class="rounded-2xl bg-paper p-3 ring-1 ring-line">
+                                                            <p class="text-[11px] font-semibold text-muted">انجام نداده‌اند ({{ fa_num(count($taskStatus['pending'])) }})</p>
+
+                                                            @if ($taskStatus['pending'] === [])
+                                                                <p class="mt-2 text-[11px] text-forest">همهٔ شرکت‌کننده‌ها این کار را انجام داده‌اند.</p>
+                                                            @else
+                                                                <ul class="mt-2 space-y-1.5">
+                                                                    @foreach ($taskStatus['pending'] as $pendingParticipant)
+                                                                        <li class="text-[11px]">
+                                                                            <a href="{{ route('panel.participants.show', $pendingParticipant) }}"
+                                                                               class="text-ink/80 hover:text-brand-700">{{ $pendingParticipant->name }}</a>
+                                                                        </li>
+                                                                    @endforeach
+                                                                </ul>
+                                                            @endif
+                                                        </div>
+                                                    </div>
+                                                </details>
                                             @endif
                                         </div>
 
@@ -718,15 +766,8 @@
             <label class="label" for="names">افزودن به فهرست چالش</label>
             <textarea id="names" name="names" rows="3" class="input resize-y" placeholder="زهرا محمدی&#10;امیر رضایی&#10;نگار کریمی" data-autogrow></textarea>
 
-            <div class="grid gap-3 sm:grid-cols-[1fr_auto]">
-                <div>
-                    <label class="label" for="contact">شماره تماس یا راه ارتباطی (اختیاری، برای نفر اول)</label>
-                    <input id="contact" name="contact" type="text" class="input" placeholder="۰۹۱۲۳۴۵۶۷۸۹">
-                </div>
-
-                <div class="flex items-end">
-                    <button type="submit" class="btn btn-primary w-full sm:w-auto">افزودن به فهرست</button>
-                </div>
+            <div class="flex justify-end">
+                <button type="submit" class="btn btn-primary w-full sm:w-auto">افزودن به فهرست</button>
             </div>
         </form>
 

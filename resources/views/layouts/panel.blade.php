@@ -54,21 +54,6 @@
                 </nav>
 
                 <div class="space-y-3 rounded-3xl bg-paper p-4 shadow-sm ring-1 ring-line">
-                    @if ($currentAdmin)
-                        <div class="flex items-center gap-3 rounded-2xl bg-cream px-3 py-2.5">
-                            <span class="grid size-9 shrink-0 place-items-center rounded-xl bg-paper text-xs font-bold text-ink/80 ring-1 ring-line">
-                                {{ mb_substr($currentAdmin->name, 0, 1) }}
-                            </span>
-
-                            <span class="min-w-0">
-                                <span class="block truncate text-xs font-semibold text-ink">{{ $currentAdmin->name }}</span>
-                                <span class="mt-0.5 block truncate text-[11px] text-muted" dir="ltr">{{ $currentAdmin->username }}</span>
-                            </span>
-                        </div>
-
-                        <span class="badge {{ $currentAdmin->roleClasses() }}">{{ $currentAdmin->roleLabel() }}</span>
-                    @endif
-
                     <a href="{{ route('home') }}" target="_blank" class="btn btn-ghost w-full justify-start text-xs">🌐 مشاهده سایت</a>
 
                     <form method="POST" action="{{ route('panel.logout') }}">

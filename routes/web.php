@@ -8,6 +8,7 @@ use App\Http\Controllers\Panel\AuthController;
 use App\Http\Controllers\Panel\ChallengeAttachmentController;
 use App\Http\Controllers\Panel\ChallengeController as PanelChallengeController;
 use App\Http\Controllers\Panel\ChallengeDayController;
+use App\Http\Controllers\Panel\ChallengeExportController;
 use App\Http\Controllers\Panel\ChallengeQuestionController;
 use App\Http\Controllers\Panel\ChallengeTaskController;
 use App\Http\Controllers\Panel\ChallengeTipController;
@@ -68,6 +69,9 @@ Route::prefix('panel')->name('panel.')->group(function () {
         Route::delete('challenges/{challenge}', [PanelChallengeController::class, 'destroy'])->name('challenges.destroy');
         Route::patch('challenges/{challenge}/publish', [PanelChallengeController::class, 'togglePublish'])->name('challenges.publish');
         Route::get('challenges/{challenge}', [PanelChallengeController::class, 'show'])->name('challenges.show');
+
+        // خروجی اکسل اطلاعات چالش (کارها، پرسش‌ها و وضعیت شرکت‌کننده‌ها)
+        Route::get('challenges/{challenge}/export', ChallengeExportController::class)->name('challenges.export');
 
         // افزودن کار یا پرسش به یک روز مشخص (تاریخ‌محور)
         Route::post('challenges/{challenge}/day', [ChallengeDayController::class, 'store'])->name('days.store');

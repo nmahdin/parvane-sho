@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 
 #[Fillable(['challenge_id', 'day_number', 'question', 'answer', 'asked_by', 'is_published', 'sort_order'])]
 class ChallengeQuestion extends Model
@@ -48,5 +50,33 @@ class ChallengeQuestion extends Model
     public function dayLabel(): string
     {
         return $this->day_number ? 'روز '.fa_num($this->day_number) : 'پرسش‌های کلی';
+    }
+
+    /**
+     * چه کسانی به این پرسش پاسخ داده‌اند و چه کسانی نداده‌اند.
+     *
+     * @param  Collection<int, Participant>  $participants
+     * @return array{answered: list<array{participant: Participant, answered_at: ?Carbon}>, pending: list<Participant>, total: int}
+     */
+    public function statusForParticipants(Collection $participants): array
+    {
+        $answers = $this->relationLoaded('answers') ? $this->answers : $this->answers()->get();
+
+        $answered = [];
+        $pending = [];
+
+        foreach ($participants as $participant) {
+            $answer = $answers->firstWhere('participant_id', $participant->getKey());
+
+            if ($answer) {
+                $answered[] = ['participant' => $participant, 'answered_at' => $answer->updated_at];
+
+                continue;
+            }
+
+            $pending[] = $participant;
+        }
+
+        return ['answered' => $answered, 'pending' => $pending, 'total' => $participants->count()];
     }
 }

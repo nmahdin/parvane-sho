@@ -146,13 +146,11 @@ class ParticipantController extends Controller
         $validated = $request->validate([
             'names' => ['nullable', 'string', 'max:10000'],
             'name' => ['nullable', 'string', 'max:190'],
-            'contact' => ['nullable', 'string', 'max:190'],
         ], [
             'name.max' => 'نام نمی‌تواند بیشتر از ۱۹۰ کاراکتر باشد.',
         ], [
             'names' => 'فهرست نام‌ها',
             'name' => 'نام',
-            'contact' => 'شماره تماس',
         ]);
 
         $names = TextList::lines($validated['names'] ?? null);
@@ -168,7 +166,7 @@ class ParticipantController extends Controller
         $created = 0;
         $skipped = 0;
 
-        foreach ($names as $index => $name) {
+        foreach ($names as $name) {
             $exists = $challenge->participants()
                 ->whereRaw('lower(name) = ?', [mb_strtolower($name)])
                 ->exists();
@@ -179,10 +177,7 @@ class ParticipantController extends Controller
                 continue;
             }
 
-            $challenge->participants()->create([
-                'name' => $name,
-                'contact' => $index === 0 ? ($validated['contact'] ?? null) : null,
-            ]);
+            $challenge->participants()->create(['name' => $name]);
 
             $created++;
         }
