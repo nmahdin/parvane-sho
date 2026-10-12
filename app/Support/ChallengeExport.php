@@ -72,6 +72,7 @@ class ChallengeExport
     {
         $challenge->loadMissing([
             'tasks',
+            'tips',
             'questions.answers',
             'participants.completions',
             'participants.questionAnswers',
@@ -87,6 +88,7 @@ class ChallengeExport
             'شرکت‌کننده‌ها' => self::participantsSheet($challenge, $participants),
             'وضعیت روز به روز' => self::daysSheet($challenge, $participants),
             'کارها و پرسش‌ها' => self::itemsSheet($challenge, $participants),
+            'نکته‌ها' => self::tipsSheet($challenge),
         ];
     }
 
@@ -111,6 +113,7 @@ class ChallengeExport
             ['تعداد کارها', $challenge->tasks->count()],
             ['تعداد پرسش‌ها', $challenge->questions->count()],
             ['تعداد شرکت‌کننده‌ها', $participants->count()],
+            ['تعداد نکته‌ها (کلی + هر روز)', $challenge->tips->count()],
             ['میانگین پیشرفت شرکت‌کننده‌ها (٪)', $average],
             ['پیشرفت کلی چالش (٪)', $challenge->progressPercent()],
             ['تاریخ خروجی', Jalali::formatDateTime(now())],
@@ -134,6 +137,7 @@ class ChallengeExport
             'موارد انجام‌شده',
             'کل موارد',
             'پیشرفت (٪)',
+            'تعهدنامه',
             'روزهای کامل',
             'روزهای از دست‌رفته',
             'زنجیره فعلی',
@@ -154,6 +158,9 @@ class ChallengeExport
                 $participant->completedItems(),
                 $participant->totalItems(),
                 $participant->progressPercent(),
+                ! $challenge->pledgeEnabled()
+                    ? 'غیرفعال'
+                    : ($participant->hasPledged() ? 'ثبت شده ('.fa_datetime($participant->pledged_at).')' : 'ثبت نشده'),
                 $participant->completedDaysCount(),
                 $participant->missedDaysCount(),
                 $participant->currentStreak(),
@@ -165,6 +172,34 @@ class ChallengeExport
 
         if ($participants->isEmpty()) {
             $rows[] = ['هنوز کسی در این چالش نیست.'];
+        }
+
+        return $rows;
+    }
+
+    /**
+     * نکته‌های چالش: کلی و مخصوص هر روز.
+     *
+     * @return list<list<mixed>>
+     */
+    private static function tipsSheet(Challenge $challenge): array
+    {
+        $rows = [['روز', 'تاریخ روز', 'نماد', 'عنوان', 'متن']];
+
+        foreach ($challenge->tips->sortBy('sort_order') as $tip) {
+            $day = (int) ($tip->day_number ?? 0);
+
+            $rows[] = [
+                $day > 0 ? 'روز '.fa_num($day) : 'بدون روز مشخص (کلی)',
+                $day > 0 ? fa_date($challenge->dateForDay($day)) : '—',
+                $tip->emoji,
+                $tip->title,
+                $tip->body ?: '—',
+            ];
+        }
+
+        if ($challenge->tips->isEmpty()) {
+            $rows[] = ['—', '—', '—', 'هنوز نکته‌ای ثبت نشده است.', '—'];
         }
 
         return $rows;

@@ -36,11 +36,15 @@ class DemoChallengeSeeder extends Seeder
             'ends_on' => Carbon::today()->addDays(4),
             'is_published' => true,
             'daily_release' => true,
+            'pledge_enabled' => true,
+            'pledge_title' => 'تعهدنامهٔ چالش ۷ روزه شکرگزاری',
+            'pledge_text' => "با ثبت این تعهدنامه قبول می‌کنم:\n- هر روز فقط به کارهای همان روز رسیدگی کنم و صادقانه تیک بزنم.\n- اگر یک روز را از دست دادم، چالش را رها نکنم و روز بعد ادامه بدهم.\n- نکته‌ها را بخوانم و تمرین‌ها را با حوصله انجام بدهم.\n\nمی‌دانم این تعهدنامه برای رشد خودم است، نه برای امتیاز گرفتن از کسی.",
             'sort_order' => 1,
         ]);
 
         $this->seedTasks($challenge);
         $this->seedTips($challenge);
+        $this->seedDayTips($challenge);
         $this->seedQuestions($challenge);
 
         $challenge->update([
@@ -106,6 +110,9 @@ class DemoChallengeSeeder extends Seeder
         }
     }
 
+    /**
+     * نکته‌های کلی چالش (بدون روز مشخص).
+     */
     private function seedTips(Challenge $challenge): void
     {
         $challenge->tips()->createMany([
@@ -113,6 +120,32 @@ class DemoChallengeSeeder extends Seeder
             ['emoji' => '⏰', 'title' => 'یک ساعت ثابت انتخاب کن', 'body' => 'اگر کارها را همیشه در یک ساعت مشخص انجام بدهی، سریع‌تر به عادت تبدیل می‌شوند.', 'sort_order' => 2],
             ['emoji' => '⚠️', 'title' => 'با خودت سختگیر نباش', 'body' => 'اگر یک روز کامل نشد، اشکالی ندارد؛ همان روز را بعداً کامل کن.', 'sort_order' => 3],
         ]);
+    }
+
+    /**
+     * هر روز چالش هم نکته‌های مخصوص خودش را دارد.
+     */
+    private function seedDayTips(Challenge $challenge): void
+    {
+        $dayTips = [
+            1 => ['emoji' => '📝', 'title' => 'سه چیز، هر شب', 'body' => 'بهترین وقت برای نوشتن شکرگزاری، همان چند دقیقه قبل از خواب است.'],
+            2 => ['emoji' => '🚶', 'title' => 'بدون گوشی قدم بزن', 'body' => 'اگر گوشی همراهت باشد، ذهنت به آن برمی‌گردد؛ فقط قدم و نگاه.'],
+            3 => ['emoji' => '🌬️', 'title' => 'شمارش نفس‌ها', 'body' => '۴ ثانیه دم، ۷ ثانیه نگه‌داشتن، ۸ ثانیه بازدم؛ همین الگو آرامش می‌آورد.'],
+            4 => ['emoji' => '💬', 'title' => 'تعریف باید مشخص باشد', 'body' => '«تو مهربانی» خوب است؛ «وقتی بدون اینکه بگویم کمکم کردی...» بهتر است.'],
+            5 => ['emoji' => '📵', 'title' => 'نیم ساعت بدون صفحه', 'body' => 'نیم ساعت بدون صفحه‌نمایش، تمرکز و خواب امشب را بهتر می‌کند.'],
+            6 => ['emoji' => '🍵', 'title' => 'آهسته و با حوصله', 'body' => 'یکی از کارهای امروز را با آرامش و بدون عجله انجام بده.'],
+            7 => ['emoji' => '🎉', 'title' => 'به خودت جایزه بده', 'body' => 'یک هفته زحمت کشیدی؛ یک کار کوچک که خوشحالت می‌کند برای خودت انجام بده.'],
+        ];
+
+        foreach ($dayTips as $day => $tip) {
+            $challenge->tips()->create([
+                'day_number' => $day,
+                'emoji' => $tip['emoji'],
+                'title' => $tip['title'],
+                'body' => $tip['body'],
+                'sort_order' => 10 + $day,
+            ]);
+        }
     }
 
     private function seedQuestions(Challenge $challenge): void

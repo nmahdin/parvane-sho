@@ -2,16 +2,19 @@
 
 namespace Tests\Feature;
 
+use App\Models\Admin;
 use App\Models\Challenge;
 use App\Models\ChallengeQuestionAnswer;
 use App\Models\Participant;
 use App\Models\Setting;
 use App\Models\TaskCompletion;
+use Database\Seeders\AdminSeeder;
 use Database\Seeders\DatabaseSeeder;
 use Database\Seeders\DemoChallengeSeeder;
 use Database\Seeders\DemoParticipantsSeeder;
 use Database\Seeders\SettingsSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 /**
@@ -24,7 +27,7 @@ class SeederTest extends TestCase
 
     public function test_the_seeder_files_are_in_place(): void
     {
-        foreach (['DatabaseSeeder', 'SettingsSeeder', 'DemoChallengeSeeder', 'DemoParticipantsSeeder'] as $class) {
+        foreach (['DatabaseSeeder', 'AdminSeeder', 'SettingsSeeder', 'DemoChallengeSeeder', 'DemoParticipantsSeeder'] as $class) {
             $file = database_path('seeders/'.$class.'.php');
 
             $this->assertFileExists($file, 'فایل سیدر '.$class.'.php وجود ندارد.');
@@ -43,9 +46,25 @@ class SeederTest extends TestCase
 
         $this->assertSame(14, $challenge->tasks()->count(), 'هر روز چالش نمونه دو کار دارد.');
         $this->assertSame(3, $challenge->questions()->count());
-        $this->assertSame(3, $challenge->tips()->count());
+        // سه نکته کلی + یک نکته مخصوص هر روز
+        $this->assertSame(10, $challenge->tips()->count());
+        $this->assertSame(3, $challenge->generalTips()->count());
+        $this->assertSame(7, $challenge->tips()->whereNotNull('day_number')->count());
+        $this->assertSame(1, $challenge->tipsForDay(1)->count());
+        $this->assertSame(0, $challenge->tipsForDay(99)->count());
         $this->assertSame(1, $challenge->attachments()->count());
         $this->assertSame(3, $challenge->participants()->count());
+
+        // مدیران هم از سیدر می‌آیند: مدیر اصلی + دو مدیر چالش نمونه
+        $this->assertSame(3, Admin::query()->count());
+        $this->assertTrue(Admin::query()->where('username', 'admin')->firstOrFail()->isSuper());
+        $this->assertFalse(Admin::query()->where('username', 'maryam')->firstOrFail()->isSuper());
+        $this->assertTrue(Admin::query()->where('username', 'sara')->exists());
+
+        // چالش نمونه تعهدنامه دارد
+        $this->assertTrue($challenge->pledgeEnabled());
+        $this->assertNotSame('', $challenge->pledgeTitle());
+        $this->assertStringContainsString('تعهد', $challenge->pledgeText());
 
         // تیک‌ها و پاسخ‌ها واقعاً در دیتابیس هستند: ۶ کار زهرا + ۳ کار امیر
         $this->assertSame(9, TaskCompletion::query()->whereNotNull('completed_at')->count());
@@ -111,6 +130,29 @@ class SeederTest extends TestCase
         $this->assertSame(3, $created);
         $this->assertSame(3, $challenge->participants()->count());
         $this->assertGreaterThan(0, ChallengeQuestionAnswer::query()->count());
+    }
+
+    public function test_the_admin_seeder_creates_the_super_admin_and_demo_admins(): void
+    {
+        Admin::query()->delete();
+
+        $this->seed(AdminSeeder::class);
+
+        $this->assertSame(3, Admin::query()->count());
+        $this->assertTrue(Admin::query()->where('username', 'admin')->firstOrFail()->isSuper());
+
+        $maryam = Admin::query()->where('username', 'maryam')->firstOrFail();
+        $this->assertFalse($maryam->isSuper());
+        $this->assertTrue($maryam->isActive());
+        $this->assertTrue(Hash::check('maryam12345', $maryam->password));
+
+        // اجرای دوباره چیزی را تکرار نمی‌کند و رمز کسی را عوض نمی‌کند
+        $maryam->update(['password' => 'changed-by-owner']);
+
+        $this->seed(AdminSeeder::class);
+
+        $this->assertSame(3, Admin::query()->count());
+        $this->assertTrue(Hash::check('changed-by-owner', $maryam->refresh()->password));
     }
 
     public function test_the_settings_seeder_runs_on_its_own(): void

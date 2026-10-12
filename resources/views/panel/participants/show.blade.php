@@ -28,6 +28,12 @@
                     <div class="flex flex-wrap items-center gap-2">
                         <h2 class="text-lg">{{ $participant->name }}</h2>
                         <span class="badge {{ $statusInfo['classes'] }}">{{ $statusInfo['label'] }}</span>
+
+                        @if ($challenge->pledgeEnabled())
+                            <span class="badge {{ $participant->hasPledged() ? 'bg-leaf/10 text-forest ring-leaf/30' : 'bg-gold/15 text-ink ring-gold/50' }}">
+                                {{ $participant->hasPledged() ? '✓ تعهدنامه ثبت شده' : 'تعهدنامه ثبت نشده' }}
+                            </span>
+                        @endif
                     </div>
 
                     <p class="mt-1.5 text-xs text-muted">
@@ -36,6 +42,10 @@
                             · <span dir="auto">{{ $participant->contact }}</span>
                         @endif
                     </p>
+
+                    @if ($challenge->pledgeEnabled() && $participant->hasPledged())
+                        <p class="mt-1 text-[11px] text-muted/80">تعهدنامه را در {{ fa_datetime($participant->pledged_at) }} ثبت کرده است.</p>
+                    @endif
 
                     <p class="mt-1 text-[11px] text-muted/80">
                         آخرین بازدید: {{ $participant->last_seen_at ? fa_datetime($participant->last_seen_at) : 'هنوز باز نکرده' }}
@@ -216,6 +226,10 @@
                             <div class="flex flex-wrap items-center justify-between gap-2 bg-cream px-5 py-3">
                                 <p class="flex items-center gap-2 text-sm font-semibold text-ink">
                                     {{ $day > 0 ? 'روز '.fa_num($day) : 'موارد بدون روز مشخص' }}
+
+                                    @if ($day > 0)
+                                        <span class="text-[11px] font-normal text-muted">· {{ fa_date($challenge->dateForDay((int) $day)) }}</span>
+                                    @endif
                                     @if ($locked)
                                         <span class="badge bg-gold/15 text-ink ring-gold/50">قفل</span>
                                     @elseif ($row && $row['complete'])

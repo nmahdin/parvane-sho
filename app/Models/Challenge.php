@@ -28,6 +28,9 @@ use Illuminate\Support\Str;
     'ends_on',
     'is_published',
     'daily_release',
+    'pledge_enabled',
+    'pledge_title',
+    'pledge_text',
     'sort_order',
 ])]
 #[RouteKey('slug')]
@@ -118,6 +121,72 @@ class Challenge extends Model
         'cyan' => 'jade',
     ];
 
+    /** عنوان و متن پیش‌فرض تعهدنامه (اگر مدیر متن خودش را ننوشته باشد). */
+    public const DEFAULT_PLEDGE_TITLE = 'تعهدنامهٔ شروع چالش';
+
+    public const DEFAULT_PLEDGE_TEXT = "با ثبت این تعهدنامه قبول می‌کنم:\n- به کارهای هر روز، همان روز رسیدگی کنم و صادقانه تیک بزنم.\n- اگر یک روز از دست رفت، چالش را رها نکنم و روز بعد ادامه بدهم.\n- هدفم رشد خودم است، نه کامل بودن؛ تلاش کوچک هر روز از یک روز کاملِ بی‌ادامه بهتر است.\n\nو می‌دانم که این تعهدنامه برای خودم است، نه برای کسی دیگر.";
+
+    /**
+     * آیا تعهدنامه برای این چالش فعال است؟
+     */
+    public function pledgeEnabled(): bool
+    {
+        return (bool) $this->pledge_enabled;
+    }
+
+    /**
+     * عنوان تعهدنامه (پیش‌فرض اگر خالی باشد).
+     */
+    public function pledgeTitle(): string
+    {
+        return (string) ($this->pledge_title ?: self::DEFAULT_PLEDGE_TITLE);
+    }
+
+    /**
+     * متن تعهدنامه (پیش‌فرض اگر خالی باشد).
+     */
+    public function pledgeText(): string
+    {
+        return (string) ($this->pledge_text ?: self::DEFAULT_PLEDGE_TEXT);
+    }
+
+    /**
+     * نکته‌های یک روز مشخص. روز `null` یا ۰ یعنی نکته‌های کلی چالش.
+     *
+     * @return Collection<int, ChallengeTip>
+     */
+    public function tipsForDay(?int $dayNumber): Collection
+    {
+        $day = ($dayNumber === null || $dayNumber < 1) ? null : $dayNumber;
+
+        return $this->tips
+            ->filter(fn (ChallengeTip $tip) => ($tip->day_number ?: null) === $day)
+            ->sortBy('sort_order')
+            ->values();
+    }
+
+    /**
+     * نکته‌های کلی (بدون روز مشخص).
+     *
+     * @return Collection<int, ChallengeTip>
+     */
+    public function generalTips(): Collection
+    {
+        return $this->tipsForDay(null);
+    }
+
+    /**
+     * نکته‌های هر روز، کلیدگذاری‌شده با شماره روز (۰ = بدون روز مشخص).
+     *
+     * @return Collection<int, Collection<int, ChallengeTip>>
+     */
+    public function tipsByDay(): Collection
+    {
+        return $this->tips
+            ->sortBy('sort_order')
+            ->groupBy(fn (ChallengeTip $tip) => (int) ($tip->day_number ?? 0));
+    }
+
     public function accentKey(): string
     {
         $accent = (string) $this->accent;
@@ -149,6 +218,7 @@ class Challenge extends Model
             'ends_on' => 'date',
             'is_published' => 'boolean',
             'daily_release' => 'boolean',
+            'pledge_enabled' => 'boolean',
         ];
     }
 
@@ -296,9 +366,11 @@ class Challenge extends Model
     {
         $tasks = $this->tasksByDay();
         $questions = $this->questionsByDay($onlyPublishedQuestions);
+        $tips = $this->tipsByDay();
 
         return $tasks->keys()
             ->merge($questions->keys())
+            ->merge($tips->keys())
             ->unique()
             ->sort()
             ->values()
@@ -306,6 +378,7 @@ class Challenge extends Model
                 $day => [
                     'tasks' => $tasks->get($day) ?? collect(),
                     'questions' => $questions->get($day) ?? collect(),
+                    'tips' => $tips->get($day) ?? collect(),
                 ],
             ]);
     }

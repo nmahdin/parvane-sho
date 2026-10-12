@@ -104,6 +104,12 @@
                                             @if ($participant->contact)
                                                 <span class="text-[11px] text-muted/80">{{ $participant->contact }}</span>
                                             @endif
+
+                                            @if ($participant->challenge->pledgeEnabled())
+                                                <span class="mt-1 inline-block rounded-lg px-1.5 py-0.5 text-[10px] {{ $participant->hasPledged() ? 'bg-leaf/10 text-forest' : 'bg-gold/20 text-ink' }}">
+                                                    {{ $participant->hasPledged() ? 'تعهدنامه ✓ ثبت شده' : 'تعهدنامه ✗ ثبت نشده' }}
+                                                </span>
+                                            @endif
                                         </span>
                                     </a>
                                 </td>

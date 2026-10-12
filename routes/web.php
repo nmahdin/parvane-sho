@@ -43,6 +43,7 @@ Route::get('/p/{participant}', [ParticipantDashboardController::class, 'show'])-
 Route::post('/p/{participant}/tasks/{task}', [ParticipantDashboardController::class, 'toggle'])->name('participant.tasks.toggle');
 Route::post('/p/{participant}/questions/{question}', [ParticipantDashboardController::class, 'answerQuestion'])->name('participant.questions.answer');
 Route::put('/p/{participant}/note', [ParticipantDashboardController::class, 'updateNote'])->name('participant.note');
+Route::post('/p/{participant}/pledge', [ParticipantDashboardController::class, 'pledge'])->name('participant.pledge');
 
 /*
 |--------------------------------------------------------------------------

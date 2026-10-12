@@ -184,6 +184,8 @@ class ChallengeController extends Controller
             'accent' => ['nullable', Rule::in(array_keys(Challenge::ACCENTS))],
             'starts_on' => ['nullable', 'string', 'max:16', $this->jalaliDateRule()],
             'ends_on' => ['nullable', 'string', 'max:16', $this->jalaliDateRule()],
+            'pledge_title' => ['nullable', 'string', 'max:190'],
+            'pledge_text' => ['nullable', 'string', 'max:5000'],
             'sort_order' => ['nullable', 'integer', 'min:0', 'max:9999'],
         ], [
             'title.required' => 'عنوان چالش را وارد کنید.',
@@ -214,6 +216,9 @@ class ChallengeController extends Controller
             'ends_on' => $endsOn,
             'is_published' => $request->boolean('is_published'),
             'daily_release' => $request->boolean('daily_release'),
+            'pledge_enabled' => $request->boolean('pledge_enabled'),
+            'pledge_title' => ($validated['pledge_title'] ?? null) ?: null,
+            'pledge_text' => ($validated['pledge_text'] ?? null) ?: null,
             'sort_order' => isset($validated['sort_order']) ? (int) $validated['sort_order'] : null,
         ]];
     }

@@ -27,6 +27,9 @@
                         <span class="badge {{ $challenge->statusClasses() }}">{{ $challenge->statusLabel() }}</span>
                         <span class="badge bg-cream text-ink/80 ring-line">{{ $challenge->dateRangeLabel() }}</span>
                         <span class="badge bg-cream text-ink/80 ring-line" dir="ltr">/{{ $challenge->slug }}</span>
+                        <span class="badge {{ $challenge->pledgeEnabled() ? 'bg-leaf/10 text-forest ring-leaf/30' : 'bg-cream text-muted ring-line' }}">
+                            🤝 تعهدنامه: {{ $challenge->pledgeEnabled() ? 'فعال' : 'غیرفعال' }}
+                        </span>
                     </div>
                 </div>
             </div>
@@ -490,6 +493,31 @@
                         </div>
                     @endif
 
+                    {{-- نکته‌های این روز --}}
+                    @php($dayTips = $challenge->tipsForDay($isGeneral ? null : $dayNumber))
+                    <div class="border-t border-line/60 bg-gold/5 px-5 py-4">
+                        <div class="flex flex-wrap items-center justify-between gap-3">
+                            <h4 class="flex flex-wrap items-center gap-2 text-xs font-semibold text-ink">
+                                <span>💡</span> {{ $isGeneral ? 'نکته‌های کلی' : 'نکته‌های این روز' }}
+                                <span class="font-normal text-muted">{{ fa_num($dayTips->count()) }} نکته</span>
+                            </h4>
+
+                            <details class="w-full sm:w-auto">
+                                <summary class="cursor-pointer text-xs font-medium text-brand-700">+ افزودن نکته {{ $isGeneral ? 'کلی' : 'به این روز' }}</summary>
+
+                                <x-tip-form :challenge="$challenge" :day="$isGeneral ? null : $dayNumber" class="bg-paper" />
+                            </details>
+                        </div>
+
+                        @if ($dayTips->isNotEmpty())
+                            <div class="mt-3 space-y-3">
+                                @foreach ($dayTips as $tip)
+                                    <x-tip-item :challenge="$challenge" :tip="$tip" :day-choices="$dayChoices" with-day-picker />
+                                @endforeach
+                            </div>
+                        @endif
+                    </div>
+
                     {{-- افزودن سریع به همین روز --}}
                     <div class="grid gap-3 border-t border-line bg-cream/70 px-5 py-3 lg:grid-cols-2">
                         <details>
@@ -548,110 +576,29 @@
         </div>
     </section>
 
-    {{-- نکات چالش --}}
+    {{-- نکته‌های کلی چالش (بدون روز مشخص) --}}
     <section class="card scroll-mt-24" id="tips">
         <div class="flex flex-wrap items-start justify-between gap-4">
             <div>
-                <h2 class="text-base">نکات چالش</h2>
+                <h2 class="text-base">نکته‌های کلی چالش</h2>
                 <p class="mt-1 text-xs leading-6 text-muted">
                     نکته‌ها در صفحه چالش و داشبورد شرکت‌کننده‌ها با ظاهر ویژه (کارت کهربایی) نمایش داده می‌شوند.
+                    برای نکته‌های مخصوص هر روز، داخل کارت همان روز در بخش «روزها» نکته اضافه کن؛
+                    یا همین‌جا روز نکته را از فهرست انتخاب کن.
                 </p>
             </div>
         </div>
 
-        <form method="POST" action="{{ route('panel.tips.store', $challenge) }}" class="mt-5 grid gap-4 rounded-2xl bg-cream p-4 sm:grid-cols-[6rem_1fr]">
-            @csrf
+        <x-tip-form :challenge="$challenge" :day-choices="$dayChoices" class="mt-5" />
 
-            <div>
-                <label class="label" for="tip-emoji">نماد</label>
-                <input id="tip-emoji" name="emoji" type="text" value="💡" maxlength="8" class="input text-center text-lg">
-
-                <div class="mt-2 flex flex-wrap gap-1">
-                    @foreach (\App\Models\ChallengeTip::EMOJIS as $emoji)
-                        <button type="button" data-emoji="#tip-emoji" data-emoji-value="{{ $emoji }}" class="grid size-7 place-items-center rounded-lg bg-paper text-sm ring-1 ring-line hover:bg-gold/15">{{ $emoji }}</button>
-                    @endforeach
-                </div>
-            </div>
-
-            <div class="space-y-3">
-                <div>
-                    <label class="label" for="tip-title">عنوان نکته</label>
-                    <input id="tip-title" name="title" type="text" required class="input" placeholder="مثلاً آب کافی بنوش">
-                </div>
-
-                <div>
-                    <label class="label" for="tip-body">متن نکته (اختیاری)</label>
-                    <textarea id="tip-body" name="body" rows="2" class="input resize-y" placeholder="توضیح کوتاه این نکته..."></textarea>
-                </div>
-
-                <button type="submit" class="btn btn-primary btn-sm">افزودن نکته</button>
-            </div>
-        </form>
-
-        @if ($challenge->tips->isEmpty())
-            <p class="mt-5 rounded-2xl bg-cream px-4 py-6 text-center text-xs text-muted">هنوز نکته‌ای اضافه نشده است.</p>
+        @if ($challenge->generalTips()->isEmpty())
+            <p class="mt-5 rounded-2xl bg-cream px-4 py-6 text-center text-xs text-muted">
+                هنوز نکتهٔ کلی‌ای اضافه نشده است. نکته‌های مخصوص هر روز را از داخل کارت همان روز در بخش «روزها» اضافه کن.
+            </p>
         @else
             <div class="mt-5 space-y-3">
-                @foreach ($challenge->tips as $tip)
-                    <div class="rounded-3xl bg-gradient-to-tl from-gold/15 to-paper p-4 ring-1 ring-gold/50">
-                        <div class="flex flex-wrap items-start justify-between gap-3">
-                            <div class="flex items-start gap-3">
-                                <span class="grid size-10 shrink-0 place-items-center rounded-2xl bg-paper text-lg shadow-sm ring-1 ring-gold/50">{{ $tip->emoji }}</span>
-                                <div class="min-w-0">
-                                    <p class="text-sm font-semibold text-forest">{{ $tip->title }}</p>
-                                    @if ($tip->body)
-                                        <p class="mt-1 text-xs leading-6 text-ink/80">{{ $tip->body }}</p>
-                                    @endif
-                                </div>
-                            </div>
-
-                            <div class="flex items-center gap-1">
-                                <form method="POST" action="{{ route('panel.tips.move', [$challenge, $tip, 'up']) }}">
-                                    @csrf
-                                    @method('PATCH')
-                                    <button type="submit" class="btn btn-ghost btn-sm" aria-label="بالا">↑</button>
-                                </form>
-                                <form method="POST" action="{{ route('panel.tips.move', [$challenge, $tip, 'down']) }}">
-                                    @csrf
-                                    @method('PATCH')
-                                    <button type="submit" class="btn btn-ghost btn-sm" aria-label="پایین">↓</button>
-                                </form>
-
-                                <details>
-                                    <summary class="btn btn-ghost btn-sm list-none">ویرایش</summary>
-                                    <form method="POST" action="{{ route('panel.tips.update', [$challenge, $tip]) }}" class="mt-3 grid w-full max-w-lg gap-3 rounded-2xl bg-paper p-4 text-right ring-1 ring-line sm:grid-cols-[5rem_1fr]">
-                                        @csrf
-                                        @method('PUT')
-
-                                        <div>
-                                            <label class="label">نماد</label>
-                                            <input type="text" name="emoji" value="{{ $tip->emoji }}" maxlength="8" class="input text-center">
-                                        </div>
-
-                                        <div>
-                                            <label class="label">عنوان</label>
-                                            <input type="text" name="title" value="{{ $tip->title }}" required class="input">
-                                        </div>
-
-                                        <div class="sm:col-span-2">
-                                            <label class="label">متن</label>
-                                            <textarea name="body" rows="2" class="input resize-y">{{ $tip->body }}</textarea>
-                                        </div>
-
-                                        <div class="sm:col-span-2">
-                                            <button type="submit" class="btn btn-primary btn-sm">ذخیره</button>
-                                        </div>
-                                    </form>
-                                </details>
-
-                                <form method="POST" action="{{ route('panel.tips.destroy', [$challenge, $tip]) }}" data-confirm="این نکته حذف شود؟">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="btn btn-danger btn-sm">حذف</button>
-                                </form>
-                            </div>
-                        </div>
-                    </div>
+                @foreach ($challenge->generalTips() as $tip)
+                    <x-tip-item :challenge="$challenge" :tip="$tip" :day-choices="$dayChoices" with-day-picker />
                 @endforeach
             </div>
         @endif
@@ -800,6 +747,12 @@
                                             <a href="{{ route('panel.participants.show', $participant) }}" class="block font-medium text-ink hover:text-brand-700">{{ $participant->name }}</a>
                                             @if ($participant->contact)
                                                 <span class="text-[11px] text-muted/80">{{ $participant->contact }}</span>
+                                            @endif
+
+                                            @if ($challenge->pledgeEnabled())
+                                                <span class="mt-1 inline-block rounded-lg px-1.5 py-0.5 text-[10px] {{ $participant->hasPledged() ? 'bg-leaf/10 text-forest' : 'bg-gold/20 text-ink' }}">
+                                                    {{ $participant->hasPledged() ? 'تعهدنامه ✓' : 'تعهدنامه ✗' }}
+                                                </span>
                                             @endif
                                         </div>
                                     </div>

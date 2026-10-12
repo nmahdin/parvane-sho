@@ -12,7 +12,7 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 
-#[Fillable(['challenge_id', 'name', 'contact', 'note', 'token', 'last_seen_at'])]
+#[Fillable(['challenge_id', 'name', 'contact', 'note', 'token', 'last_seen_at', 'pledged_at'])]
 #[RouteKey('token')]
 class Participant extends Model
 {
@@ -25,6 +25,7 @@ class Participant extends Model
     {
         return [
             'last_seen_at' => 'datetime',
+            'pledged_at' => 'datetime',
         ];
     }
 
@@ -33,6 +34,24 @@ class Participant extends Model
         static::creating(function (Participant $participant) {
             $participant->token ??= static::generateToken();
         });
+    }
+
+    /**
+     * آیا این شرکت‌کننده تعهدنامه چالش را ثبت کرده است؟
+     */
+    public function hasPledged(): bool
+    {
+        return $this->pledged_at !== null;
+    }
+
+    /**
+     * ثبت تعهدنامه (اولین ورود به داشبورد).
+     */
+    public function markPledged(): void
+    {
+        if (! $this->hasPledged()) {
+            $this->forceFill(['pledged_at' => now()])->save();
+        }
     }
 
     /**

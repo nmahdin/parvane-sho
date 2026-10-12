@@ -15,7 +15,8 @@ class ChallengeTipController extends Controller
         $validated = $this->validated($request);
 
         $challenge->tips()->create([
-            'emoji' => $validated['emoji'] ?: '💡',
+            'day_number' => $validated['day_number'] ?? null,
+            'emoji' => ($validated['emoji'] ?? null) ?: '💡',
             'title' => $validated['title'],
             'body' => $validated['body'] ?? null,
             'sort_order' => (int) $challenge->tips()->max('sort_order') + 1,
@@ -31,7 +32,8 @@ class ChallengeTipController extends Controller
         $validated = $this->validated($request);
 
         $tip->update([
-            'emoji' => $validated['emoji'] ?: '💡',
+            'day_number' => array_key_exists('day_number', $validated) ? $validated['day_number'] : $tip->day_number,
+            'emoji' => ($validated['emoji'] ?? null) ?: '💡',
             'title' => $validated['title'],
             'body' => $validated['body'] ?? null,
         ]);
@@ -75,6 +77,7 @@ class ChallengeTipController extends Controller
     private function validated(Request $request): array
     {
         return $request->validate([
+            'day_number' => ['nullable', 'integer', 'min:1', 'max:999'],
             'emoji' => ['nullable', 'string', 'max:12'],
             'title' => ['required', 'string', 'max:190'],
             'body' => ['nullable', 'string', 'max:2000'],

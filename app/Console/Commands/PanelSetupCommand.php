@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\Admin;
+use Database\Seeders\AdminSeeder;
 use Database\Seeders\DemoChallengeSeeder;
 use Database\Seeders\SettingsSeeder;
 use Illuminate\Console\Command;
@@ -41,7 +42,8 @@ class PanelSetupCommand extends Command
         $this->call('db:seed', ['--class' => SettingsSeeder::class, '--force' => true]);
 
         if ($this->option('demo')) {
-            $this->components->info('۴) ساخت چالش و شرکت‌کننده‌های نمونه...');
+            $this->components->info('۴) ساخت مدیران نمونه، چالش نمونه و شرکت‌کننده‌ها...');
+            $this->call('db:seed', ['--class' => AdminSeeder::class, '--force' => true]);
             $this->call('db:seed', ['--class' => DemoChallengeSeeder::class, '--force' => true]);
         }
 

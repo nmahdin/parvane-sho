@@ -98,7 +98,8 @@ class DailyReleaseTest extends TestCase
             ->assertSee('کار امروز')
             ->assertDontSee('کار فردا')
             ->assertSee('این روز هنوز باز نشده است')
-            ->assertSee('روزهای قفل‌شده');
+            ->assertDontSee('روزهای قفل‌شده')
+            ->assertSee('روز هنوز باز نشده', false);
     }
 
     public function test_disabling_daily_release_opens_all_days(): void

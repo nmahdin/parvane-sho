@@ -147,6 +147,40 @@
                     </label>
                 </section>
 
+                <section class="card space-y-5">
+                    <div>
+                        <h2 class="text-base">تعهدنامه ورود شرکت‌کننده‌ها</h2>
+                        <p class="mt-1 text-xs leading-6 text-muted">
+                            اگر فعال باشد، هر شرکت‌کننده اولین بار که با لینک اختصاصی‌اش وارد می‌شود، این متن را می‌بیند و
+                            تا وقتی آن را نپذیرد کارهای چالش برایش باز نمی‌شود. اگر متن را خالی بگذاری، متن پیش‌فرض استفاده می‌شود.
+                        </p>
+                    </div>
+
+                    <label class="flex items-start gap-3 rounded-2xl bg-cream p-4">
+                        <input type="checkbox" name="pledge_enabled" value="1" @checked(old('pledge_enabled', $challenge->pledge_enabled ?? true)) class="mt-1 size-4 rounded border-line text-jade focus:ring-jade">
+                        <span>
+                            <span class="block text-sm text-ink">تعهدنامه در اولین ورود نمایش داده شود</span>
+                            <span class="mt-0.5 block text-xs leading-6 text-muted">
+                                متن تعهد را می‌توانی همین‌جا برای هر چالش جداگانه بنویسی و بعداً از همین صفحه ویرایش کنی.
+                            </span>
+                        </span>
+                    </label>
+
+                    <div>
+                        <label for="pledge_title" class="label">عنوان تعهدنامه</label>
+                        <input id="pledge_title" name="pledge_title" type="text" maxlength="190"
+                               value="{{ old('pledge_title', $challenge->pledge_title) }}"
+                               class="input" placeholder="{{ \App\Models\Challenge::DEFAULT_PLEDGE_TITLE }}">
+                    </div>
+
+                    <div>
+                        <label for="pledge_text" class="label">متن تعهدنامه</label>
+                        <textarea id="pledge_text" name="pledge_text" rows="8" class="input resize-y"
+                                  placeholder="{{ \App\Models\Challenge::DEFAULT_PLEDGE_TEXT }}">{{ old('pledge_text', $challenge->pledge_text) }}</textarea>
+                        <p class="hint">هر خط، یک خط از تعهدنامه می‌شود؛ خط‌هایی که با «-» شروع شوند فهرست می‌شوند.</p>
+                    </div>
+                </section>
+
                 <section class="card space-y-3">
                     <button type="submit" class="btn btn-primary w-full py-3">{{ $isEdit ? 'ذخیره تغییرات' : 'ساخت چالش' }}</button>
                     <a href="{{ $isEdit ? route('panel.challenges.show', $challenge) : route('panel.challenges.index') }}" class="btn btn-white w-full">انصراف</a>

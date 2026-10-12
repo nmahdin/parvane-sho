@@ -82,16 +82,16 @@
                 </div>
             @endif
 
-            {{-- نکات چالش: نمایش ویژه --}}
-            @if ($tips->isNotEmpty())
+            {{-- نکته‌های کلی چالش: نمایش ویژه (نکته‌های هر روز داخل کارت همان روز است) --}}
+            @if ($challenge->generalTips()->isNotEmpty())
                 <div>
                     <div class="mb-4 flex items-center gap-2">
                         <span class="grid size-9 place-items-center rounded-2xl bg-gold/20 text-base">💡</span>
-                        <h2 class="text-lg">نکته‌های این چالش</h2>
+                        <h2 class="text-lg">نکته‌های کلی چالش</h2>
                     </div>
 
                     <div class="grid gap-4 sm:grid-cols-2">
-                        @foreach ($tips as $tip)
+                        @foreach ($challenge->generalTips() as $tip)
                             <div class="relative overflow-hidden rounded-3xl bg-gradient-to-tl from-gold/15 to-paper p-5 ring-1 ring-gold/50">
                                 <div class="pointer-events-none absolute -end-6 -top-6 size-20 rounded-full bg-gold/20 blur-2xl"></div>
 
@@ -148,6 +148,10 @@
                                 <div>
                                     <h3 class="flex items-center gap-2 text-sm font-semibold text-ink">
                                         {{ $day > 0 ? 'روز '.fa_num($day) : 'کارهای کلی' }}
+
+                                        @if ($day > 0)
+                                            <span class="text-[11px] font-normal text-muted">· {{ fa_date($challenge->dateForDay((int) $day)) }}</span>
+                                        @endif
 
                                         @if ($isToday)
                                             <span class="badge bg-jade/10 text-jade ring-jade/30">امروز</span>
@@ -242,10 +246,12 @@
                                 </div>
                             @endif
 
-                            @if ($tasks->isEmpty() && $dayQuestions->isEmpty())
+                            @if ($tasks->isEmpty() && $dayQuestions->isEmpty() && $challenge->tipsForDay($dayNumber)->isEmpty())
                                 <p class="bg-paper px-6 py-5 text-xs text-muted">محتوای این روز به‌زودی اضافه می‌شود.</p>
                             @endif
                         @endif
+
+                        <x-day-tips :challenge="$challenge" :day="$dayNumber" />
                     </div>
                 @empty
                     <div class="card text-center text-sm text-muted">
