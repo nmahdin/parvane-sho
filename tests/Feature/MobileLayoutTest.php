@@ -163,6 +163,35 @@ class MobileLayoutTest extends TestCase
         $this->assertStringContainsString('width=device-width, initial-scale=1', $html);
     }
 
+    public function test_the_attachments_box_comes_first_on_phones(): void
+    {
+        [$challenge] = $this->makeChallenge();
+
+        $challenge->attachments()->create([
+            'title' => 'راهنمای چالش',
+            'path' => 'attachments/guide.txt',
+            'original_name' => 'guide.txt',
+            'size' => 2048,
+            'mime' => 'text/plain',
+        ]);
+
+        $html = $this->get(route('challenges.show', $challenge))->assertOk()->getContent();
+
+        // دو نسخه: یکی برای موبایل بالای صفحه، یکی برای دسکتاپ در ستون کنار
+        $this->assertSame(2, substr_count($html, 'راهنمای چالش'));
+
+        $mobile = strpos($html, 'class="card lg:hidden"');
+        $desktop = strpos($html, 'class="card hidden lg:block"');
+        $days = strpos($html, 'روزها، کارها و پرسش‌ها');
+
+        $this->assertNotFalse($mobile, 'نسخه موبایل باکس فایل‌ها پیدا نشد.');
+        $this->assertNotFalse($desktop, 'نسخه دسکتاپ باکس فایل‌ها پیدا نشد.');
+        $this->assertNotFalse($days);
+
+        $this->assertLessThan($days, $mobile, 'در موبایل باکس فایل‌های ضمیمه باید بالای روزها و کارها بیاید.');
+        $this->assertGreaterThan($days, $desktop, 'در دسکتاپ باکس فایل‌ها باید در ستون کنار و پایین محتوا بماند.');
+    }
+
     public function test_the_public_challenge_page_keeps_day_cards_tight_on_phones(): void
     {
         [$challenge] = $this->makeChallenge();

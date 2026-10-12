@@ -59,6 +59,9 @@
 
     <section class="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[1.6fr_1fr]">
         <div class="space-y-8">
+            {{-- فایل‌های ضمیمه در موبایل بالای صفحه می‌آیند (نسخه دسکتاپ در ستون کنار است) --}}
+            <x-challenge-files :challenge="$challenge" class="lg:hidden" />
+
             @if ($challenge->description || $challenge->long_description)
                 <div class="card">
                     <h2 class="text-lg">درباره این چالش</h2>
@@ -283,32 +286,7 @@
                 </p>
             </div>
 
-            {{-- فایل‌های ضمیمه --}}
-            @if ($attachments->isNotEmpty())
-                <div class="card">
-                    <h2 class="flex items-center gap-2 text-sm font-semibold text-ink">
-                        <span>📎</span> فایل‌های ضمیمه
-                    </h2>
-
-                    <ul class="mt-4 space-y-2">
-                        @foreach ($attachments as $attachment)
-                            <li>
-                                <a href="{{ $attachment->url() }}"
-                                   class="flex items-center gap-3 rounded-2xl bg-cream px-4 py-3 transition hover:bg-line/60">
-                                    <span class="grid size-9 shrink-0 place-items-center rounded-xl bg-paper text-base ring-1 ring-line">{{ $attachment->icon() }}</span>
-
-                                    <span class="min-w-0 flex-1">
-                                        <span class="block truncate text-sm text-ink">{{ $attachment->title }}</span>
-                                        <span class="mt-0.5 block text-[11px] text-muted/80">{{ $attachment->sizeForHumans() }}</span>
-                                    </span>
-
-                                    <span class="shrink-0 text-xs text-brand-700">دانلود</span>
-                                </a>
-                            </li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
+            <x-challenge-files :challenge="$challenge" class="hidden lg:block" />
 
             <div class="card">
                 <h2 class="text-sm font-semibold text-ink">چطور در این چالش شرکت کنم؟</h2>
