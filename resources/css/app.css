@@ -1,9 +1,140 @@
 @import 'tailwindcss';
+@import '@fontsource-variable/vazirmatn';
 
+@source '../../app';
+@source '../../resources/views/**/*.blade.php';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    --font-sans: 'Vazirmatn Variable', ui-sans-serif, system-ui, 'Segoe UI', sans-serif;
+
+    --color-brand-50: oklch(0.977 0.014 308.299);
+    --color-brand-100: oklch(0.946 0.033 307.174);
+    --color-brand-200: oklch(0.902 0.063 306.703);
+    --color-brand-300: oklch(0.827 0.119 306.383);
+    --color-brand-400: oklch(0.714 0.203 305.504);
+    --color-brand-500: oklch(0.627 0.265 303.9);
+    --color-brand-600: oklch(0.558 0.288 302.321);
+    --color-brand-700: oklch(0.496 0.265 301.924);
+    --color-brand-800: oklch(0.438 0.218 303.724);
+    --color-brand-900: oklch(0.381 0.176 304.987);
+}
+
+@layer base {
+    html {
+        scroll-behavior: smooth;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+        @apply bg-slate-50 font-sans text-slate-800 antialiased;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4 {
+        @apply font-semibold tracking-tight text-slate-900;
+    }
+
+    ::selection {
+        @apply bg-brand-200/70;
+    }
+
+    :focus-visible {
+        @apply outline-2 outline-offset-2 outline-brand-500;
+    }
+}
+
+@layer components {
+    .btn {
+        @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60;
+    }
+
+    .btn-primary {
+        @apply bg-brand-600 text-white hover:bg-brand-700;
+    }
+
+    .btn-soft {
+        @apply bg-brand-50 text-brand-700 hover:bg-brand-100;
+    }
+
+    .btn-white {
+        @apply bg-white text-slate-700 ring-1 ring-slate-900/10 hover:bg-slate-50;
+    }
+
+    .btn-ghost {
+        @apply text-slate-600 hover:bg-slate-100 hover:text-slate-900;
+    }
+
+    .btn-danger {
+        @apply bg-rose-50 text-rose-700 hover:bg-rose-100;
+    }
+
+    .btn-sm {
+        @apply rounded-lg px-3 py-1.5 text-xs;
+    }
+
+    .card {
+        @apply rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-900/5;
+    }
+
+    .input {
+        @apply block w-full rounded-xl border-0 bg-white px-4 py-3 text-sm text-slate-900 ring-1 ring-slate-900/10 transition placeholder:text-slate-400 focus:ring-2 focus:ring-brand-500;
+    }
+
+    .label {
+        @apply mb-2 block text-sm font-medium text-slate-700;
+    }
+
+    .hint {
+        @apply mt-1.5 text-xs text-slate-500;
+    }
+
+    .badge {
+        @apply inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium ring-1;
+    }
+
+    .table-wrap {
+        @apply overflow-x-auto rounded-2xl ring-1 ring-slate-900/5;
+    }
+
+    .table {
+        @apply w-full min-w-[40rem] border-collapse bg-white text-right text-sm;
+    }
+
+    .table thead th {
+        @apply whitespace-nowrap bg-slate-50/80 px-4 py-3 text-xs font-semibold text-slate-500;
+    }
+
+    .table tbody td {
+        @apply border-t border-slate-100 px-4 py-3 align-middle;
+    }
+
+    .link {
+        @apply font-medium text-brand-700 underline-offset-4 hover:underline;
+    }
+}
+
+/* انیمیشن نرم برای کارت‌ها و ردیف‌ها */
+@keyframes riseIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-rise {
+    animation: riseIn 0.4s ease both;
+}
+
+@media print {
+    .no-print {
+        display: none !important;
+    }
 }

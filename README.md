@@ -1,58 +1,87 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# پروانه شو 🦋
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+یک سایت کوچک برای برگزاری **چالش‌های گروهی** + یک **پنل مدیریت** برای ساختن چالش‌ها و مدیریت شرکت‌کننده‌ها.
 
-## About Laravel
+<div dir="rtl">
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## چه چیزهایی دارد؟
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### بخش عمومی سایت
+- **صفحه اصلی**: معرفی کوتاه، چالش‌های در جریان، بخش «چالش چطور اجرا می‌شود؟» و آمار کلی.
+- **فهرست چالش‌ها** (`/challenges`): همه چالش‌های منتشرشده با درصد پیشرفت، تعداد شرکت‌کننده و بازه تاریخ (شمسی).
+- **صفحه هر چالش** (`/challenges/{آدرس}`): توضیحات، فهرست روزها و کارهای هر روز، آمار و درصد پیشرفت کلی.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### پنل مدیریت (`/panel`)
+- **ورود فقط با رمز عبور**؛ نام کاربری و ایمیل لازم نیست.
+- **داشبورد**: آمار چالش‌ها، تیک‌های امروز، نام همه شرکت‌کننده‌ها به تفکیک چالش، فعال‌ترین‌ها و آخرین تیک‌ها.
+- **چالش‌ها**: ساخت/ویرایش/حذف، انتشار یا پنهان‌کردن از سایت، تاریخ شروع و پایان شمسی، رنگ و نماد چالش.
+- **روزها و کارها**: افزودن کار به یک روز، **افزودن گروهی** (هر خط یک کار)، ویرایش، جابه‌جایی و حذف.
+- **شرکت‌کننده‌ها**: افزودن گروهی نام‌ها (هر خط یک نام)، مشاهده پیشرفت هر نفر، کپی **لینک اختصاصی**، ساخت لینک جدید، حذف.
+- **تنظیمات**: نام و متن‌های سایت و تغییر رمز پنل.
 
-## Learning Laravel
+### داشبورد اختصاصی شرکت‌کننده (`/p/{لینک}`)
+هر کسی که نامش در فهرست یک چالش ثبت شود، یک **لینک یکتا** می‌گیرد و **بدون ورود و بدون ثبت‌نام** داشبورد خودش را می‌بیند:
+- حلقه پیشرفت، تعداد کارهای انجام‌شده، روزهای پیوسته و روزهای باقی‌مانده
+- فهرست کارها به تفکیک روز با تیک‌زدن
+- یادداشت شخصی
+- جعبه «لینک اختصاصی من» با دکمه کپی و چاپ صفحه
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+> لینک‌ها ۱۶ کاراکتری و تصادفی هستند؛ هر لینک فقط داشبورد همان شخص را نشان می‌دهد. اگر لینکی جایی عمومی شد، از پنل روی «لینک جدید» بزنید تا لینک قبلی از کار بیفتد.
 
-In addition, [Laracasts](https://laracasts.com) contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
-
-You can also watch bite-sized lessons with real-world projects on [Laravel Learn](https://laravel.com/learn), where you will be guided through building a Laravel application from scratch while learning PHP fundamentals.
-
-## Agentic Development
-
-Laravel's predictable structure and conventions make it ideal for AI coding agents like Claude Code, Cursor, and GitHub Copilot. Install [Laravel Boost](https://laravel.com/docs/ai) to supercharge your AI workflow:
+## راه‌اندازی
 
 ```bash
-composer require laravel/boost --dev
-
-php artisan boost:install
+composer install
+cp .env.example .env
+php artisan key:generate
+touch database/database.sqlite      # اگر از SQLite استفاده می‌کنی
+php artisan migrate --seed
+npm install
+npm run build                        # ساخت فایل‌های CSS/JS
+php artisan serve                    # http://localhost:8000
 ```
 
-Boost provides your agent 15+ tools and skills that help agents build Laravel applications while following best practices.
+در ویندوز برای ساخت فایل SQLite می‌توانی در File Manager یک فایل خالی با نام `database.sqlite` در پوشه `database` بسازی.
 
-## Contributing
+### رمز پنل
+رمز پیش‌فرض پنل در `.env` تعیین می‌شود:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```env
+PANEL_PASSWORD=parvaneh1400
+```
 
-## Code of Conduct
+با همان رمز وارد `/panel` شو و بعد از صفحه **تنظیمات** رمز را عوض کن (رمز جدید هش‌شده در دیتابیس ذخیره می‌شود و از آن پس `.env` نقشی ندارد).
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### ساخت اولین چالش
+1. در پنل روی **چالش‌ها → چالش جدید** بزن؛ عنوان، توضیح کوتاه، تاریخ شروع/پایان (شمسی، مثل `۱۴۰۵/۰۷/۲۰`) و رنگ را وارد کن.
+2. در صفحه «مدیریت چالش»، کارهای هر روز را اضافه کن (برای هر روز می‌توانی چند کار بگذاری و از «افزودن گروهی» استفاده کنی).
+3. نام شرکت‌کننده‌ها را در همان صفحه، بخش «شرکت‌کننده‌ها»، خط‌به‌خط وارد کن.
+4. برای هر نفر یک **لینک اختصاصی** ساخته می‌شود؛ با دکمه «کپی» بردار و برای خودش بفرست (یا با «کپی همه لینک‌ها» همه را یک‌جا بگیر).
 
-## Security Vulnerabilities
+سایت به صورت پیش‌فرض با یک **چالش نمونه** و سه شرکت‌کننده نمونه بالا می‌آید تا ببینی همه‌چیز چطور کار می‌کند؛ می‌توانی پاکش کنی و چالش خودت را بسازی.
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+## نکات فنی
+- **Laravel 13** + **Tailwind CSS 4** + **Vazirmatn** (فونت فارسی، میزبانی‌شده روی خود سایت).
+- تاریخ‌ها به صورت **شمسی** نمایش داده و پذیرفته می‌شوند (تبدیل تاریخ در `app/Support/Jalali.php`).
+- داده‌ها در SQLite ذخیره می‌شوند؛ برای MySQL کافی است مقادیر `DB_*` را در `.env` عوض کنی (`DB_CONNECTION=mysql`).
+- رمز عبور پنل با rate limit محافظت می‌شود (پیش‌فرض: ۵ تلاش ناموفق در دقیقه).
 
-## License
+## تست‌ها
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```bash
+php artisan test
+```
+
+تست‌ها شامل ورود با رمز به پنل، ساخت چالش و شرکت‌کننده، باز شدن داشبورد شرکت‌کننده بدون ورود، تیک‌زدن کارها و تبدیل تاریخ شمسی است.
+
+## ساختار کوتاه
+```
+app/Http/Controllers/Panel/        کنترلرهای پنل مدیریت
+app/Http/Controllers/              صفحه اصلی، چالش‌ها، داشبورد شرکت‌کننده
+app/Models/                        Challenge, ChallengeTask, Participant, TaskCompletion, Setting
+app/Support/                       تبدیل تاریخ شمسی و ابزارهای متنی
+resources/views/                   صفحات Blade (public / panel / participant)
+routes/web.php                     همه مسیرها
+```
+
+</div>

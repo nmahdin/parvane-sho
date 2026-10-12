@@ -1,0 +1,195 @@
+@extends('layouts.panel')
+
+@section('title', 'داشبورد')
+@section('page-title', 'داشبورد')
+@section('page-subtitle', 'یک نگاه کلی به چالش‌ها، شرکت‌کننده‌ها و پیشرفت امروز')
+
+@section('page-actions')
+    <a href="{{ route('panel.challenges.create') }}" class="btn btn-primary btn-sm">+ چالش جدید</a>
+@endsection
+
+@section('content')
+    {{-- آمار کلی --}}
+    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <x-stat-card label="چالش‌ها" :value="fa_num($stats['challenges'])" :hint="fa_num($stats['published']).' چالش منتشرشده'" icon="🦋" />
+        <x-stat-card label="شرکت‌کننده‌ها" :value="fa_num($stats['participants'])" hint="در همه چالش‌ها" icon="👥" tone="sky" />
+        <x-stat-card label="تیک‌های امروز" :value="fa_num($stats['today'])" hint="{{ fa_date(now(), true) }}" icon="✅" tone="emerald" />
+        <x-stat-card label="کارهای انجام‌شده" :value="fa_num($stats['done'])" hint="در همه چالش‌ها" icon="🎯" tone="amber" />
+    </div>
+
+    {{-- چالش‌ها --}}
+    <section class="card">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+                <h2 class="text-base">چالش‌ها</h2>
+                <p class="mt-1 text-xs text-slate-500">برای مدیریت روزها، کارها و شرکت‌کننده‌ها روی «مدیریت» بزن.</p>
+            </div>
+
+            <a href="{{ route('panel.challenges.index') }}" class="btn btn-white btn-sm">همه چالش‌ها</a>
+        </div>
+
+        @if ($challenges->isEmpty())
+            <div class="mt-6 rounded-2xl bg-slate-50 p-8 text-center">
+                <p class="text-2xl">🌱</p>
+                <p class="mt-3 text-sm text-slate-600">هنوز چالشی نساخته‌اید.</p>
+                <a href="{{ route('panel.challenges.create') }}" class="btn btn-primary mt-4">ساخت اولین چالش</a>
+            </div>
+        @else
+            <div class="table-wrap mt-5">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>چالش</th>
+                            <th>وضعیت</th>
+                            <th>بازه</th>
+                            <th>شرکت‌کننده</th>
+                            <th class="w-48">پیشرفت</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($challenges as $challenge)
+                            <tr>
+                                <td>
+                                    <div class="flex items-center gap-3">
+                                        <span class="grid size-9 place-items-center rounded-xl bg-slate-50">{{ $challenge->emoji }}</span>
+                                        <div class="min-w-0">
+                                            <a href="{{ route('panel.challenges.show', $challenge) }}" class="block truncate font-medium text-slate-900 hover:text-brand-700">
+                                                {{ $challenge->title }}
+                                            </a>
+                                            <span class="text-[11px] text-slate-500">{{ fa_num($challenge->tasks_count) }} کار · {{ fa_num($challenge->daysCount()) }} روز</span>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td><span class="badge {{ $challenge->statusClasses() }}">{{ $challenge->statusLabel() }}</span></td>
+
+                                <td class="text-xs text-slate-500">{{ $challenge->dateRangeLabel() }}</td>
+
+                                <td class="text-sm">{{ fa_num($challenge->participants_count) }} نفر</td>
+
+                                <td>
+                                    <x-progress-bar :percent="$challenge->progressPercent()" :class="$challenge->styleValue('bar')" show-label />
+                                </td>
+
+                                <td>
+                                    <div class="flex items-center justify-end gap-1">
+                                        <a href="{{ route('panel.challenges.show', $challenge) }}" class="btn btn-ghost btn-sm">مدیریت</a>
+                                        <a href="{{ $challenge->publicUrl() }}" target="_blank" class="btn btn-ghost btn-sm">سایت ↗</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
+    </section>
+
+    {{-- نام شرکت‌کننده‌ها به تفکیک چالش --}}
+    <section class="card">
+        <h2 class="text-base">شرکت‌کننده‌ها</h2>
+        <p class="mt-1 text-xs text-slate-500">
+            نام هر کسی که در فهرست چالش‌ها ثبت شده اینجاست؛ با کلیک روی هر نام، داشبورد اختصاصی او باز می‌شود.
+        </p>
+
+        <div class="mt-6 space-y-6">
+            @forelse ($challenges as $challenge)
+                @php($members = $participants->where('challenge_id', $challenge->id))
+
+                <div>
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <h3 class="text-sm font-semibold text-slate-800">
+                            {{ $challenge->emoji }} {{ $challenge->title }}
+                            <span class="ms-2 text-xs font-normal text-slate-500">{{ fa_num($members->count()) }} نفر</span>
+                        </h3>
+
+                        <a href="{{ route('panel.challenges.show', $challenge) }}#participants" class="text-xs text-brand-700 hover:underline">افزودن و مدیریت لینک‌ها</a>
+                    </div>
+
+                    @if ($members->isEmpty())
+                        <p class="mt-3 rounded-2xl bg-slate-50 px-4 py-3 text-xs text-slate-500">هنوز نامی برای این چالش ثبت نشده است.</p>
+                    @else
+                        <div class="mt-3 grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+                            @foreach ($members->sortByDesc('completed_count') as $participant)
+                                <a href="{{ route('panel.participants.show', $participant) }}"
+                                   class="flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3 transition hover:bg-slate-100">
+                                    <span class="grid size-9 shrink-0 place-items-center rounded-xl bg-white text-xs font-bold text-slate-600 ring-1 ring-slate-900/5">
+                                        {{ mb_substr($participant->name, 0, 1) }}
+                                    </span>
+
+                                    <span class="min-w-0 flex-1">
+                                        <span class="block truncate text-sm text-slate-800">{{ $participant->name }}</span>
+                                        <span class="mt-1 block">
+                                            <x-progress-bar :percent="$participant->progressPercent()" :class="$challenge->styleValue('bar')" height="h-1.5" />
+                                        </span>
+                                    </span>
+
+                                    <span class="shrink-0 text-[11px] text-slate-500">{{ fa_num($participant->completed_count) }} کار</span>
+                                </a>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+            @empty
+                <p class="rounded-2xl bg-slate-50 px-4 py-6 text-center text-sm text-slate-500">با ساخت اولین چالش، فهرست شرکت‌کننده‌ها اینجا نمایش داده می‌شود.</p>
+            @endforelse
+        </div>
+    </section>
+
+    <div class="grid gap-6 lg:grid-cols-2">
+        {{-- فعال‌ترین‌ها --}}
+        <section class="card">
+            <h2 class="text-base">فعال‌ترین شرکت‌کننده‌ها</h2>
+
+            @if ($topParticipants->isEmpty())
+                <p class="mt-4 rounded-2xl bg-slate-50 px-4 py-6 text-center text-xs text-slate-500">هنوز هیچ کاری تیک نخورده است.</p>
+            @else
+                <ol class="mt-5 space-y-3">
+                    @foreach ($topParticipants as $index => $participant)
+                        <li class="flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3">
+                            <span class="grid size-7 shrink-0 place-items-center rounded-lg bg-white text-xs font-bold text-slate-500 ring-1 ring-slate-900/5">{{ fa_num($index + 1) }}</span>
+
+                            <span class="min-w-0 flex-1">
+                                <a href="{{ route('panel.participants.show', $participant) }}" class="block truncate text-sm text-slate-800 hover:text-brand-700">
+                                    {{ $participant->name }}
+                                </a>
+                                <span class="text-[11px] text-slate-500">{{ $participant->challenge->title }}</span>
+                            </span>
+
+                            <span class="badge bg-emerald-50 text-emerald-700 ring-emerald-200">{{ fa_num($participant->completed_count) }} کار</span>
+                        </li>
+                    @endforeach
+                </ol>
+            @endif
+        </section>
+
+        {{-- آخرین فعالیت‌ها --}}
+        <section class="card">
+            <h2 class="text-base">آخرین تیک‌ها</h2>
+
+            @if ($recent->isEmpty())
+                <p class="mt-4 rounded-2xl bg-slate-50 px-4 py-6 text-center text-xs text-slate-500">فعالیتی ثبت نشده است.</p>
+            @else
+                <ul class="mt-5 space-y-3">
+                    @foreach ($recent as $completion)
+                        <li class="flex items-start gap-3 rounded-2xl bg-slate-50 px-4 py-3">
+                            <span class="mt-0.5 grid size-7 shrink-0 place-items-center rounded-lg bg-emerald-500 text-[11px] text-white">✓</span>
+
+                            <span class="min-w-0 flex-1">
+                                <span class="block text-sm text-slate-800">
+                                    <span class="font-medium">{{ $completion->participant->name }}</span>
+                                    —
+                                    {{ $completion->task->title }}
+                                </span>
+                                <span class="mt-0.5 block text-[11px] text-slate-500">
+                                    {{ $completion->participant->challenge->title }} · {{ fa_datetime($completion->completed_at) }}
+                                </span>
+                            </span>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+        </section>
+    </div>
+@endsection

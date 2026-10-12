@@ -1,0 +1,317 @@
+@extends('layouts.panel')
+
+@php($style = $challenge->style())
+
+@section('title', $challenge->title)
+@section('page-title', 'مدیریت چالش: '.$challenge->title)
+@section('page-subtitle', fa_num($participants->count()).' شرکت‌کننده · '.fa_num($tasksCount).' کار')
+
+@section('page-actions')
+    <a href="{{ $challenge->publicUrl() }}" target="_blank" class="btn btn-white btn-sm">مشاهده در سایت ↗</a>
+    <a href="{{ route('panel.challenges.edit', $challenge) }}" class="btn btn-soft btn-sm">ویرایش مشخصات</a>
+@endsection
+
+@section('content')
+    {{-- خلاصه چالش --}}
+    <section class="card">
+        <div class="flex flex-wrap items-start justify-between gap-6">
+            <div class="flex items-start gap-4">
+                <span class="grid size-14 shrink-0 place-items-center rounded-3xl bg-gradient-to-tl {{ $style['gradient'] }} text-2xl text-white">{{ $challenge->emoji }}</span>
+
+                <div>
+                    <h2 class="text-lg">{{ $challenge->title }}</h2>
+                    <p class="mt-1.5 max-w-2xl text-xs leading-6 text-slate-500">{{ $challenge->tagline ?: 'توضیح کوتاهی ثبت نشده است.' }}</p>
+
+                    <div class="mt-3 flex flex-wrap items-center gap-2">
+                        <span class="badge {{ $challenge->statusClasses() }}">{{ $challenge->statusLabel() }}</span>
+                        <span class="badge bg-slate-50 text-slate-600 ring-slate-200">{{ $challenge->dateRangeLabel() }}</span>
+                        <span class="badge bg-slate-50 text-slate-600 ring-slate-200" dir="ltr">/{{ $challenge->slug }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2">
+                <form method="POST" action="{{ route('panel.challenges.publish', $challenge) }}">
+                    @csrf
+                    @method('PATCH')
+                    <button type="submit" class="btn btn-white btn-sm">{{ $challenge->is_published ? 'پنهان کردن از سایت' : 'انتشار در سایت' }}</button>
+                </form>
+
+                <form method="POST" action="{{ route('panel.challenges.destroy', $challenge) }}" data-confirm="کل چالش «{{ $challenge->title }}» با همه کارها، نام‌ها و پیشرفت‌ها حذف شود؟ این کار برگشت‌پذیر نیست.">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-danger btn-sm">حذف چالش</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="mt-6 grid gap-4 border-t border-slate-100 pt-6 sm:grid-cols-4">
+            <div>
+                <p class="text-xs text-slate-500">روزها</p>
+                <p class="mt-1 text-lg font-bold text-slate-900">{{ fa_num($challenge->daysCount()) }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-slate-500">کارها</p>
+                <p class="mt-1 text-lg font-bold text-slate-900">{{ fa_num($tasksCount) }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-slate-500">شرکت‌کننده‌ها</p>
+                <p class="mt-1 text-lg font-bold text-slate-900">{{ fa_num($participants->count()) }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-slate-500">پیشرفت کلی</p>
+                <div class="mt-2"><x-progress-bar :percent="$challenge->progressPercent()" :class="$style['bar']" show-label /></div>
+            </div>
+        </div>
+    </section>
+
+    {{-- کارها --}}
+    <section class="card">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+            <div>
+                <h2 class="text-base">روزها و کارها</h2>
+                <p class="mt-1 text-xs leading-6 text-slate-500">
+                    هر کار را به یک روز نسبت بده (مثلاً روز ۱، روز ۲ و ...). شرکت‌کننده‌ها همین کارها را در داشبورد خودشان تیک می‌زنند.
+                </p>
+            </div>
+
+            <details class="w-full sm:w-auto">
+                <summary class="btn btn-primary btn-sm list-none">+ افزودن کار</summary>
+
+                <form method="POST" action="{{ route('panel.tasks.store', $challenge) }}" class="mt-4 grid gap-4 rounded-2xl bg-slate-50 p-4 sm:grid-cols-[7rem_1fr]">
+                    @csrf
+
+                    <div>
+                        <label class="label" for="task-day">روز</label>
+                        <input id="task-day" type="number" name="day_number" min="1" max="365" value="{{ $nextDayNumber }}" class="input">
+                    </div>
+
+                    <div>
+                        <label class="label" for="task-title">عنوان کار</label>
+                        <input id="task-title" type="text" name="title" required class="input" placeholder="مثلاً ۲۰ دقیقه پیاده‌روی">
+                    </div>
+
+                    <div class="sm:col-span-2">
+                        <label class="label" for="task-description">توضیح (اختیاری)</label>
+                        <textarea id="task-description" name="description" rows="2" class="input resize-y" placeholder="جزئیات یا شرط انجام کار..."></textarea>
+                    </div>
+
+                    <div class="sm:col-span-2">
+                        <button type="submit" class="btn btn-primary">ذخیره کار</button>
+                    </div>
+                </form>
+            </details>
+        </div>
+
+        <div class="mt-6 space-y-5">
+            @forelse ($challenge->tasksByDay() as $day => $tasksOfDay)
+                <div class="overflow-hidden rounded-3xl ring-1 ring-slate-900/5">
+                    <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-50 px-5 py-3">
+                        <h3 class="text-sm font-semibold text-slate-800">
+                            {{ $day > 0 ? 'روز '.fa_num($day) : 'کارهای کلی' }}
+                            <span class="ms-2 text-xs font-normal text-slate-500">{{ fa_num($tasksOfDay->count()) }} کار</span>
+                        </h3>
+
+                        @if ($day > 0)
+                            <span class="text-[11px] text-slate-400">شماره روز {{ fa_num($day) }}</span>
+                        @endif
+                    </div>
+
+                    <ul class="divide-y divide-slate-100 bg-white">
+                        @foreach ($tasksOfDay as $task)
+                            <li class="px-5 py-4">
+                                <div class="flex flex-wrap items-start justify-between gap-3">
+                                    <div class="min-w-0 flex-1">
+                                        <p class="text-sm font-medium text-slate-800">{{ $task->title }}</p>
+                                        @if ($task->description)
+                                            <p class="mt-1 text-xs leading-6 text-slate-500">{{ $task->description }}</p>
+                                        @endif
+                                    </div>
+
+                                    <div class="flex items-center gap-1">
+                                        <form method="POST" action="{{ route('panel.tasks.move', [$challenge, $task, 'up']) }}">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button type="submit" class="btn btn-ghost btn-sm" aria-label="بالا">↑</button>
+                                        </form>
+
+                                        <form method="POST" action="{{ route('panel.tasks.move', [$challenge, $task, 'down']) }}">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button type="submit" class="btn btn-ghost btn-sm" aria-label="پایین">↓</button>
+                                        </form>
+
+                                        <details>
+                                            <summary class="btn btn-ghost btn-sm list-none">ویرایش</summary>
+
+                                            <form method="POST" action="{{ route('panel.tasks.update', [$challenge, $task]) }}" class="mt-3 grid w-full max-w-xl gap-3 rounded-2xl bg-slate-50 p-4 text-right sm:grid-cols-[7rem_1fr]">
+                                                @csrf
+                                                @method('PUT')
+
+                                                <div>
+                                                    <label class="label">روز</label>
+                                                    <input type="number" name="day_number" min="1" max="365" value="{{ $task->day_number }}" class="input">
+                                                </div>
+
+                                                <div>
+                                                    <label class="label">عنوان</label>
+                                                    <input type="text" name="title" value="{{ $task->title }}" required class="input">
+                                                </div>
+
+                                                <div class="sm:col-span-2">
+                                                    <label class="label">توضیح</label>
+                                                    <textarea name="description" rows="2" class="input resize-y">{{ $task->description }}</textarea>
+                                                </div>
+
+                                                <div class="sm:col-span-2">
+                                                    <button type="submit" class="btn btn-primary btn-sm">ذخیره</button>
+                                                </div>
+                                            </form>
+                                        </details>
+
+                                        <form method="POST" action="{{ route('panel.tasks.destroy', [$challenge, $task]) }}" data-confirm="این کار حذف شود؟ تیک‌های مربوط به آن هم پاک می‌شود.">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger btn-sm">حذف</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </li>
+                        @endforeach
+                    </ul>
+
+                    @if ($day > 0)
+                        <details class="border-t border-slate-100 bg-slate-50/70 px-5 py-3">
+                            <summary class="cursor-pointer text-xs font-medium text-brand-700">+ افزودن چند کار به روز {{ fa_num($day) }}</summary>
+
+                            <form method="POST" action="{{ route('panel.tasks.bulk', $challenge) }}" class="mt-4 max-w-2xl space-y-3 text-right">
+                                @csrf
+                                <input type="hidden" name="day_number" value="{{ $day }}">
+
+                                <label class="label" for="bulk-{{ $day }}">هر خط یک کار</label>
+                                <textarea id="bulk-{{ $day }}" name="items" rows="4" required class="input resize-y" placeholder="۲۰ دقیقه پیاده‌روی&#10;نوشتن سه جمله شکرگزاری&#10;۱۰ دقیقه تمرین تمرکز"></textarea>
+
+                                <button type="submit" class="btn btn-primary btn-sm">افزودن به روز {{ fa_num($day) }}</button>
+                            </form>
+                        </details>
+                    @endif
+                </div>
+            @empty
+                <div class="rounded-3xl bg-slate-50 p-8 text-center">
+                    <p class="text-2xl">📝</p>
+                    <p class="mt-3 text-sm text-slate-600">هنوز کاری برای این چالش ثبت نشده است. با دکمه «افزودن کار» شروع کن.</p>
+                </div>
+            @endforelse
+        </div>
+    </section>
+
+    {{-- شرکت‌کننده‌ها --}}
+    <section class="card scroll-mt-24" id="participants">
+        <div class="flex flex-wrap items-start justify-between gap-4">
+            <div>
+                <h2 class="text-base">شرکت‌کننده‌ها ({{ fa_num($participants->count()) }})</h2>
+                <p class="mt-1 text-xs leading-6 text-slate-500">
+                    نام‌ها را خط‌به‌خط وارد کن. برای هر نفر یک لینک اختصاصی ساخته می‌شود که بدون رمز و ثبت‌نام داشبورد خودش را نشان می‌دهد.
+                </p>
+            </div>
+
+            @if ($participants->isNotEmpty())
+                <button type="button" class="btn btn-white btn-sm" data-copy-target="#all-links">کپی همه لینک‌ها</button>
+            @endif
+        </div>
+
+        <form method="POST" action="{{ route('panel.participants.store', $challenge) }}" class="mt-5 space-y-3 rounded-2xl bg-slate-50 p-4">
+            @csrf
+
+            <label class="label" for="names">افزودن به فهرست چالش</label>
+            <textarea id="names" name="names" rows="3" class="input resize-y" placeholder="زهرا محمدی&#10;امیر رضایی&#10;نگار کریمی" data-autogrow></textarea>
+
+            <div class="grid gap-3 sm:grid-cols-[1fr_auto]">
+                <div>
+                    <label class="label" for="contact">شماره تماس یا راه ارتباطی (اختیاری، برای نفر اول)</label>
+                    <input id="contact" name="contact" type="text" class="input" placeholder="۰۹۱۲۳۴۵۶۷۸۹">
+                </div>
+
+                <div class="flex items-end">
+                    <button type="submit" class="btn btn-primary w-full sm:w-auto">افزودن به فهرست</button>
+                </div>
+            </div>
+        </form>
+
+        @if ($participants->isEmpty())
+            <div class="mt-6 rounded-2xl bg-slate-50 p-8 text-center">
+                <p class="text-2xl">👥</p>
+                <p class="mt-3 text-sm text-slate-600">هنوز کسی در فهرست این چالش نیست.</p>
+            </div>
+        @else
+            <div class="table-wrap mt-6">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>نام</th>
+                            <th class="w-44">پیشرفت</th>
+                            <th class="min-w-[22rem]">لینک اختصاصی</th>
+                            <th>آخرین بازدید</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($participants as $participant)
+                            @php($percent = $tasksCount > 0 ? (int) round($participant->completed_count / $tasksCount * 100) : 0)
+
+                            <tr>
+                                <td>
+                                    <div class="flex items-center gap-3">
+                                        <span class="grid size-9 place-items-center rounded-xl bg-slate-50 text-xs font-bold text-slate-600">{{ mb_substr($participant->name, 0, 1) }}</span>
+                                        <div>
+                                            <a href="{{ route('panel.participants.show', $participant) }}" class="block font-medium text-slate-900 hover:text-brand-700">{{ $participant->name }}</a>
+                                            @if ($participant->contact)
+                                                <span class="text-[11px] text-slate-400">{{ $participant->contact }}</span>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <x-progress-bar :percent="$percent" :class="$style['bar']" show-label />
+                                    <p class="mt-1.5 text-[11px] text-slate-500">{{ fa_num($participant->completed_count) }} از {{ fa_num($tasksCount) }} کار</p>
+                                </td>
+
+                                <td>
+                                    <div class="flex items-center gap-2">
+                                        <input id="link-{{ $participant->id }}" type="text" readonly value="{{ route('participant.show', $participant) }}" class="input py-2 text-[11px]" dir="ltr">
+                                        <button type="button" class="btn btn-soft btn-sm shrink-0" data-copy-target="#link-{{ $participant->id }}">کپی</button>
+                                    </div>
+                                </td>
+
+                                <td class="text-xs text-slate-500">
+                                    {{ $participant->last_seen_at ? fa_datetime($participant->last_seen_at) : 'هنوز باز نکرده' }}
+                                </td>
+
+                                <td>
+                                    <div class="flex items-center justify-end gap-1">
+                                        <a href="{{ route('participant.show', $participant) }}" target="_blank" class="btn btn-ghost btn-sm">داشبورد ↗</a>
+
+                                        <form method="POST" action="{{ route('panel.participants.regenerate', $participant) }}" data-confirm="لینک جدید ساخته شود؟ لینک قبلی «{{ $participant->name }}» از کار می‌افتد.">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button type="submit" class="btn btn-ghost btn-sm">لینک جدید</button>
+                                        </form>
+
+                                        <form method="POST" action="{{ route('panel.participants.destroy', $participant) }}" data-confirm="«{{ $participant->name }}» از فهرست چالش حذف شود؟ پیشرفت او هم پاک می‌شود.">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-danger btn-sm">حذف</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            <textarea id="all-links" class="hidden" readonly>{{ $participants->map(fn ($p) => $p->name.' : '.route('participant.show', $p))->implode("\n") }}</textarea>
+        @endif
+    </section>
+@endsection
