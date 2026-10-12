@@ -16,8 +16,8 @@ class ChallengeController extends Controller
     public function index(): View
     {
         $challenges = Challenge::query()
-            ->with(['participants', 'tasks'])
-            ->withCount(['tasks', 'participants'])
+            ->with(['participants', 'tasks', 'questions'])
+            ->withCount(['tasks', 'questions', 'participants'])
             ->orderBy('sort_order')
             ->orderByDesc('id')
             ->get();

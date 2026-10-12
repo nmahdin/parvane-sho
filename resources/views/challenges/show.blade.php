@@ -165,10 +165,7 @@
                             </div>
 
                             <span class="text-xs text-muted">
-                                {{ fa_num($tasks->count()) }} کار
-                                @if ($dayQuestions->isNotEmpty())
-                                    · {{ fa_num($dayQuestions->count()) }} پرسش
-                                @endif
+                                {{ fa_num($tasks->count()) }} کار@if ($dayQuestions->isNotEmpty()) · {{ fa_num($dayQuestions->count()) }} پرسش @endif
                                 @if ($locked)
                                     (قفل)
                                 @endif
@@ -187,6 +184,18 @@
                                         کمی صبر کن.
                                     @endif
                                 </p>
+
+                                @if ($tasks->isNotEmpty() || $dayQuestions->isNotEmpty())
+                                    <div class="mt-4 flex flex-wrap justify-center gap-2">
+                                        @if ($tasks->isNotEmpty())
+                                            <span class="badge bg-gold/15 text-ink ring-gold/50">📝 {{ fa_num($tasks->count()) }} کار در انتظار</span>
+                                        @endif
+
+                                        @if ($dayQuestions->isNotEmpty())
+                                            <span class="badge bg-gold/15 text-ink ring-gold/50">❓ {{ fa_num($dayQuestions->count()) }} پرسش در انتظار</span>
+                                        @endif
+                                    </div>
+                                @endif
                             </div>
                         @else
                             @if ($tasks->isNotEmpty())

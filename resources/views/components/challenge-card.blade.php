@@ -20,7 +20,12 @@
 
         <div class="flex items-center justify-between text-xs text-muted">
             <span>{{ fa_num($challenge->participants_count) }} شرکت‌کننده</span>
-            <span>{{ fa_num($challenge->tasks_count) }} کار</span>
+            <span>
+                {{ fa_num($challenge->tasksCount()) }} کار
+                @if ($challenge->questionsCount() > 0)
+                    · {{ fa_num($challenge->questionsCount()) }} پرسش
+                @endif
+            </span>
             <span>{{ fa_num($challenge->daysCount()) }} روز</span>
         </div>
 

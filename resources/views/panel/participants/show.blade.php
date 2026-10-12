@@ -145,6 +145,10 @@
                             @elseif ($row['is_today'])
                                 <p class="mt-1.5 text-[10px] text-brand-700">امروز</p>
                             @endif
+
+                            @if ((int) ($questionCounts[$day] ?? 0) > 0)
+                                <p class="mt-1 text-[10px] text-muted/80">❓ {{ fa_num((int) $questionCounts[$day]) }} پرسش</p>
+                            @endif
                         </div>
                     @endforeach
                 </div>

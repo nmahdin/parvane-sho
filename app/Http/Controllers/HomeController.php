@@ -13,8 +13,8 @@ class HomeController extends Controller
     {
         $challenges = Challenge::query()
             ->where('is_published', true)
-            ->with(['tasks', 'participants'])
-            ->withCount(['tasks', 'participants'])
+            ->with(['tasks', 'questions', 'participants'])
+            ->withCount(['tasks', 'questions', 'participants'])
             ->orderBy('sort_order')
             ->orderByDesc('id')
             ->get();

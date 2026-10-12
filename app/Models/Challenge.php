@@ -267,11 +267,14 @@ class Challenge extends Model
     }
 
     /**
-     * تعداد روزهای چالش بر پایه کارها (پیشرفت شرکت‌کننده‌ها با کارها سنجیده می‌شود).
+     * تعداد روزهای چالش؛ پرسش‌ها هم مثل کارها شمرده می‌شوند، پس روزی که فقط
+     * پرسش دارد هم یک روز از چالش است.
      */
     public function daysCount(): int
     {
-        return $this->tasks->pluck('day_number')->filter()->unique()->count() ?: $this->tasks->count();
+        $days = $this->contentDayNumbers();
+
+        return $days->isNotEmpty() ? $days->count() : $this->tasksCount();
     }
 
     /**
@@ -284,7 +287,36 @@ class Challenge extends Model
 
     public function tasksCount(): int
     {
-        return $this->tasks->count();
+        return (int) ($this->tasks_count ?? $this->tasks->count());
+    }
+
+    /**
+     * تعداد پرسش‌های چالش (با احتساب با withCount شمارش‌شده، بدون کوئری اضافه).
+     */
+    public function questionsCount(): int
+    {
+        return (int) ($this->questions_count ?? $this->questions->count());
+    }
+
+    /**
+     * پرسش‌ها مثل کارها شمرده می‌شوند؛ این عدد مجموع کارها و پرسش‌های چالش است.
+     */
+    public function contentCount(): int
+    {
+        return $this->tasksCount() + $this->questionsCount();
+    }
+
+    /**
+     * تعداد کار و پرسش یک روز؛ برای نمایش شمارش‌ها در کارت هر روز.
+     *
+     * @return array{tasks: int, questions: int, total: int}
+     */
+    public function dayCounts(?int $dayNumber): array
+    {
+        $tasks = $this->tasks->where('day_number', $dayNumber)->count();
+        $questions = $this->questions->where('day_number', $dayNumber)->count();
+
+        return ['tasks' => $tasks, 'questions' => $questions, 'total' => $tasks + $questions];
     }
 
     /**

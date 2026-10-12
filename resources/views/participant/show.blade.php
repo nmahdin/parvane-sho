@@ -6,6 +6,10 @@
     $completed = $participant->completedCount();
     $total = $participant->totalTasks();
     $initial = mb_substr(trim($participant->name), 0, 1);
+    $todayDay = $challenge->currentDayNumber();
+    $todayCounts = $todayDay
+        ? $challenge->dayCounts($todayDay)
+        : ['tasks' => 0, 'questions' => 0, 'total' => 0];
 @endphp
 
 @section('title', 'داشبورد '.$participant->name.' — '.$challenge->title)
@@ -50,8 +54,11 @@
                     <div class="flex flex-wrap items-center justify-between gap-4">
                         <div>
                             <h2 class="text-lg">کارهای من</h2>
-                            <p class="mt-1.5 text-xs text-muted">
+                            <p class="mt-1.5 text-xs leading-6 text-muted">
                                 {{ fa_num($completed) }} از {{ fa_num($total) }} کار انجام شده است.
+                                @if ($challenge->questionsCount() > 0)
+                                    · {{ fa_num($challenge->questionsCount()) }} پرسش و پاسخ هم در این چالش هست.
+                                @endif
                                 @if ($challenge->currentDayNumber())
                                     امروز روز {{ fa_num($challenge->currentDayNumber()) }} این چالش است.
                                 @endif
@@ -75,8 +82,8 @@
                         <div class="min-w-0">
                             <p class="text-xs text-muted">روز جاری چالش</p>
                             <p class="mt-0.5 text-sm font-semibold text-forest">
-                                @if ($challenge->currentDayNumber())
-                                    روز {{ fa_num($challenge->currentDayNumber()) }} از {{ fa_num($challenge->daysCount()) }}
+                                @if ($todayDay)
+                                    روز {{ fa_num($todayDay) }} از {{ fa_num($challenge->daysCount()) }}
                                 @else
                                     چالش هنوز شروع نشده است
                                 @endif
@@ -104,14 +111,17 @@
                     </div>
                 </div>
 
-                @if ($challenge->currentDayNumber() && $challenge->isDayUnlocked($challenge->currentDayNumber()))
-                    <a href="#day-{{ $challenge->currentDayNumber() }}"
+                @if ($todayDay && $challenge->isDayUnlocked($todayDay))
+                    <a href="#day-{{ $todayDay }}"
                        class="flex items-center justify-between gap-4 rounded-3xl bg-gradient-to-tl {{ $style['gradient'] }} px-6 py-5 text-white shadow-sm">
                         <span class="flex items-center gap-3">
                             <span class="grid size-10 place-items-center rounded-2xl bg-white/15 text-lg backdrop-blur">🎯</span>
                             <span>
                                 <span class="block text-sm font-semibold">کارهای امروز را ببین</span>
-                                <span class="mt-0.5 block text-xs text-white/80">روز {{ fa_num($challenge->currentDayNumber()) }} · {{ fa_num($challenge->tasks->where('day_number', $challenge->currentDayNumber())->count()) }} کار</span>
+                                <span class="mt-0.5 block text-xs text-white/80">
+                                    روز {{ fa_num($todayDay) }} ·
+                                    {{ fa_num($todayCounts['tasks']) }} کار@if ($todayCounts['questions'] > 0) · {{ fa_num($todayCounts['questions']) }} پرسش @endif
+                                </span>
                             </span>
                         </span>
                         <span class="text-xl">↓</span>
@@ -169,14 +179,25 @@
                                 <p class="text-2xl">🔒</p>
                                 <p class="mt-2 text-sm font-medium text-forest">این روز هنوز باز نشده است</p>
                                 <p class="mt-1 text-xs leading-6 text-muted">
-                                    {{-- کارهای این روز به صورت روزانه آزاد می‌شوند؛ نمی‌توانی از قبل ببینی‌شان --}}
+                                    {{-- کارها و پرسش‌های این روز روزانه آزاد می‌شوند؛ نمی‌توانی از قبل ببینی‌شان --}}
                                     @if ($unlockLabel)
-                                        از {{ $unlockLabel }} می‌توانی کارهای این روز را ببینی و تیک بزنی.
+                                        از {{ $unlockLabel }} می‌توانی کارها و پرسش‌های این روز را ببینی.
                                     @else
                                         این روز به‌زودی باز می‌شود.
                                     @endif
                                 </p>
-                                <p class="mt-3 text-[11px] text-muted">{{ fa_num($tasks->count()) }} کار در انتظار توست</p>
+
+                                @if ($tasks->isNotEmpty() || $dayQuestions->isNotEmpty())
+                                    <div class="mt-4 flex flex-wrap justify-center gap-2">
+                                        @if ($tasks->isNotEmpty())
+                                            <span class="badge bg-gold/15 text-ink ring-gold/50">📝 {{ fa_num($tasks->count()) }} کار در انتظار</span>
+                                        @endif
+
+                                        @if ($dayQuestions->isNotEmpty())
+                                            <span class="badge bg-gold/15 text-ink ring-gold/50">❓ {{ fa_num($dayQuestions->count()) }} پرسش در انتظار</span>
+                                        @endif
+                                    </div>
+                                @endif
                             </div>
                         @else
                         <div class="space-y-2 p-3">
@@ -289,6 +310,10 @@
                         <div class="rounded-2xl bg-cream px-3 py-3">
                             <p class="text-[11px] text-muted">کار انجام‌شده</p>
                             <p class="mt-1 text-lg font-bold text-ink">{{ fa_num($completed) }}</p>
+                        </div>
+                        <div class="rounded-2xl bg-cream px-3 py-3">
+                            <p class="text-[11px] text-muted">پرسش و پاسخ‌ها</p>
+                            <p class="mt-1 text-lg font-bold text-ink">{{ fa_num($challenge->questionsCount()) }}</p>
                         </div>
                         <div class="rounded-2xl bg-cream px-3 py-3">
                             <p class="text-[11px] text-muted">روز باقی‌مانده</p>

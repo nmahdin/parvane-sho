@@ -57,7 +57,7 @@
                                             <a href="{{ route('panel.challenges.show', $challenge) }}" class="block truncate font-medium text-ink hover:text-brand-700">
                                                 {{ $challenge->title }}
                                             </a>
-                                            <span class="text-[11px] text-muted">{{ fa_num($challenge->tasks_count) }} کار · {{ fa_num($challenge->daysCount()) }} روز</span>
+                                            <span class="text-[11px] text-muted">{{ fa_num($challenge->tasksCount()) }} کار · {{ fa_num($challenge->questionsCount()) }} پرسش · {{ fa_num($challenge->daysCount()) }} روز</span>
                                         </div>
                                     </div>
                                 </td>

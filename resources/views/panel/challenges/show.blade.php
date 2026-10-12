@@ -45,7 +45,7 @@
             </div>
         </div>
 
-        <div class="mt-6 grid gap-4 border-t border-line pt-6 sm:grid-cols-5">
+        <div class="mt-6 grid gap-4 border-t border-line pt-6 sm:grid-cols-3 xl:grid-cols-6">
             <div>
                 <p class="text-xs text-muted">روزها</p>
                 <p class="mt-1 text-lg font-bold text-ink">{{ fa_num($challenge->daysCount()) }}</p>
@@ -57,6 +57,10 @@
             <div>
                 <p class="text-xs text-muted">پرسش و پاسخ‌ها</p>
                 <p class="mt-1 text-lg font-bold text-ink">{{ fa_num($questionsCount) }}</p>
+            </div>
+            <div>
+                <p class="text-xs text-muted">کل موارد (کار + پرسش)</p>
+                <p class="mt-1 text-lg font-bold text-ink">{{ fa_num($tasksCount + $questionsCount) }}</p>
             </div>
             <div>
                 <p class="text-xs text-muted">شرکت‌کننده‌ها</p>
@@ -208,10 +212,7 @@
                             @endif
 
                             <span class="text-xs font-normal text-muted">
-                                {{ fa_num($tasksOfDay->count()) }} کار
-                                @if ($questionsOfDay->isNotEmpty())
-                                    · {{ fa_num($questionsOfDay->count()) }} پرسش
-                                @endif
+                                {{ fa_num($tasksOfDay->count()) }} کار@if ($questionsOfDay->isNotEmpty()) · {{ fa_num($questionsOfDay->count()) }} پرسش @endif
                             </span>
 
                             @if (! $isGeneral && $challenge->releasesDaily())

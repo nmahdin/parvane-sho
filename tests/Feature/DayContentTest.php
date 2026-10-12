@@ -333,4 +333,71 @@ class DayContentTest extends TestCase
         $this->assertSame(today()->subDays(4)->toDateString(), $challenge->dateForDay(1)->toDateString());
         $this->assertSame(5, $challenge->currentDayNumber());
     }
+
+    public function test_questions_are_counted_like_tasks(): void
+    {
+        $challenge = $this->makeChallenge();
+
+        $challenge->tasks()->create(['day_number' => 1, 'title' => 'کار ۱']);
+        $challenge->tasks()->create(['day_number' => 2, 'title' => 'کار ۲']);
+        $challenge->questions()->create(['day_number' => 1, 'question' => 'پرسش ۱', 'is_published' => true]);
+        $challenge->questions()->create(['day_number' => 3, 'question' => 'پرسش ۲', 'is_published' => true]);
+        $challenge->questions()->create(['day_number' => 3, 'question' => 'پرسش ۳', 'is_published' => true]);
+
+        $challenge->load(['tasks', 'questions']);
+
+        $this->assertSame(2, $challenge->tasksCount());
+        $this->assertSame(3, $challenge->questionsCount());
+        $this->assertSame(5, $challenge->contentCount());
+        $this->assertSame(3, $challenge->questionsCount());
+
+        // روزی که فقط پرسش دارد هم یک روز از چالش است
+        $this->assertSame(3, $challenge->daysCount());
+        $this->assertSame(3, $challenge->contentDaysCount());
+
+        $this->assertSame(['tasks' => 1, 'questions' => 1, 'total' => 2], $challenge->dayCounts(1));
+        $this->assertSame(['tasks' => 0, 'questions' => 2, 'total' => 2], $challenge->dayCounts(3));
+    }
+
+    public function test_lock_box_counts_tasks_and_questions_separately(): void
+    {
+        $challenge = $this->makeChallenge();
+
+        $challenge->tasks()->create(['day_number' => 2, 'title' => 'کار روز دوم']);
+        $challenge->tasks()->create(['day_number' => 2, 'title' => 'کار دوم روز دوم']);
+        $challenge->questions()->create(['day_number' => 2, 'question' => 'پرسش اول روز دوم', 'is_published' => true]);
+        $challenge->questions()->create(['day_number' => 2, 'question' => 'پرسش دوم روز دوم', 'is_published' => true]);
+
+        $participant = $challenge->participants()->create(['name' => 'زهرا محمدی']);
+
+        $this->get(route('participant.show', $participant))
+            ->assertOk()
+            ->assertSee('۲ کار در انتظار')
+            ->assertSee('۲ پرسش در انتظار');
+
+        $this->get(route('challenges.show', $challenge))
+            ->assertOk()
+            ->assertSee('۲ کار در انتظار')
+            ->assertSee('۲ پرسش در انتظار');
+    }
+
+    public function test_day_cards_count_tasks_and_questions_together(): void
+    {
+        $challenge = $this->makeChallenge(['daily_release' => false]);
+
+        $challenge->tasks()->create(['day_number' => 1, 'title' => 'کار تنها']);
+        $challenge->questions()->create(['day_number' => 1, 'question' => 'پرسش تنها', 'is_published' => true]);
+        $challenge->questions()->create(['day_number' => 1, 'question' => 'پرسش دوم', 'is_published' => true]);
+
+        $this->get(route('challenges.show', $challenge))
+            ->assertOk()
+            ->assertSee('۱ کار · ۲ پرسش', false);
+
+        $this->login();
+
+        $this->get(route('panel.challenges.show', $challenge))
+            ->assertOk()
+            ->assertSee('۱ کار · ۲ پرسش', false)
+            ->assertSee('کل موارد (کار + پرسش)');
+    }
 }
