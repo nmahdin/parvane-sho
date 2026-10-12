@@ -39,7 +39,7 @@
             </div>
 
             <details class="w-full sm:w-auto">
-                <summary class="jump-chip cursor-pointer list-none">تاریخ روزها</summary>
+                <summary class="strip-toggle cursor-pointer list-none">تاریخ روزها</summary>
 
                 <ul class="mt-2 space-y-1 rounded-2xl bg-paper p-3 text-[11px] text-muted ring-1 ring-line">
                     @foreach ($days as $lockedDay)

@@ -181,7 +181,7 @@ class MobileLayoutTest extends TestCase
         $this->assertSame(2, substr_count($html, 'راهنمای چالش'));
 
         $mobile = strpos($html, 'class="card lg:hidden"');
-        $desktop = strrpos($html, 'data-jump-anchor="files"');
+        $desktop = strrpos($html, 'id="files-desktop"');
         $days = strpos($html, 'روزها، کارها و پرسش‌ها');
 
         $this->assertNotFalse($mobile, 'نسخه موبایل باکس فایل‌ها پیدا نشد.');
@@ -199,7 +199,8 @@ class MobileLayoutTest extends TestCase
         $html = $this->get(route('challenges.show', $challenge))->assertOk()->getContent();
 
         $this->assertStringContainsString('day-card', $html);
-        $this->assertStringContainsString('jump-bar', $html);
+        $this->assertStringNotContainsString('jump-bar', $html, 'نوار پرش باید از صفحه چالش برداشته شود.');
+        $this->assertStringNotContainsString('jump-chip', $html);
         $this->assertStringContainsString('width=device-width, initial-scale=1', $html);
     }
 

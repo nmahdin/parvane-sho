@@ -195,7 +195,7 @@
                     </div>
 
                     @if ($challenge->attachments->isNotEmpty())
-                        <div id="files" data-jump-anchor="files" class="rounded-3xl bg-paper p-4 ring-1 ring-line">
+                        <div id="files" class="rounded-3xl bg-paper p-4 ring-1 ring-line">
                             <h2 class="flex items-center gap-2 text-sm font-semibold text-ink">
                                 <span class="grid size-9 shrink-0 place-items-center rounded-xl bg-gold/20 text-base">📎</span>
                                 فایل‌های این چالش

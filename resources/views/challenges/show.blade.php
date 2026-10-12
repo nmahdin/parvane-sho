@@ -22,13 +22,6 @@
         }
     }
 
-    $jumpAnchors = [
-        ['href' => '#about', 'label' => 'دربارهٔ چالش'],
-        ['href' => '#tips', 'label' => '💡 نکته‌ها'],
-        ['href' => '#days', 'label' => 'روزها'],
-        ['href' => '#files', 'label' => '📎 فایل‌ها', 'any' => 'files'],
-        ['href' => '#guide', 'label' => 'راهنمای شرکت'],
-    ];
 @endphp
 
 @section('title', $challenge->title.' — '.($site['site_name'] ?? config('panel.site_name')))
@@ -91,20 +84,10 @@
         </div>
     </section>
 
-    {{-- نوار پرش سریع: یک کلیک تا روز جاری، روزها، فایل‌ها و راهنما --}}
-    <div class="mx-auto max-w-6xl px-4 sm:px-6">
-        <x-jump-bar
-            :open-days="$openDayNumbers"
-            :today="$todayUnlocked ? $todayDay : null"
-            :locked-days="$lockedDayNumbers"
-            :anchors="$jumpAnchors"
-        />
-    </div>
-
     <section class="mx-auto grid max-w-6xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[1.6fr_1fr]">
         <div class="space-y-5">
             {{-- فایل‌های ضمیمه در موبایل بالای صفحه می‌آیند (نسخه دسکتاپ در ستون کنار است) --}}
-            <x-challenge-files :challenge="$challenge" id="files" data-jump-anchor="files" class="lg:hidden" />
+            <x-challenge-files :challenge="$challenge" id="files" class="lg:hidden" />
 
             @if ($challenge->description || $challenge->long_description || $challenge->contact_note)
                 <details id="about" class="card" open>
@@ -302,7 +285,7 @@
                 </div>
 
                 @if ($attachments->isNotEmpty())
-                    <div class="border-t border-line pt-4" data-jump-anchor="files">
+                    <div class="border-t border-line pt-4" id="files-desktop">
                         <x-challenge-files :challenge="$challenge" variant="plain" />
                     </div>
                 @endif
