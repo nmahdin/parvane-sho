@@ -10,14 +10,14 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="grid min-h-screen place-items-center bg-gradient-to-tl from-brand-700 via-brand-600 to-fuchsia-600 px-4 py-10">
+<body class="grid min-h-screen place-items-center bg-gradient-to-tl from-forest via-jade to-leaf px-4 py-10">
     <div class="w-full max-w-md">
         <div class="mb-6 text-center text-white">
             <span class="mx-auto grid size-14 place-items-center rounded-3xl bg-white/15 text-2xl backdrop-blur">🦋</span>
             <h1 class="mt-4 text-xl text-white">ورود مدیر {{ $site['site_name'] ?? config('panel.site_name') }}</h1>
         </div>
 
-        <div class="animate-rise rounded-[2rem] bg-white p-7 shadow-xl ring-1 ring-slate-900/5">
+        <div class="animate-rise rounded-[2rem] bg-paper p-7 shadow-xl ring-1 ring-line">
             <x-flash />
 
             <form method="POST" action="{{ route('panel.login.attempt') }}" class="space-y-5 {{ $errors->any() || session('status') ? 'mt-4' : '' }}">
@@ -38,14 +38,14 @@
 
                         <button type="button"
                                 data-password-toggle="#password"
-                                class="absolute inset-y-0 end-0 grid w-12 place-items-center text-slate-400 hover:text-slate-600"
+                                class="absolute inset-y-0 end-0 grid w-12 place-items-center text-muted/80 hover:text-ink/80"
                                 aria-label="نمایش رمز">
                             👁
                         </button>
                     </div>
 
                     @error('password')
-                        <p class="mt-2 text-xs text-rose-600">{{ $message }}</p>
+                        <p class="mt-2 text-xs text-danger">{{ $message }}</p>
                     @enderror
                 </div>
 

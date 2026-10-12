@@ -23,85 +23,119 @@ use Illuminate\Support\Str;
     'starts_on',
     'ends_on',
     'is_published',
+    'daily_release',
     'sort_order',
 ])]
 #[RouteKey('slug')]
 class Challenge extends Model
 {
+    /**
+     * رنگ‌های قابل انتخاب برای هر چالش — همه از پالت سایت.
+     */
     public const ACCENTS = [
-        'violet' => 'بنفش',
-        'teal' => 'فیروزه‌ای',
-        'amber' => 'کهربایی',
-        'rose' => 'سرخ',
-        'sky' => 'آبی',
-        'emerald' => 'سبز',
+        'jade' => 'یشمی',
+        'forest' => 'جنگلی',
+        'leaf' => 'برگی',
+        'gold' => 'طلایی',
+        'sage' => 'مریم‌گلی',
+        'olive' => 'زیتونی',
     ];
 
     /**
      * کلاس‌های رنگی هر چالش (literal تا Tailwind بتواند آن‌ها را پیدا کند).
      */
     public const ACCENT_STYLES = [
-        'violet' => [
-            'gradient' => 'from-violet-500 to-fuchsia-500',
-            'soft' => 'bg-violet-50 text-violet-700 ring-violet-200',
-            'bar' => 'bg-violet-500',
-            'stroke' => 'stroke-violet-500',
-            'text' => 'text-violet-700',
-            'bg' => 'bg-violet-50',
+        'jade' => [
+            'gradient' => 'from-forest to-jade',
+            'soft' => 'bg-jade/10 text-jade ring-jade/30',
+            'bar' => 'bg-jade',
+            'stroke' => 'stroke-jade',
+            'text' => 'text-jade',
+            'bg' => 'bg-jade/10',
         ],
-        'teal' => [
-            'gradient' => 'from-teal-500 to-cyan-500',
-            'soft' => 'bg-teal-50 text-teal-700 ring-teal-200',
-            'bar' => 'bg-teal-500',
-            'stroke' => 'stroke-teal-500',
-            'text' => 'text-teal-700',
-            'bg' => 'bg-teal-50',
+        'forest' => [
+            'gradient' => 'from-forest to-leaf',
+            'soft' => 'bg-forest/10 text-forest ring-forest/30',
+            'bar' => 'bg-forest',
+            'stroke' => 'stroke-forest',
+            'text' => 'text-forest',
+            'bg' => 'bg-forest/10',
         ],
-        'amber' => [
-            'gradient' => 'from-amber-500 to-orange-500',
-            'soft' => 'bg-amber-50 text-amber-700 ring-amber-200',
-            'bar' => 'bg-amber-500',
-            'stroke' => 'stroke-amber-500',
-            'text' => 'text-amber-700',
-            'bg' => 'bg-amber-50',
+        'leaf' => [
+            'gradient' => 'from-leaf to-jade',
+            'soft' => 'bg-leaf/10 text-leaf ring-leaf/30',
+            'bar' => 'bg-leaf',
+            'stroke' => 'stroke-leaf',
+            'text' => 'text-leaf',
+            'bg' => 'bg-leaf/10',
         ],
-        'rose' => [
-            'gradient' => 'from-rose-500 to-pink-500',
-            'soft' => 'bg-rose-50 text-rose-700 ring-rose-200',
-            'bar' => 'bg-rose-500',
-            'stroke' => 'stroke-rose-500',
-            'text' => 'text-rose-700',
-            'bg' => 'bg-rose-50',
+        'gold' => [
+            'gradient' => 'from-gold to-leaf',
+            'soft' => 'bg-gold/15 text-ink ring-gold/50',
+            'bar' => 'bg-gold',
+            'stroke' => 'stroke-gold',
+            'text' => 'text-forest',
+            'bg' => 'bg-gold/15',
         ],
-        'sky' => [
-            'gradient' => 'from-sky-500 to-indigo-500',
-            'soft' => 'bg-sky-50 text-sky-700 ring-sky-200',
-            'bar' => 'bg-sky-500',
-            'stroke' => 'stroke-sky-500',
-            'text' => 'text-sky-700',
-            'bg' => 'bg-sky-50',
+        'sage' => [
+            'gradient' => 'from-jade to-forest',
+            'soft' => 'bg-line/60 text-forest ring-line',
+            'bar' => 'bg-jade',
+            'stroke' => 'stroke-jade',
+            'text' => 'text-forest',
+            'bg' => 'bg-line/60',
         ],
-        'emerald' => [
-            'gradient' => 'from-emerald-500 to-teal-500',
-            'soft' => 'bg-emerald-50 text-emerald-700 ring-emerald-200',
-            'bar' => 'bg-emerald-500',
-            'stroke' => 'stroke-emerald-500',
-            'text' => 'text-emerald-700',
-            'bg' => 'bg-emerald-50',
+        'olive' => [
+            'gradient' => 'from-leaf to-forest',
+            'soft' => 'bg-leaf/15 text-forest ring-leaf/40',
+            'bar' => 'bg-leaf',
+            'stroke' => 'stroke-leaf',
+            'text' => 'text-forest',
+            'bg' => 'bg-leaf/15',
         ],
     ];
+
+    /**
+     * چالش‌های قدیمی که رنگشان از پالت قبلی ذخیره شده است.
+     *
+     * @var array<string, string>
+     */
+    public const LEGACY_ACCENTS = [
+        'violet' => 'jade',
+        'teal' => 'jade',
+        'emerald' => 'leaf',
+        'sky' => 'forest',
+        'amber' => 'gold',
+        'rose' => 'gold',
+        'pink' => 'gold',
+        'indigo' => 'forest',
+        'purple' => 'jade',
+        'green' => 'leaf',
+        'cyan' => 'jade',
+    ];
+
+    public function accentKey(): string
+    {
+        $accent = (string) $this->accent;
+
+        if (array_key_exists($accent, self::ACCENT_STYLES)) {
+            return $accent;
+        }
+
+        return self::LEGACY_ACCENTS[$accent] ?? 'jade';
+    }
 
     /**
      * @return array<string, string>
      */
     public function style(): array
     {
-        return self::ACCENT_STYLES[$this->accent] ?? self::ACCENT_STYLES['violet'];
+        return self::ACCENT_STYLES[$this->accentKey()];
     }
 
     public function styleValue(string $key): string
     {
-        return $this->style()[$key] ?? self::ACCENT_STYLES['violet'][$key];
+        return $this->style()[$key] ?? self::ACCENT_STYLES['jade'][$key];
     }
 
     protected function casts(): array
@@ -110,6 +144,7 @@ class Challenge extends Model
             'starts_on' => 'date',
             'ends_on' => 'date',
             'is_published' => 'boolean',
+            'daily_release' => 'boolean',
         ];
     }
 
@@ -234,28 +269,131 @@ class Challenge extends Model
     public function statusClasses(): string
     {
         return match ($this->status()) {
-            'upcoming' => 'bg-amber-500/10 text-amber-700 ring-amber-500/20',
-            'finished' => 'bg-slate-500/10 text-slate-600 ring-slate-500/20',
-            default => 'bg-emerald-500/10 text-emerald-700 ring-emerald-500/20',
+            'upcoming' => 'bg-gold/15 text-ink ring-gold/50',
+            'finished' => 'bg-line/60 text-muted ring-line',
+            default => 'bg-leaf/10 text-forest ring-leaf/30',
         };
     }
 
     /**
-     * The current day number of the challenge, based on its start date.
+     * آیا آزادسازی روزبه‌روز فعال است؟ (روزهای بعدی قفل می‌مانند)
+     */
+    public function releasesDaily(): bool
+    {
+        return (bool) $this->daily_release;
+    }
+
+    /**
+     * تاریخ روز اول چالش: تاریخ شروع، و اگر ثبت نشده باشد روز ساخت چالش.
+     */
+    public function dayOneDate(): Carbon
+    {
+        return ($this->starts_on?->copy() ?? $this->created_at?->copy() ?? Carbon::today())->startOfDay();
+    }
+
+    public function hasStarted(): bool
+    {
+        return $this->dayOneDate()->lessThanOrEqualTo(Carbon::today()->startOfDay());
+    }
+
+    /**
+     * تاریخی که روز مورد نظر باز (از قفل خارج) می‌شود. null یعنی همیشه باز است.
+     */
+    public function dayUnlockDate(?int $dayNumber): ?Carbon
+    {
+        if (! $dayNumber || $dayNumber < 1 || ! $this->releasesDaily()) {
+            return null;
+        }
+
+        return $this->dayOneDate()->addDays($dayNumber - 1);
+    }
+
+    public function isDayUnlocked(?int $dayNumber): bool
+    {
+        $unlockDate = $this->dayUnlockDate($dayNumber);
+
+        return $unlockDate === null || $unlockDate->lessThanOrEqualTo(Carbon::today()->startOfDay());
+    }
+
+    /**
+     * آیا این کار در روزی است که برای شرکت‌کننده‌ها هنوز قفل است؟
+     */
+    public function isTaskLocked(ChallengeTask $task): bool
+    {
+        return ! $this->isDayUnlocked($task->day_number);
+    }
+
+    public function unlockLabel(?int $dayNumber): ?string
+    {
+        $unlockDate = $this->dayUnlockDate($dayNumber);
+
+        if ($unlockDate === null || $unlockDate->lessThanOrEqualTo(Carbon::today()->startOfDay())) {
+            return null;
+        }
+
+        return fa_date($unlockDate, true);
+    }
+
+    public function daysUntilUnlock(?int $dayNumber): ?int
+    {
+        $unlockDate = $this->dayUnlockDate($dayNumber);
+
+        if ($unlockDate === null) {
+            return null;
+        }
+
+        return max(0, (int) Carbon::today()->startOfDay()->diffInDays($unlockDate, false));
+    }
+
+    /**
+     * تعداد روزهایی که همین حالا قفل هستند.
+     */
+    public function lockedDaysCount(): int
+    {
+        if (! $this->releasesDaily()) {
+            return 0;
+        }
+
+        return $this->tasks
+            ->pluck('day_number')
+            ->filter()
+            ->unique()
+            ->reject(fn ($day) => $this->isDayUnlocked((int) $day))
+            ->count();
+    }
+
+    /**
+     * تاریخ باز شدن نزدیک‌ترین روز قفل‌شده.
+     */
+    public function nextUnlockDate(): ?Carbon
+    {
+        if (! $this->releasesDaily()) {
+            return null;
+        }
+
+        $dates = $this->tasks
+            ->pluck('day_number')
+            ->filter()
+            ->unique()
+            ->map(fn ($day) => $this->dayUnlockDate((int) $day))
+            ->filter(fn (?Carbon $date) => $date && $date->greaterThan(Carbon::today()->startOfDay()))
+            ->sort();
+
+        return $dates->first();
+    }
+
+    /**
+     * شماره روز جاری چالش؛ اگر چالش شروع نشده باشد null برمی‌گردد.
      */
     public function currentDayNumber(): ?int
     {
         $daysCount = $this->daysCount();
 
-        if ($daysCount === 0) {
+        if ($daysCount === 0 || ! $this->hasStarted()) {
             return null;
         }
 
-        if (! $this->starts_on) {
-            return $daysCount;
-        }
-
-        $passed = (int) $this->starts_on->startOfDay()->diffInDays(Carbon::today()->startOfDay(), false) + 1;
+        $passed = (int) $this->dayOneDate()->diffInDays(Carbon::today()->startOfDay(), false) + 1;
 
         return max(1, min($daysCount, $passed));
     }

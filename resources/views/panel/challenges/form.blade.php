@@ -39,12 +39,12 @@
                     <label for="long_description" class="label">توضیحات بلند</label>
                     <textarea id="long_description" name="long_description" rows="10" class="input resize-y" placeholder="قوانین، توضیح روزها، انتظارات و هر نکته‌ای که لازم است...">{{ old('long_description', $challenge->long_description) }}</textarea>
 
-                    <div class="mt-2 rounded-2xl bg-slate-50 px-4 py-3 text-[11px] leading-6 text-slate-500">
-                        <p class="font-medium text-slate-600">قالب‌بندی ساده پشتیبانی می‌شود:</p>
+                    <div class="mt-2 rounded-2xl bg-cream px-4 py-3 text-[11px] leading-6 text-muted">
+                        <p class="font-medium text-ink/80">قالب‌بندی ساده پشتیبانی می‌شود:</p>
                         <ul class="mt-1.5 space-y-0.5">
-                            <li>– عنوان با <code class="rounded bg-white px-1" dir="ltr">## عنوان</code></li>
-                            <li>– فهرست با شروع خط با <code class="rounded bg-white px-1" dir="ltr">-</code></li>
-                            <li>– متن پررنگ با <code class="rounded bg-white px-1" dir="ltr">**متن**</code></li>
+                            <li>– عنوان با <code class="rounded bg-paper px-1" dir="ltr">## عنوان</code></li>
+                            <li>– فهرست با شروع خط با <code class="rounded bg-paper px-1" dir="ltr">-</code></li>
+                            <li>– متن پررنگ با <code class="rounded bg-paper px-1" dir="ltr">**متن**</code></li>
                         </ul>
                     </div>
                 </div>
@@ -59,16 +59,16 @@
                         <label for="starts_on" class="label">تاریخ شروع</label>
                         <div class="relative">
                             <input id="starts_on" name="starts_on" type="text" data-jalali-picker value="{{ old('starts_on', \App\Support\Jalali::inputValue($challenge->starts_on)) }}" class="input pe-11" placeholder="۱۴۰۵/۰۷/۲۰" inputmode="numeric">
-                            <span class="pointer-events-none absolute inset-y-0 end-0 grid w-11 place-items-center text-slate-400">🗓️</span>
+                            <span class="pointer-events-none absolute inset-y-0 end-0 grid w-11 place-items-center text-muted/80">🗓️</span>
                         </div>
-                        <p class="hint">با تقویم انتخاب کن یا دستی مثل ۱۴۰۵/۰۷/۲۰ بنویس. خالی گذاشتن هم اشکالی ندارد.</p>
+                        <p class="hint">با تقویم انتخاب کن یا دستی مثل ۱۴۰۵/۰۷/۲۰ بنویس. برای آزادسازی روزبه‌روز، همین تاریخ روز اول چالش است.</p>
                     </div>
 
                     <div>
                         <label for="ends_on" class="label">تاریخ پایان</label>
                         <div class="relative">
                             <input id="ends_on" name="ends_on" type="text" data-jalali-picker value="{{ old('ends_on', \App\Support\Jalali::inputValue($challenge->ends_on)) }}" class="input pe-11" placeholder="۱۴۰۵/۰۸/۱۰" inputmode="numeric">
-                            <span class="pointer-events-none absolute inset-y-0 end-0 grid w-11 place-items-center text-slate-400">🗓️</span>
+                            <span class="pointer-events-none absolute inset-y-0 end-0 grid w-11 place-items-center text-muted/80">🗓️</span>
                         </div>
                         <p class="hint">نمی‌تواند قبل از تاریخ شروع باشد.</p>
                     </div>
@@ -85,7 +85,7 @@
 
                         <div class="mt-3 flex flex-wrap gap-2">
                             @foreach (['🦋', '🌱', '🌙', '💧', '🏃', '📖', '🧘', '🍎', '✍️', '💪', '☀️', '🎯'] as $emoji)
-                                <button type="button" data-emoji="#emoji" data-emoji-value="{{ $emoji }}" class="grid size-10 place-items-center rounded-xl bg-slate-50 text-lg ring-1 ring-slate-900/5 transition hover:bg-brand-50">
+                                <button type="button" data-emoji="#emoji" data-emoji-value="{{ $emoji }}" class="grid size-10 place-items-center rounded-xl bg-cream text-lg ring-1 ring-line transition hover:bg-brand-50">
                                     {{ $emoji }}
                                 </button>
                             @endforeach
@@ -113,11 +113,22 @@
                         <p class="hint">عدد کوچک‌تر، جلوتر نشان داده می‌شود.</p>
                     </div>
 
-                    <label class="flex items-start gap-3 rounded-2xl bg-slate-50 p-4">
-                        <input type="checkbox" name="is_published" value="1" @checked(old('is_published', $challenge->is_published)) class="mt-1 size-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500">
+                    <label class="flex items-start gap-3 rounded-2xl bg-cream p-4">
+                        <input type="checkbox" name="is_published" value="1" @checked(old('is_published', $challenge->is_published)) class="mt-1 size-4 rounded border-line text-jade focus:ring-jade">
                         <span>
-                            <span class="block text-sm text-slate-800">در سایت نمایش داده شود</span>
-                            <span class="mt-0.5 block text-xs text-slate-500">اگر تیک را برنداری، چالش فقط در پنل دیده می‌شود.</span>
+                            <span class="block text-sm text-ink">در سایت نمایش داده شود</span>
+                            <span class="mt-0.5 block text-xs text-muted">اگر تیک را برنداری، چالش فقط در پنل دیده می‌شود.</span>
+                        </span>
+                    </label>
+
+                    <label class="flex items-start gap-3 rounded-2xl bg-gold/15 p-4 ring-1 ring-gold/50">
+                        <input type="checkbox" name="daily_release" value="1" @checked(old('daily_release', $challenge->daily_release ?? true)) class="mt-1 size-4 rounded border-gold/60 text-jade focus:ring-jade">
+                        <span>
+                            <span class="block text-sm font-medium text-ink">🔒 آزادسازی روزبه‌روز (قفل بودن روزهای بعدی)</span>
+                            <span class="mt-0.5 block text-xs leading-6 text-ink/80">
+                                اگر فعال باشد، هر روز فقط کارهای همان روز و روزهای قبل باز است و شرکت‌کننده نمی‌تواند روزهای بعدی را ببیند یا تیک بزند.
+                                روز اول بر اساس <strong>تاریخ شروع</strong> (و اگر خالی باشد، روز ساخت چالش) حساب می‌شود.
+                            </span>
                         </span>
                     </label>
                 </section>

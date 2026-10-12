@@ -8,18 +8,36 @@
 @source '../../storage/framework/views/*.php';
 
 @theme {
-    --font-sans: 'Vazirmatn Variable', ui-sans-serif, system-ui, 'Segoe UI', sans-serif;
+    /* ------------------------------------------------------------------
+       پالت رنگی پروانه شو
+       ------------------------------------------------------------------ */
+    --color-forest: #075741;
+    --color-jade: #11735b;
+    --color-leaf: #508d42;
+    --color-cream: #fbf9ee;
+    --color-gold: #cead60;
+    --color-line: #dce8d7;
+    --color-ink: #24473c;
+    --color-muted: #617b70;
+    --color-paper: #fffefa;
 
-    --color-brand-50: oklch(0.977 0.014 308.299);
-    --color-brand-100: oklch(0.946 0.033 307.174);
-    --color-brand-200: oklch(0.902 0.063 306.703);
-    --color-brand-300: oklch(0.827 0.119 306.383);
-    --color-brand-400: oklch(0.714 0.203 305.504);
-    --color-brand-500: oklch(0.627 0.265 303.9);
-    --color-brand-600: oklch(0.558 0.288 302.321);
-    --color-brand-700: oklch(0.496 0.265 301.924);
-    --color-brand-800: oklch(0.438 0.218 303.724);
-    --color-brand-900: oklch(0.381 0.176 304.987);
+    /* تنها رنگ خارج از پالت: وضعیت خطر و پیام خطا (حذف/اعتبارسنجی) */
+    --color-danger: #a2463a;
+    --color-danger-soft: #f8ece7;
+
+    /* مقیاس «برند» از دل همان پالت ساخته شده: jade = 600 و forest = 800 */
+    --color-brand-50: #f1f7f3;
+    --color-brand-100: #e0eee5;
+    --color-brand-200: #c3ded0;
+    --color-brand-300: #9ac7ae;
+    --color-brand-400: #6cab8b;
+    --color-brand-500: #3f8f6c;
+    --color-brand-600: #11735b;
+    --color-brand-700: #0d624d;
+    --color-brand-800: #075741;
+    --color-brand-900: #064435;
+
+    --font-sans: 'Vazirmatn Variable', ui-sans-serif, system-ui, 'Segoe UI', sans-serif;
 }
 
 @layer base {
@@ -29,32 +47,35 @@
     }
 
     body {
-        @apply bg-slate-50 font-sans text-slate-800 antialiased;
+        @apply bg-cream font-sans text-ink antialiased;
     }
 
     h1,
     h2,
     h3,
     h4 {
-        @apply font-semibold tracking-tight text-slate-900;
+        @apply font-semibold tracking-tight text-forest;
     }
 
     ::selection {
-        @apply bg-brand-200/70;
+        @apply bg-leaf/30;
     }
 
     :focus-visible {
-        @apply outline-2 outline-offset-2 outline-brand-500;
+        @apply outline-2 outline-offset-2 outline-jade;
     }
 }
 
+/* ----------------------------------------------------------------------
+   کلاس‌های ترکیبی پرتکرار (همه بر پایه ابزارهای Tailwind ساخته شده‌اند)
+   ---------------------------------------------------------------------- */
 @layer components {
     .btn {
         @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60;
     }
 
     .btn-primary {
-        @apply bg-brand-600 text-white hover:bg-brand-700;
+        @apply bg-jade text-white hover:bg-forest;
     }
 
     .btn-soft {
@@ -62,15 +83,19 @@
     }
 
     .btn-white {
-        @apply bg-white text-slate-700 ring-1 ring-slate-900/10 hover:bg-slate-50;
+        @apply bg-paper text-ink ring-1 ring-line hover:bg-cream;
     }
 
     .btn-ghost {
-        @apply text-slate-600 hover:bg-slate-100 hover:text-slate-900;
+        @apply text-muted hover:bg-cream hover:text-forest;
     }
 
     .btn-danger {
-        @apply bg-rose-50 text-rose-700 hover:bg-rose-100;
+        @apply bg-danger-soft text-danger hover:bg-danger/15;
+    }
+
+    .btn-gold {
+        @apply bg-gold/20 text-ink hover:bg-gold/30;
     }
 
     .btn-sm {
@@ -78,19 +103,19 @@
     }
 
     .card {
-        @apply rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-900/5;
+        @apply rounded-3xl bg-paper p-6 shadow-sm ring-1 ring-line;
     }
 
     .input {
-        @apply block w-full rounded-xl border-0 bg-white px-4 py-3 text-sm text-slate-900 ring-1 ring-slate-900/10 transition placeholder:text-slate-400 focus:ring-2 focus:ring-brand-500;
+        @apply block w-full rounded-xl border-0 bg-paper px-4 py-3 text-sm text-ink ring-1 ring-line transition placeholder:text-muted/70 focus:ring-2 focus:ring-jade;
     }
 
     .label {
-        @apply mb-2 block text-sm font-medium text-slate-700;
+        @apply mb-2 block text-sm font-medium text-ink;
     }
 
     .hint {
-        @apply mt-1.5 text-xs text-slate-500;
+        @apply mt-1.5 text-xs text-muted;
     }
 
     .badge {
@@ -98,23 +123,28 @@
     }
 
     .table-wrap {
-        @apply overflow-x-auto rounded-2xl ring-1 ring-slate-900/5;
+        @apply overflow-x-auto rounded-2xl ring-1 ring-line;
     }
 
     .table {
-        @apply w-full min-w-[40rem] border-collapse bg-white text-right text-sm;
+        @apply w-full min-w-[40rem] border-collapse bg-paper text-right text-sm;
     }
 
     .table thead th {
-        @apply whitespace-nowrap bg-slate-50/80 px-4 py-3 text-xs font-semibold text-slate-500;
+        @apply whitespace-nowrap bg-cream/80 px-4 py-3 text-xs font-semibold text-muted;
     }
 
     .table tbody td {
-        @apply border-t border-slate-100 px-4 py-3 align-middle;
+        @apply border-t border-line px-4 py-3 align-middle;
     }
 
     .link {
-        @apply font-medium text-brand-700 underline-offset-4 hover:underline;
+        @apply font-medium text-jade underline-offset-4 hover:underline;
+    }
+
+    /* کارت روز قفل‌شده در چالش‌های روزانه */
+    .locked-panel {
+        @apply rounded-3xl border border-dashed border-line bg-cream/70 p-6 text-center;
     }
 }
 

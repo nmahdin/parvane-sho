@@ -30,14 +30,14 @@
                         <span class="badge {{ $statusInfo['classes'] }}">{{ $statusInfo['label'] }}</span>
                     </div>
 
-                    <p class="mt-1.5 text-xs text-slate-500">
+                    <p class="mt-1.5 text-xs text-muted">
                         <a href="{{ route('panel.challenges.show', $challenge) }}" class="hover:text-brand-700">{{ $challenge->emoji }} {{ $challenge->title }}</a>
                         @if ($participant->contact)
                             · <span dir="auto">{{ $participant->contact }}</span>
                         @endif
                     </p>
 
-                    <p class="mt-1 text-[11px] text-slate-400">
+                    <p class="mt-1 text-[11px] text-muted/80">
                         آخرین بازدید: {{ $participant->last_seen_at ? fa_datetime($participant->last_seen_at) : 'هنوز باز نکرده' }}
                         @if ($stats['last_activity'])
                             · آخرین تیک: {{ fa_datetime($stats['last_activity']) }}
@@ -61,29 +61,29 @@
             </div>
         </div>
 
-        <div class="mt-6 grid gap-4 border-t border-slate-100 pt-6 sm:grid-cols-3 xl:grid-cols-6">
+        <div class="mt-6 grid gap-4 border-t border-line pt-6 sm:grid-cols-3 xl:grid-cols-6">
             <div>
-                <p class="text-xs text-slate-500">کار انجام‌شده</p>
-                <p class="mt-1 text-lg font-bold text-slate-900">{{ fa_num($stats['completed']) }} از {{ fa_num($stats['total']) }}</p>
+                <p class="text-xs text-muted">کار انجام‌شده</p>
+                <p class="mt-1 text-lg font-bold text-ink">{{ fa_num($stats['completed']) }} از {{ fa_num($stats['total']) }}</p>
             </div>
             <div>
-                <p class="text-xs text-slate-500">روزهای کامل</p>
-                <p class="mt-1 text-lg font-bold text-slate-900">{{ fa_num($stats['completed_days']) }} از {{ fa_num($stats['days_count']) }}</p>
+                <p class="text-xs text-muted">روزهای کامل</p>
+                <p class="mt-1 text-lg font-bold text-ink">{{ fa_num($stats['completed_days']) }} از {{ fa_num($stats['days_count']) }}</p>
             </div>
             <div>
-                <p class="text-xs text-slate-500">روزهای از دست رفته</p>
-                <p class="mt-1 text-lg font-bold {{ $stats['missed_days'] > 0 ? 'text-amber-600' : 'text-slate-900' }}">{{ fa_num($stats['missed_days']) }}</p>
+                <p class="text-xs text-muted">روزهای از دست رفته</p>
+                <p class="mt-1 text-lg font-bold {{ $stats['missed_days'] > 0 ? 'text-ink' : 'text-ink' }}">{{ fa_num($stats['missed_days']) }}</p>
             </div>
             <div>
-                <p class="text-xs text-slate-500">زنجیره فعلی</p>
-                <p class="mt-1 text-lg font-bold text-slate-900">{{ fa_num($stats['streak']) }} روز</p>
+                <p class="text-xs text-muted">زنجیره فعلی</p>
+                <p class="mt-1 text-lg font-bold text-ink">{{ fa_num($stats['streak']) }} روز</p>
             </div>
             <div>
-                <p class="text-xs text-slate-500">بهترین زنجیره</p>
-                <p class="mt-1 text-lg font-bold text-slate-900">{{ fa_num($stats['best_streak']) }} روز</p>
+                <p class="text-xs text-muted">بهترین زنجیره</p>
+                <p class="mt-1 text-lg font-bold text-ink">{{ fa_num($stats['best_streak']) }} روز</p>
             </div>
             <div>
-                <p class="text-xs text-slate-500">پیشرفت</p>
+                <p class="text-xs text-muted">پیشرفت</p>
                 <div class="mt-2"><x-progress-bar :percent="$stats['progress']" :class="$style['bar']" show-label /></div>
             </div>
         </div>
@@ -96,7 +96,7 @@
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <div>
                         <h2 class="text-base">وضعیت روز به روز</h2>
-                        <p class="mt-1 text-xs text-slate-500">هر خانه یک روز از چالش است؛ عددها نشان می‌دهد چند کار از آن روز انجام شده.</p>
+                        <p class="mt-1 text-xs text-muted">هر خانه یک روز از چالش است؛ عددها نشان می‌دهد چند کار از آن روز انجام شده.</p>
                     </div>
 
                     @if ($stats['current_day'])
@@ -107,29 +107,34 @@
                 <div class="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
                     @foreach ($breakdown as $day => $row)
                         @php
+                            $locked = ! $challenge->isDayUnlocked($day > 0 ? (int) $day : null);
                             $tone = $row['complete']
-                                ? 'bg-emerald-50 ring-emerald-200'
-                                : ($row['done'] > 0 ? 'bg-amber-50 ring-amber-200' : ($row['is_past'] ? 'bg-rose-50 ring-rose-200' : 'bg-slate-50 ring-slate-200'));
+                                ? 'bg-leaf/10 ring-leaf/30'
+                                : ($row['done'] > 0 ? 'bg-gold/15 ring-gold/50' : ($row['is_past'] ? 'bg-danger-soft ring-danger/20' : 'bg-cream ring-line'));
                         @endphp
 
                         <div class="rounded-2xl p-3 ring-1 {{ $tone }} {{ $row['is_today'] ? 'ring-2 ring-brand-300' : '' }}">
                             <div class="flex items-center justify-between">
-                                <span class="text-xs font-semibold text-slate-700">{{ $day > 0 ? 'روز '.fa_num($day) : 'کلی' }}</span>
+                                <span class="text-xs font-semibold text-ink">
+                                    @if ($locked) 🔒 @endif{{ $day > 0 ? 'روز '.fa_num($day) : 'کلی' }}
+                                </span>
 
-                                @if ($row['complete'])
-                                    <span class="text-xs text-emerald-600">✓ کامل</span>
+                                @if ($locked)
+                                    <span class="text-xs text-muted">قفل</span>
+                                @elseif ($row['complete'])
+                                    <span class="text-xs text-forest">✓ کامل</span>
                                 @elseif ($row['done'] > 0)
-                                    <span class="text-xs text-amber-600">{{ fa_num($row['done']) }}/{{ fa_num($row['total']) }}</span>
+                                    <span class="text-xs text-ink">{{ fa_num($row['done']) }}/{{ fa_num($row['total']) }}</span>
                                 @elseif ($row['is_past'])
-                                    <span class="text-xs text-rose-500">انجام نشده</span>
+                                    <span class="text-xs text-danger">انجام نشده</span>
                                 @else
-                                    <span class="text-xs text-slate-400">در انتظار</span>
+                                    <span class="text-xs text-muted/80">در انتظار</span>
                                 @endif
                             </div>
 
                             <div class="mt-2">
                                 <div class="h-1.5 overflow-hidden rounded-full bg-white/70">
-                                    <div class="h-full rounded-full {{ $row['complete'] ? 'bg-emerald-500' : 'bg-amber-400' }}" style="width: {{ $row['total'] ? round($row['done'] / $row['total'] * 100) : 0 }}%"></div>
+                                    <div class="h-full rounded-full {{ $row['complete'] ? 'bg-leaf' : 'bg-gold' }}" style="width: {{ $row['total'] ? round($row['done'] / $row['total'] * 100) : 0 }}%"></div>
                                 </div>
                             </div>
 
@@ -144,7 +149,7 @@
             {{-- نمودار فعالیت --}}
             <section class="card">
                 <h2 class="text-base">فعالیت ۱۴ روز اخیر</h2>
-                <p class="mt-1 text-xs text-slate-500">هر ستون یک روز است؛ ارتفاع نشان می‌دهد آن روز چند کار انجام داده است.</p>
+                <p class="mt-1 text-xs text-muted">هر ستون یک روز است؛ ارتفاع نشان می‌دهد آن روز چند کار انجام داده است.</p>
 
                 <div class="mt-6 flex items-end justify-between gap-1.5">
                     @foreach ($activity as $date => $count)
@@ -155,12 +160,12 @@
 
                         <div class="group flex flex-1 flex-col items-center gap-2" title="{{ fa_date($date, true) }} — {{ fa_num($count) }} کار">
                             <div class="flex w-full items-end justify-center" style="height: 120px">
-                                <div class="w-full rounded-t-lg transition-all {{ $count === 0 ? 'bg-slate-200' : 'bg-brand-500 group-hover:bg-brand-600' }}"
+                                <div class="w-full rounded-t-lg transition-all {{ $count === 0 ? 'bg-line' : 'bg-brand-500 group-hover:bg-brand-600' }}"
                                      style="height: {{ $height }}%"></div>
                             </div>
 
-                            <span class="text-[10px] {{ $isToday ? 'font-bold text-brand-700' : 'text-slate-400' }}">{{ fa_num($count) }}</span>
-                            <span class="text-[9px] text-slate-400">{{ fa_num(\Illuminate\Support\Carbon::parse($date)->format('j')) }}</span>
+                            <span class="text-[10px] {{ $isToday ? 'font-bold text-brand-700' : 'text-muted/80' }}">{{ fa_num($count) }}</span>
+                            <span class="text-[9px] text-muted/80">{{ fa_num(\Illuminate\Support\Carbon::parse($date)->format('j')) }}</span>
                         </div>
                     @endforeach
                 </div>
@@ -169,7 +174,7 @@
             {{-- تیک‌زدن کارها --}}
             <section class="card">
                 <h2 class="text-base">کارهای او</h2>
-                <p class="mt-1 text-xs text-slate-500">
+                <p class="mt-1 text-xs text-muted">
                     می‌توانی از اینجا هم به‌جای او تیک بزنی یا تیک را برداری (مثلاً وقتی خودش اطلاع داده است).
                 </p>
 
@@ -177,12 +182,12 @@
                     @forelse ($challenge->tasksByDay() as $day => $tasks)
                         @php($row = $breakdown[(int) $day] ?? null)
 
-                        <div class="overflow-hidden rounded-3xl ring-1 ring-slate-900/5">
-                            <div class="flex items-center justify-between bg-slate-50 px-5 py-3">
-                                <p class="text-sm font-semibold text-slate-800">{{ $day > 0 ? 'روز '.fa_num($day) : 'کارهای کلی' }}</p>
+                        <div class="overflow-hidden rounded-3xl ring-1 ring-line">
+                            <div class="flex items-center justify-between bg-cream px-5 py-3">
+                                <p class="text-sm font-semibold text-ink">{{ $day > 0 ? 'روز '.fa_num($day) : 'کارهای کلی' }}</p>
 
                                 @if ($row)
-                                    <span class="text-xs {{ $row['complete'] ? 'text-emerald-600' : 'text-slate-500' }}">
+                                    <span class="text-xs {{ $row['complete'] ? 'text-forest' : 'text-muted' }}">
                                         {{ fa_num($row['done']) }} از {{ fa_num($row['total']) }}
                                     </span>
                                 @endif
@@ -195,18 +200,18 @@
                                     <form method="POST" action="{{ route('panel.participants.tasks.toggle', [$participant, $task]) }}">
                                         @csrf
 
-                                        <button type="submit" class="flex w-full items-start gap-3 rounded-2xl px-3 py-3 text-right transition {{ $done ? 'bg-emerald-50/70 hover:bg-emerald-50' : 'bg-slate-50 hover:bg-slate-100' }}">
-                                            <span class="mt-0.5 grid size-6 shrink-0 place-items-center rounded-lg text-xs font-bold {{ $done ? 'bg-emerald-500 text-white' : 'bg-white text-transparent ring-1 ring-slate-300' }}">✓</span>
+                                        <button type="submit" class="flex w-full items-start gap-3 rounded-2xl px-3 py-3 text-right transition {{ $done ? 'bg-leaf/10 hover:bg-leaf/10' : 'bg-cream hover:bg-line/60' }}">
+                                            <span class="mt-0.5 grid size-6 shrink-0 place-items-center rounded-lg text-xs font-bold {{ $done ? 'bg-leaf text-white' : 'bg-paper text-transparent ring-1 ring-line' }}">✓</span>
 
                                             <span class="min-w-0 flex-1">
-                                                <span class="block text-sm {{ $done ? 'text-slate-400 line-through' : 'font-medium text-slate-800' }}">{{ $task->title }}</span>
+                                                <span class="block text-sm {{ $done ? 'text-muted/80 line-through' : 'font-medium text-ink' }}">{{ $task->title }}</span>
                                                 @if ($task->description)
-                                                    <span class="mt-1 block text-xs text-slate-500">{{ $task->description }}</span>
+                                                    <span class="mt-1 block text-xs text-muted">{{ $task->description }}</span>
                                                 @endif
                                             </span>
 
                                             @if ($done && ($times[(int) $task->id] ?? null))
-                                                <span class="shrink-0 text-[10px] text-slate-400">{{ fa_datetime($times[(int) $task->id]) }}</span>
+                                                <span class="shrink-0 text-[10px] text-muted/80">{{ fa_datetime($times[(int) $task->id]) }}</span>
                                             @endif
                                         </button>
                                     </form>
@@ -214,7 +219,7 @@
                             </div>
                         </div>
                     @empty
-                        <p class="rounded-2xl bg-slate-50 p-6 text-center text-sm text-slate-500">کاری برای این چالش ثبت نشده است.</p>
+                        <p class="rounded-2xl bg-cream p-6 text-center text-sm text-muted">کاری برای این چالش ثبت نشده است.</p>
                     @endforelse
                 </div>
             </section>
@@ -226,31 +231,31 @@
                 <x-progress-ring :percent="$stats['progress']" :class="$style['stroke']" caption="پیشرفت" />
 
                 <div class="mt-5 grid grid-cols-2 gap-3 text-center">
-                    <div class="rounded-2xl bg-slate-50 px-3 py-3">
-                        <p class="text-[11px] text-slate-500">شروع فعالیت</p>
-                        <p class="mt-1 text-xs font-medium text-slate-800">{{ $stats['first_activity'] ? fa_date($stats['first_activity']) : '—' }}</p>
+                    <div class="rounded-2xl bg-cream px-3 py-3">
+                        <p class="text-[11px] text-muted">شروع فعالیت</p>
+                        <p class="mt-1 text-xs font-medium text-ink">{{ $stats['first_activity'] ? fa_date($stats['first_activity']) : '—' }}</p>
                     </div>
-                    <div class="rounded-2xl bg-slate-50 px-3 py-3">
-                        <p class="text-[11px] text-slate-500">آخرین فعالیت</p>
-                        <p class="mt-1 text-xs font-medium text-slate-800">{{ $stats['last_activity'] ? fa_date($stats['last_activity']) : '—' }}</p>
+                    <div class="rounded-2xl bg-cream px-3 py-3">
+                        <p class="text-[11px] text-muted">آخرین فعالیت</p>
+                        <p class="mt-1 text-xs font-medium text-ink">{{ $stats['last_activity'] ? fa_date($stats['last_activity']) : '—' }}</p>
                     </div>
                 </div>
             </section>
 
             {{-- آخرین تیک‌ها --}}
             <section class="card">
-                <h2 class="text-sm font-semibold text-slate-900">آخرین تیک‌ها</h2>
+                <h2 class="text-sm font-semibold text-ink">آخرین تیک‌ها</h2>
 
                 @if ($recent->isEmpty())
-                    <p class="mt-4 rounded-2xl bg-slate-50 px-4 py-6 text-center text-xs text-slate-500">هنوز کاری تیک نخورده است.</p>
+                    <p class="mt-4 rounded-2xl bg-cream px-4 py-6 text-center text-xs text-muted">هنوز کاری تیک نخورده است.</p>
                 @else
                     <ul class="mt-4 space-y-2">
                         @foreach ($recent as $completion)
-                            <li class="flex items-start gap-3 rounded-2xl bg-slate-50 px-4 py-3">
-                                <span class="mt-0.5 grid size-6 shrink-0 place-items-center rounded-lg bg-emerald-500 text-[10px] text-white">✓</span>
+                            <li class="flex items-start gap-3 rounded-2xl bg-cream px-4 py-3">
+                                <span class="mt-0.5 grid size-6 shrink-0 place-items-center rounded-lg bg-leaf text-[10px] text-white">✓</span>
                                 <span class="min-w-0">
-                                    <span class="block text-xs text-slate-700">{{ $completion->task?->title }}</span>
-                                    <span class="mt-0.5 block text-[10px] text-slate-400">
+                                    <span class="block text-xs text-ink">{{ $completion->task?->title }}</span>
+                                    <span class="mt-0.5 block text-[10px] text-muted/80">
                                         {{ $completion->task?->day_number ? 'روز '.fa_num($completion->task->day_number).' · ' : '' }}{{ fa_datetime($completion->completed_at) }}
                                     </span>
                                 </span>
@@ -262,7 +267,7 @@
 
             {{-- اطلاعات و لینک --}}
             <section class="card space-y-4">
-                <h2 class="text-sm font-semibold text-slate-900">اطلاعات و لینک اختصاصی</h2>
+                <h2 class="text-sm font-semibold text-ink">اطلاعات و لینک اختصاصی</h2>
 
                 <form method="POST" action="{{ route('panel.participants.update', $participant) }}" class="space-y-4">
                     @csrf
@@ -286,13 +291,13 @@
                     <button type="submit" class="btn btn-primary w-full">ذخیره</button>
                 </form>
 
-                <div class="border-t border-slate-100 pt-4">
+                <div class="border-t border-line pt-4">
                     <label class="label" for="participant-link">کد و لینک اختصاصی (بدون نیاز به ورود)</label>
 
                     <div class="space-y-2">
-                        <div class="flex items-center gap-2 rounded-2xl bg-slate-50 px-4 py-3">
-                            <span class="text-[11px] text-slate-500">کد:</span>
-                            <span class="font-mono text-sm font-semibold tracking-[0.2em] text-slate-800" dir="ltr">{{ $participant->token }}</span>
+                        <div class="flex items-center gap-2 rounded-2xl bg-cream px-4 py-3">
+                            <span class="text-[11px] text-muted">کد:</span>
+                            <span class="font-mono text-sm font-semibold tracking-[0.2em] text-ink" dir="ltr">{{ $participant->token }}</span>
                         </div>
 
                         <input id="participant-link" type="text" readonly value="{{ route('participant.show', $participant) }}" class="input text-[11px]" dir="ltr">

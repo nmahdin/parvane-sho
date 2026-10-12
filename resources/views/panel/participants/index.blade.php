@@ -66,11 +66,11 @@
         @if ($participants->isEmpty())
             <div class="py-8 text-center">
                 <p class="text-2xl">🔍</p>
-                <p class="mt-3 text-sm text-slate-600">شرکت‌کننده‌ای با این مشخصات پیدا نشد.</p>
+                <p class="mt-3 text-sm text-ink/80">شرکت‌کننده‌ای با این مشخصات پیدا نشد.</p>
             </div>
         @else
             <div class="flex flex-wrap items-center justify-between gap-3">
-                <p class="text-xs text-slate-500">{{ fa_num($participants->total()) }} نفر پیدا شد — صفحه {{ fa_num($participants->currentPage()) }} از {{ fa_num($participants->lastPage()) }}</p>
+                <p class="text-xs text-muted">{{ fa_num($participants->total()) }} نفر پیدا شد — صفحه {{ fa_num($participants->currentPage()) }} از {{ fa_num($participants->lastPage()) }}</p>
                 <button type="button" class="btn btn-white btn-sm" data-copy-target="#all-participant-links">کپی لینک همه</button>
             </div>
 
@@ -98,36 +98,36 @@
                             <tr>
                                 <td>
                                     <a href="{{ route('panel.participants.show', $participant) }}" class="flex items-center gap-3">
-                                        <span class="grid size-9 place-items-center rounded-xl bg-slate-50 text-xs font-bold text-slate-600">{{ mb_substr($participant->name, 0, 1) }}</span>
+                                        <span class="grid size-9 place-items-center rounded-xl bg-cream text-xs font-bold text-ink/80">{{ mb_substr($participant->name, 0, 1) }}</span>
                                         <span>
-                                            <span class="block font-medium text-slate-900 hover:text-brand-700">{{ $participant->name }}</span>
+                                            <span class="block font-medium text-ink hover:text-brand-700">{{ $participant->name }}</span>
                                             @if ($participant->contact)
-                                                <span class="text-[11px] text-slate-400">{{ $participant->contact }}</span>
+                                                <span class="text-[11px] text-muted/80">{{ $participant->contact }}</span>
                                             @endif
                                         </span>
                                     </a>
                                 </td>
 
                                 <td>
-                                    <a href="{{ route('panel.challenges.show', $participant->challenge) }}" class="text-xs text-slate-600 hover:text-brand-700">
+                                    <a href="{{ route('panel.challenges.show', $participant->challenge) }}" class="text-xs text-ink/80 hover:text-brand-700">
                                         {{ $participant->challenge->emoji }} {{ $participant->challenge->title }}
                                     </a>
                                 </td>
 
                                 <td>
                                     <x-progress-bar :percent="$progress" :class="$participant->challenge->styleValue('bar')" show-label />
-                                    <p class="mt-1.5 text-[11px] text-slate-500">{{ fa_num($participant->completed_count) }} از {{ fa_num($participant->totalTasks()) }} کار</p>
+                                    <p class="mt-1.5 text-[11px] text-muted">{{ fa_num($participant->completed_count) }} از {{ fa_num($participant->totalTasks()) }} کار</p>
                                 </td>
 
                                 <td>
                                     <span class="badge {{ $statusInfo['classes'] }}">{{ $statusInfo['label'] }}</span>
                                 </td>
 
-                                <td class="text-xs text-slate-500">
+                                <td class="text-xs text-muted">
                                     {{ $participant->last_completed_at ? fa_datetime($participant->last_completed_at) : '—' }}
                                 </td>
 
-                                <td class="text-xs text-slate-500">
+                                <td class="text-xs text-muted">
                                     {{ $participant->last_seen_at ? fa_datetime($participant->last_seen_at) : 'هنوز باز نکرده' }}
                                 </td>
 

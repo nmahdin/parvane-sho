@@ -38,10 +38,11 @@ class DatabaseSeeder extends Seeder
             'tagline' => 'هفت روز، هر روز دو کار کوچک برای آرام‌تر شدن و شکرگزارتر بودن.',
             'description' => "این چالش نمونه ساخته شده تا ببینی همه‌چیز چطور کار می‌کند.\nهر روز دو کار داری؛ هر وقت انجامشان دادی در داشبورد خودت تیک بزن. اگر خواستی، همین چالش را ویرایش کن یا پاکش کن و چالش خودت را بساز.",
             'emoji' => '🦋',
-            'accent' => 'violet',
+            'accent' => 'jade',
             'starts_on' => Carbon::today()->subDays(2),
             'ends_on' => Carbon::today()->addDays(4),
             'is_published' => true,
+            'daily_release' => true,
             'sort_order' => 1,
         ]);
 
@@ -114,8 +115,9 @@ class DatabaseSeeder extends Seeder
                 'note' => null,
             ]);
 
-            // هر نفر کمی از کارها را انجام داده است
-            $completed = $tasks->take(max(1, 12 - ($index * 4)));
+            // هر نفر کمی از کارهای روزهای بازشده را انجام داده است
+            $unlockedTasks = $tasks->filter(fn ($task) => $challenge->isDayUnlocked($task->day_number))->values();
+            $completed = $unlockedTasks->take(max(1, min($unlockedTasks->count(), 8 - ($index * 3))));
 
             foreach ($completed as $offset => $task) {
                 $participant->completions()->create([

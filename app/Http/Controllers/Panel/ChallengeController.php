@@ -163,6 +163,7 @@ class ChallengeController extends Controller
             'starts_on' => $startsOn,
             'ends_on' => $endsOn,
             'is_published' => $request->boolean('is_published'),
+            'daily_release' => $request->boolean('daily_release'),
             'sort_order' => isset($validated['sort_order']) ? (int) $validated['sort_order'] : null,
         ]];
     }

@@ -66,32 +66,32 @@ class JalaliDatePicker {
     /* ---------- ساخت مدال ---------- */
     build() {
         this.wrapper = document.createElement('div');
-        this.wrapper.className = 'fixed inset-0 z-[70] hidden items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm';
+        this.wrapper.className = 'fixed inset-0 z-[70] hidden items-center justify-center bg-forest/50 p-4 backdrop-blur-sm';
         this.wrapper.setAttribute('role', 'dialog');
         this.wrapper.setAttribute('aria-modal', 'true');
 
         this.wrapper.innerHTML = `
-            <div class="animate-rise w-full max-w-sm rounded-3xl bg-white p-5 shadow-xl ring-1 ring-slate-900/5" data-picker-panel>
+            <div class="animate-rise w-full max-w-sm rounded-3xl bg-paper p-5 shadow-xl ring-1 ring-line" data-picker-panel>
                 <div class="flex items-center justify-between">
-                    <button type="button" class="grid size-9 place-items-center rounded-xl text-slate-500 hover:bg-slate-100" data-nav="prev-year" aria-label="سال قبل">«</button>
-                    <button type="button" class="grid size-9 place-items-center rounded-xl text-slate-500 hover:bg-slate-100" data-nav="prev-month" aria-label="ماه قبل">‹</button>
+                    <button type="button" class="grid size-9 place-items-center rounded-xl text-muted hover:bg-line/60" data-nav="prev-year" aria-label="سال قبل">«</button>
+                    <button type="button" class="grid size-9 place-items-center rounded-xl text-muted hover:bg-line/60" data-nav="prev-month" aria-label="ماه قبل">‹</button>
 
                     <div class="text-center">
-                        <p class="text-sm font-semibold text-slate-900" data-picker-title></p>
-                        <p class="mt-0.5 text-[11px] text-slate-400">تاریخ شمسی</p>
+                        <p class="text-sm font-semibold text-ink" data-picker-title></p>
+                        <p class="mt-0.5 text-[11px] text-muted/80">تاریخ شمسی</p>
                     </div>
 
-                    <button type="button" class="grid size-9 place-items-center rounded-xl text-slate-500 hover:bg-slate-100" data-nav="next-month" aria-label="ماه بعد">›</button>
-                    <button type="button" class="grid size-9 place-items-center rounded-xl text-slate-500 hover:bg-slate-100" data-nav="next-year" aria-label="سال بعد">»</button>
+                    <button type="button" class="grid size-9 place-items-center rounded-xl text-muted hover:bg-line/60" data-nav="next-month" aria-label="ماه بعد">›</button>
+                    <button type="button" class="grid size-9 place-items-center rounded-xl text-muted hover:bg-line/60" data-nav="next-year" aria-label="سال بعد">»</button>
                 </div>
 
-                <div class="mt-4 grid grid-cols-7 gap-1 text-center text-[11px] font-medium text-slate-400">
+                <div class="mt-4 grid grid-cols-7 gap-1 text-center text-[11px] font-medium text-muted/80">
                     ${WEEKDAYS.map((day) => `<span>${day}</span>`).join('')}
                 </div>
 
                 <div class="mt-1 grid grid-cols-7 gap-1" data-picker-days></div>
 
-                <div class="mt-5 flex items-center gap-2 border-t border-slate-100 pt-4">
+                <div class="mt-5 flex items-center gap-2 border-t border-line pt-4">
                     <button type="button" class="btn btn-soft btn-sm flex-1" data-picker-today>امروز</button>
                     <button type="button" class="btn btn-white btn-sm flex-1" data-picker-clear>پاک کردن</button>
                     <button type="button" class="btn btn-primary btn-sm flex-1" data-picker-close>بستن</button>
@@ -240,7 +240,7 @@ class JalaliDatePicker {
                 ? 'bg-brand-600 font-semibold text-white'
                 : isToday
                     ? 'bg-brand-50 font-semibold text-brand-700 ring-1 ring-brand-200'
-                    : 'text-slate-700 hover:bg-slate-100';
+                    : 'text-ink hover:bg-line/60';
 
             cells.push(`
                 <button type="button" data-day="${day}" data-jy="${jy}" data-jm="${jm}"

@@ -21,7 +21,7 @@
                 cy="{{ $size / 2 }}"
                 r="{{ $radius }}"
                 fill="none"
-                class="stroke-slate-200"
+                class="stroke-line"
                 stroke-width="{{ $strokeWidth }}"
             />
             <circle
@@ -37,9 +37,9 @@
         </svg>
 
         <div class="absolute inset-0 flex flex-col items-center justify-center">
-            <span class="text-2xl font-bold text-slate-900">{{ fa_num($value) }}<span class="text-sm font-medium text-slate-500">٪</span></span>
+            <span class="text-2xl font-bold text-ink">{{ fa_num($value) }}<span class="text-sm font-medium text-muted">٪</span></span>
             @if ($caption)
-                <span class="mt-0.5 text-[11px] text-slate-500">{{ $caption }}</span>
+                <span class="mt-0.5 text-[11px] text-muted">{{ $caption }}</span>
             @endif
         </div>
     </div>

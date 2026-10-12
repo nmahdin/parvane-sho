@@ -8,17 +8,17 @@
     ];
 @endphp
 
-<header class="no-print sticky top-0 z-40 border-b border-slate-900/5 bg-white/85 backdrop-blur">
+<header class="no-print sticky top-0 z-40 border-b border-line bg-white/85 backdrop-blur">
     <div class="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3 sm:px-6">
         <a href="{{ route('home') }}" class="flex items-center gap-3">
-            <span class="grid size-10 place-items-center rounded-2xl bg-gradient-to-tl from-brand-600 to-fuchsia-500 text-lg text-white shadow-sm">🦋</span>
-            <span class="text-base font-semibold text-slate-900">{{ $siteName }}</span>
+            <span class="grid size-10 place-items-center rounded-2xl bg-gradient-to-tl from-forest to-leaf text-lg text-white shadow-sm">🦋</span>
+            <span class="text-base font-semibold text-ink">{{ $siteName }}</span>
         </a>
 
         <nav class="ms-auto hidden items-center gap-1 sm:flex">
             @foreach ($links as $link)
                 <a href="{{ $link['url'] }}"
-                   class="rounded-xl px-3 py-2 text-sm transition-colors {{ $link['active'] ? 'bg-brand-50 text-brand-700' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900' }}">
+                   class="rounded-xl px-3 py-2 text-sm transition-colors {{ $link['active'] ? 'bg-brand-50 text-brand-700' : 'text-ink/80 hover:bg-line/60 hover:text-ink' }}">
                     {{ $link['label'] }}
                 </a>
             @endforeach
@@ -33,9 +33,9 @@
         </button>
     </div>
 
-    <div id="mobile-menu" class="hidden border-t border-slate-900/5 bg-white px-4 py-2 sm:hidden">
+    <div id="mobile-menu" class="hidden border-t border-line bg-paper px-4 py-2 sm:hidden">
         @foreach ($links as $link)
-            <a href="{{ $link['url'] }}" class="block rounded-xl px-3 py-2.5 text-sm text-slate-700 hover:bg-slate-100">{{ $link['label'] }}</a>
+            <a href="{{ $link['url'] }}" class="block rounded-xl px-3 py-2.5 text-sm text-ink hover:bg-line/60">{{ $link['label'] }}</a>
         @endforeach
         <a href="{{ route('participant.lookup') }}" class="block rounded-xl px-3 py-2.5 text-sm font-medium text-brand-700 hover:bg-brand-50">کد اختصاصی من</a>
     </div>

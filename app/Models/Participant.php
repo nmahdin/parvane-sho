@@ -317,27 +317,27 @@ class Participant extends Model
         $done = $this->completedCount();
 
         if ($total === 0) {
-            return ['label' => 'بدون کار', 'classes' => 'bg-slate-50 text-slate-600 ring-slate-200', 'tone' => 'slate'];
+            return ['label' => 'بدون کار', 'classes' => 'bg-cream text-muted ring-line', 'tone' => 'muted'];
         }
 
         if ($done === 0) {
-            return ['label' => 'شروع نکرده', 'classes' => 'bg-slate-50 text-slate-600 ring-slate-200', 'tone' => 'slate'];
+            return ['label' => 'شروع نکرده', 'classes' => 'bg-cream text-muted ring-line', 'tone' => 'muted'];
         }
 
         $currentDay = $this->challenge->currentDayNumber();
         $breakdown = $this->dayBreakdown();
 
         if ($currentDay !== null && ($breakdown[$currentDay]['complete'] ?? false)) {
-            return ['label' => 'امروز را کامل انجام داد', 'classes' => 'bg-emerald-50 text-emerald-700 ring-emerald-200', 'tone' => 'emerald'];
+            return ['label' => 'امروز را کامل انجام داد', 'classes' => 'bg-leaf/10 text-forest ring-leaf/30', 'tone' => 'leaf'];
         }
 
         $last = $this->lastActivityAt();
 
         if ($last && $last->greaterThanOrEqualTo(Carbon::today()->subDays(2))) {
-            return ['label' => 'فعال', 'classes' => 'bg-sky-50 text-sky-700 ring-sky-200', 'tone' => 'sky'];
+            return ['label' => 'فعال', 'classes' => 'bg-jade/10 text-jade ring-jade/30', 'tone' => 'jade'];
         }
 
-        return ['label' => 'بی‌فعال', 'classes' => 'bg-amber-50 text-amber-700 ring-amber-200', 'tone' => 'amber'];
+        return ['label' => 'بی‌فعال', 'classes' => 'bg-gold/15 text-ink ring-gold/50', 'tone' => 'gold'];
     }
 
     /**

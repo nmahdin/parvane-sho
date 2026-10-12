@@ -20,12 +20,12 @@
 
                 <div>
                     <h2 class="text-lg">{{ $challenge->title }}</h2>
-                    <p class="mt-1.5 max-w-2xl text-xs leading-6 text-slate-500">{{ $challenge->tagline ?: 'توضیح کوتاهی ثبت نشده است.' }}</p>
+                    <p class="mt-1.5 max-w-2xl text-xs leading-6 text-muted">{{ $challenge->tagline ?: 'توضیح کوتاهی ثبت نشده است.' }}</p>
 
                     <div class="mt-3 flex flex-wrap items-center gap-2">
                         <span class="badge {{ $challenge->statusClasses() }}">{{ $challenge->statusLabel() }}</span>
-                        <span class="badge bg-slate-50 text-slate-600 ring-slate-200">{{ $challenge->dateRangeLabel() }}</span>
-                        <span class="badge bg-slate-50 text-slate-600 ring-slate-200" dir="ltr">/{{ $challenge->slug }}</span>
+                        <span class="badge bg-cream text-ink/80 ring-line">{{ $challenge->dateRangeLabel() }}</span>
+                        <span class="badge bg-cream text-ink/80 ring-line" dir="ltr">/{{ $challenge->slug }}</span>
                     </div>
                 </div>
             </div>
@@ -45,28 +45,28 @@
             </div>
         </div>
 
-        <div class="mt-6 grid gap-4 border-t border-slate-100 pt-6 sm:grid-cols-4">
+        <div class="mt-6 grid gap-4 border-t border-line pt-6 sm:grid-cols-4">
             <div>
-                <p class="text-xs text-slate-500">روزها</p>
-                <p class="mt-1 text-lg font-bold text-slate-900">{{ fa_num($challenge->daysCount()) }}</p>
+                <p class="text-xs text-muted">روزها</p>
+                <p class="mt-1 text-lg font-bold text-ink">{{ fa_num($challenge->daysCount()) }}</p>
             </div>
             <div>
-                <p class="text-xs text-slate-500">کارها</p>
-                <p class="mt-1 text-lg font-bold text-slate-900">{{ fa_num($tasksCount) }}</p>
+                <p class="text-xs text-muted">کارها</p>
+                <p class="mt-1 text-lg font-bold text-ink">{{ fa_num($tasksCount) }}</p>
             </div>
             <div>
-                <p class="text-xs text-slate-500">شرکت‌کننده‌ها</p>
-                <p class="mt-1 text-lg font-bold text-slate-900">{{ fa_num($participants->count()) }}</p>
+                <p class="text-xs text-muted">شرکت‌کننده‌ها</p>
+                <p class="mt-1 text-lg font-bold text-ink">{{ fa_num($participants->count()) }}</p>
             </div>
             <div>
-                <p class="text-xs text-slate-500">پیشرفت کلی</p>
+                <p class="text-xs text-muted">پیشرفت کلی</p>
                 <div class="mt-2"><x-progress-bar :percent="$challenge->progressPercent()" :class="$style['bar']" show-label /></div>
             </div>
         </div>
     </section>
 
     {{-- ناوبری بخش‌های چالش --}}
-    <nav class="flex gap-2 overflow-x-auto rounded-3xl bg-white p-3 shadow-sm ring-1 ring-slate-900/5">
+    <nav class="flex gap-2 overflow-x-auto rounded-3xl bg-paper p-3 shadow-sm ring-1 ring-line">
         @foreach ([
             ['#tasks', '📝 روزها و کارها'],
             ['#tips', '💡 نکات'],
@@ -74,7 +74,7 @@
             ['#files', '📎 فایل‌ها'],
             ['#participants', '👥 شرکت‌کننده‌ها'],
         ] as [$href, $label])
-            <a href="{{ $href }}" class="shrink-0 rounded-2xl px-4 py-2 text-xs text-slate-600 transition hover:bg-brand-50 hover:text-brand-700">{{ $label }}</a>
+            <a href="{{ $href }}" class="shrink-0 rounded-2xl px-4 py-2 text-xs text-ink/80 transition hover:bg-brand-50 hover:text-brand-700">{{ $label }}</a>
         @endforeach
     </nav>
 
@@ -83,15 +83,22 @@
         <div class="flex flex-wrap items-start justify-between gap-4">
             <div>
                 <h2 class="text-base">روزها و کارها</h2>
-                <p class="mt-1 text-xs leading-6 text-slate-500">
+                <p class="mt-1 text-xs leading-6 text-muted">
                     هر کار را به یک روز نسبت بده (مثلاً روز ۱، روز ۲ و ...). شرکت‌کننده‌ها همین کارها را در داشبورد خودشان تیک می‌زنند.
                 </p>
+
+                @if ($challenge->releasesDaily())
+                    <p class="mt-3 rounded-xl bg-gold/15 px-3 py-2 text-xs leading-6 text-ink ring-1 ring-gold/50">
+                        🔒 آزادسازی روزبه‌روز فعال است؛ برای شرکت‌کننده‌ها هر روز فقط کارهای روزهای بازشده قابل دیدن و تیک‌زدن است.
+                        خودت به عنوان مدیر همه روزها را می‌بینی.
+                    </p>
+                @endif
             </div>
 
             <details class="w-full sm:w-auto">
                 <summary class="btn btn-primary btn-sm list-none">+ افزودن کار</summary>
 
-                <form method="POST" action="{{ route('panel.tasks.store', $challenge) }}" class="mt-4 grid gap-4 rounded-2xl bg-slate-50 p-4 sm:grid-cols-[7rem_1fr]">
+                <form method="POST" action="{{ route('panel.tasks.store', $challenge) }}" class="mt-4 grid gap-4 rounded-2xl bg-cream p-4 sm:grid-cols-[7rem_1fr]">
                     @csrf
 
                     <div>
@@ -118,26 +125,32 @@
 
         <div class="mt-6 space-y-5">
             @forelse ($challenge->tasksByDay() as $day => $tasksOfDay)
-                <div class="overflow-hidden rounded-3xl ring-1 ring-slate-900/5">
-                    <div class="flex flex-wrap items-center justify-between gap-3 bg-slate-50 px-5 py-3">
-                        <h3 class="text-sm font-semibold text-slate-800">
+                <div class="overflow-hidden rounded-3xl ring-1 ring-line">
+                    <div class="flex flex-wrap items-center justify-between gap-3 bg-cream px-5 py-3">
+                        <h3 class="flex flex-wrap items-center gap-2 text-sm font-semibold text-ink">
                             {{ $day > 0 ? 'روز '.fa_num($day) : 'کارهای کلی' }}
-                            <span class="ms-2 text-xs font-normal text-slate-500">{{ fa_num($tasksOfDay->count()) }} کار</span>
-                        </h3>
+                            <span class="text-xs font-normal text-muted">{{ fa_num($tasksOfDay->count()) }} کار</span>
 
-                        @if ($day > 0)
-                            <span class="text-[11px] text-slate-400">شماره روز {{ fa_num($day) }}</span>
-                        @endif
+                            @if ($day > 0 && $challenge->releasesDaily())
+                                @if ($challenge->isDayUnlocked((int) $day))
+                                    <span class="badge bg-leaf/10 text-forest ring-leaf/30">باز</span>
+                                @else
+                                    <span class="badge bg-gold/15 text-ink ring-gold/50">
+                                        🔒 قفل@if ($challenge->unlockLabel((int) $day)) تا {{ $challenge->unlockLabel((int) $day) }} @endif
+                                    </span>
+                                @endif
+                            @endif
+                        </h3>
                     </div>
 
-                    <ul class="divide-y divide-slate-100 bg-white">
+                    <ul class="divide-y divide-line bg-paper">
                         @foreach ($tasksOfDay as $task)
                             <li class="px-5 py-4">
                                 <div class="flex flex-wrap items-start justify-between gap-3">
                                     <div class="min-w-0 flex-1">
-                                        <p class="text-sm font-medium text-slate-800">{{ $task->title }}</p>
+                                        <p class="text-sm font-medium text-ink">{{ $task->title }}</p>
                                         @if ($task->description)
-                                            <p class="mt-1 text-xs leading-6 text-slate-500">{{ $task->description }}</p>
+                                            <p class="mt-1 text-xs leading-6 text-muted">{{ $task->description }}</p>
                                         @endif
                                     </div>
 
@@ -157,7 +170,7 @@
                                         <details>
                                             <summary class="btn btn-ghost btn-sm list-none">ویرایش</summary>
 
-                                            <form method="POST" action="{{ route('panel.tasks.update', [$challenge, $task]) }}" class="mt-3 grid w-full max-w-xl gap-3 rounded-2xl bg-slate-50 p-4 text-right sm:grid-cols-[7rem_1fr]">
+                                            <form method="POST" action="{{ route('panel.tasks.update', [$challenge, $task]) }}" class="mt-3 grid w-full max-w-xl gap-3 rounded-2xl bg-cream p-4 text-right sm:grid-cols-[7rem_1fr]">
                                                 @csrf
                                                 @method('PUT')
 
@@ -194,7 +207,7 @@
                     </ul>
 
                     @if ($day > 0)
-                        <details class="border-t border-slate-100 bg-slate-50/70 px-5 py-3">
+                        <details class="border-t border-line bg-cream/70 px-5 py-3">
                             <summary class="cursor-pointer text-xs font-medium text-brand-700">+ افزودن چند کار به روز {{ fa_num($day) }}</summary>
 
                             <form method="POST" action="{{ route('panel.tasks.bulk', $challenge) }}" class="mt-4 max-w-2xl space-y-3 text-right">
@@ -210,9 +223,9 @@
                     @endif
                 </div>
             @empty
-                <div class="rounded-3xl bg-slate-50 p-8 text-center">
+                <div class="rounded-3xl bg-cream p-8 text-center">
                     <p class="text-2xl">📝</p>
-                    <p class="mt-3 text-sm text-slate-600">هنوز کاری برای این چالش ثبت نشده است. با دکمه «افزودن کار» شروع کن.</p>
+                    <p class="mt-3 text-sm text-ink/80">هنوز کاری برای این چالش ثبت نشده است. با دکمه «افزودن کار» شروع کن.</p>
                 </div>
             @endforelse
         </div>
@@ -223,13 +236,13 @@
         <div class="flex flex-wrap items-start justify-between gap-4">
             <div>
                 <h2 class="text-base">نکات چالش</h2>
-                <p class="mt-1 text-xs leading-6 text-slate-500">
+                <p class="mt-1 text-xs leading-6 text-muted">
                     نکته‌ها در صفحه چالش و داشبورد شرکت‌کننده‌ها با ظاهر ویژه (کارت کهربایی) نمایش داده می‌شوند.
                 </p>
             </div>
         </div>
 
-        <form method="POST" action="{{ route('panel.tips.store', $challenge) }}" class="mt-5 grid gap-4 rounded-2xl bg-slate-50 p-4 sm:grid-cols-[6rem_1fr]">
+        <form method="POST" action="{{ route('panel.tips.store', $challenge) }}" class="mt-5 grid gap-4 rounded-2xl bg-cream p-4 sm:grid-cols-[6rem_1fr]">
             @csrf
 
             <div>
@@ -238,7 +251,7 @@
 
                 <div class="mt-2 flex flex-wrap gap-1">
                     @foreach (\App\Models\ChallengeTip::EMOJIS as $emoji)
-                        <button type="button" data-emoji="#tip-emoji" data-emoji-value="{{ $emoji }}" class="grid size-7 place-items-center rounded-lg bg-white text-sm ring-1 ring-slate-900/5 hover:bg-amber-50">{{ $emoji }}</button>
+                        <button type="button" data-emoji="#tip-emoji" data-emoji-value="{{ $emoji }}" class="grid size-7 place-items-center rounded-lg bg-paper text-sm ring-1 ring-line hover:bg-gold/15">{{ $emoji }}</button>
                     @endforeach
                 </div>
             </div>
@@ -259,18 +272,18 @@
         </form>
 
         @if ($challenge->tips->isEmpty())
-            <p class="mt-5 rounded-2xl bg-slate-50 px-4 py-6 text-center text-xs text-slate-500">هنوز نکته‌ای اضافه نشده است.</p>
+            <p class="mt-5 rounded-2xl bg-cream px-4 py-6 text-center text-xs text-muted">هنوز نکته‌ای اضافه نشده است.</p>
         @else
             <div class="mt-5 space-y-3">
                 @foreach ($challenge->tips as $tip)
-                    <div class="rounded-3xl bg-gradient-to-tl from-amber-50 to-white p-4 ring-1 ring-amber-200/70">
+                    <div class="rounded-3xl bg-gradient-to-tl from-gold/15 to-paper p-4 ring-1 ring-gold/50">
                         <div class="flex flex-wrap items-start justify-between gap-3">
                             <div class="flex items-start gap-3">
-                                <span class="grid size-10 shrink-0 place-items-center rounded-2xl bg-white text-lg shadow-sm ring-1 ring-amber-200/70">{{ $tip->emoji }}</span>
+                                <span class="grid size-10 shrink-0 place-items-center rounded-2xl bg-paper text-lg shadow-sm ring-1 ring-gold/50">{{ $tip->emoji }}</span>
                                 <div class="min-w-0">
-                                    <p class="text-sm font-semibold text-amber-900">{{ $tip->title }}</p>
+                                    <p class="text-sm font-semibold text-forest">{{ $tip->title }}</p>
                                     @if ($tip->body)
-                                        <p class="mt-1 text-xs leading-6 text-amber-800/80">{{ $tip->body }}</p>
+                                        <p class="mt-1 text-xs leading-6 text-ink/80">{{ $tip->body }}</p>
                                     @endif
                                 </div>
                             </div>
@@ -289,7 +302,7 @@
 
                                 <details>
                                     <summary class="btn btn-ghost btn-sm list-none">ویرایش</summary>
-                                    <form method="POST" action="{{ route('panel.tips.update', [$challenge, $tip]) }}" class="mt-3 grid w-full max-w-lg gap-3 rounded-2xl bg-white p-4 text-right ring-1 ring-slate-900/5 sm:grid-cols-[5rem_1fr]">
+                                    <form method="POST" action="{{ route('panel.tips.update', [$challenge, $tip]) }}" class="mt-3 grid w-full max-w-lg gap-3 rounded-2xl bg-paper p-4 text-right ring-1 ring-line sm:grid-cols-[5rem_1fr]">
                                         @csrf
                                         @method('PUT')
 
@@ -331,12 +344,12 @@
     <section class="card scroll-mt-24" id="qa">
         <div>
             <h2 class="text-base">باکس پرسش و پاسخ</h2>
-            <p class="mt-1 text-xs leading-6 text-slate-500">
+            <p class="mt-1 text-xs leading-6 text-muted">
                 پرسش‌های پرتکرار شرکت‌کننده‌ها را اینجا با پاسخشان بنویس؛ در صفحه چالش و داشبورد هر نفر به شکل آکاردئون نمایش داده می‌شود.
             </p>
         </div>
 
-        <form method="POST" action="{{ route('panel.questions.store', $challenge) }}" class="mt-5 space-y-4 rounded-2xl bg-slate-50 p-4">
+        <form method="POST" action="{{ route('panel.questions.store', $challenge) }}" class="mt-5 space-y-4 rounded-2xl bg-cream p-4">
             @csrf
 
             <div class="grid gap-4 sm:grid-cols-[1.4fr_1fr]">
@@ -357,8 +370,8 @@
             </div>
 
             <div class="flex flex-wrap items-center justify-between gap-3">
-                <label class="flex items-center gap-2 text-xs text-slate-600">
-                    <input type="checkbox" name="is_published" value="1" checked class="size-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500">
+                <label class="flex items-center gap-2 text-xs text-ink/80">
+                    <input type="checkbox" name="is_published" value="1" checked class="size-4 rounded border-line text-brand-600 focus:ring-brand-500">
                     در صفحه چالش نمایش داده شود
                 </label>
 
@@ -367,26 +380,26 @@
         </form>
 
         @if ($challenge->questions->isEmpty())
-            <p class="mt-5 rounded-2xl bg-slate-50 px-4 py-6 text-center text-xs text-slate-500">هنوز پرسشی ثبت نشده است.</p>
+            <p class="mt-5 rounded-2xl bg-cream px-4 py-6 text-center text-xs text-muted">هنوز پرسشی ثبت نشده است.</p>
         @else
             <div class="mt-5 space-y-3">
                 @foreach ($challenge->questions as $question)
-                    <div class="rounded-3xl bg-slate-50 p-4">
+                    <div class="rounded-3xl bg-cream p-4">
                         <div class="flex flex-wrap items-start justify-between gap-3">
                             <div class="min-w-0 flex-1">
                                 <div class="flex flex-wrap items-center gap-2">
-                                    <p class="text-sm font-medium text-slate-800">{{ $question->question }}</p>
-                                    <span class="badge {{ $question->is_published ? 'bg-emerald-50 text-emerald-700 ring-emerald-200' : 'bg-slate-200/60 text-slate-600 ring-slate-300' }}">
+                                    <p class="text-sm font-medium text-ink">{{ $question->question }}</p>
+                                    <span class="badge {{ $question->is_published ? 'bg-leaf/10 text-forest ring-leaf/30' : 'bg-line text-ink/80 ring-line' }}">
                                         {{ $question->is_published ? 'نمایش داده می‌شود' : 'پنهان' }}
                                     </span>
                                 </div>
 
                                 @if ($question->asked_by)
-                                    <p class="mt-1 text-[11px] text-slate-400">پرسیده‌شده توسط {{ $question->asked_by }}</p>
+                                    <p class="mt-1 text-[11px] text-muted/80">پرسیده‌شده توسط {{ $question->asked_by }}</p>
                                 @endif
 
-                                <p class="mt-2 border-s-2 border-slate-200 ps-3 text-xs leading-6 text-slate-600">
-                                    {!! $question->answer ? \App\Support\RichText::toHtml($question->answer) : '<span class="text-slate-400">بدون پاسخ</span>' !!}
+                                <p class="mt-2 border-s-2 border-line ps-3 text-xs leading-6 text-ink/80">
+                                    {!! $question->answer ? \App\Support\RichText::toHtml($question->answer) : '<span class="text-muted/80">بدون پاسخ</span>' !!}
                                 </p>
                             </div>
 
@@ -410,7 +423,7 @@
 
                                 <details>
                                     <summary class="btn btn-ghost btn-sm list-none">ویرایش</summary>
-                                    <form method="POST" action="{{ route('panel.questions.update', [$challenge, $question]) }}" class="mt-3 grid w-full max-w-lg gap-3 rounded-2xl bg-white p-4 text-right ring-1 ring-slate-900/5">
+                                    <form method="POST" action="{{ route('panel.questions.update', [$challenge, $question]) }}" class="mt-3 grid w-full max-w-lg gap-3 rounded-2xl bg-paper p-4 text-right ring-1 ring-line">
                                         @csrf
                                         @method('PUT')
 
@@ -429,8 +442,8 @@
                                             <input type="text" name="asked_by" value="{{ $question->asked_by }}" class="input">
                                         </div>
 
-                                        <label class="flex items-center gap-2 text-xs text-slate-600">
-                                            <input type="checkbox" name="is_published" value="1" @checked($question->is_published) class="size-4 rounded border-slate-300 text-brand-600 focus:ring-brand-500">
+                                        <label class="flex items-center gap-2 text-xs text-ink/80">
+                                            <input type="checkbox" name="is_published" value="1" @checked($question->is_published) class="size-4 rounded border-line text-brand-600 focus:ring-brand-500">
                                             نمایش در صفحه چالش
                                         </label>
 
@@ -455,12 +468,12 @@
     <section class="card scroll-mt-24" id="files">
         <div>
             <h2 class="text-base">فایل‌های ضمیمه چالش</h2>
-            <p class="mt-1 text-xs leading-6 text-slate-500">
+            <p class="mt-1 text-xs leading-6 text-muted">
                 فایل راهنما، جدول تمرین‌ها، صوت یا هر چیزی که شرکت‌کننده‌ها لازم دارند. حجم هر فایل تا ۸ مگابایت.
             </p>
         </div>
 
-        <form method="POST" action="{{ route('panel.attachments.store', $challenge) }}" enctype="multipart/form-data" class="mt-5 grid gap-4 rounded-2xl bg-slate-50 p-4 sm:grid-cols-[1fr_1.4fr_auto]">
+        <form method="POST" action="{{ route('panel.attachments.store', $challenge) }}" enctype="multipart/form-data" class="mt-5 grid gap-4 rounded-2xl bg-cream p-4 sm:grid-cols-[1fr_1.4fr_auto]">
             @csrf
 
             <div>
@@ -479,7 +492,7 @@
         </form>
 
         @if ($challenge->attachments->isEmpty())
-            <p class="mt-5 rounded-2xl bg-slate-50 px-4 py-6 text-center text-xs text-slate-500">هنوز فایلی ضمیمه نشده است.</p>
+            <p class="mt-5 rounded-2xl bg-cream px-4 py-6 text-center text-xs text-muted">هنوز فایلی ضمیمه نشده است.</p>
         @else
             <div class="table-wrap mt-5">
                 <table class="table">
@@ -496,16 +509,16 @@
                             <tr>
                                 <td>
                                     <div class="flex items-center gap-3">
-                                        <span class="grid size-9 place-items-center rounded-xl bg-slate-50 text-base">{{ $attachment->icon() }}</span>
+                                        <span class="grid size-9 place-items-center rounded-xl bg-cream text-base">{{ $attachment->icon() }}</span>
                                         <div class="min-w-0">
-                                            <a href="{{ $attachment->url() }}" target="_blank" class="block max-w-[18rem] truncate font-medium text-slate-900 hover:text-brand-700">{{ $attachment->title }}</a>
-                                            <span class="text-[11px] text-slate-400" dir="ltr">{{ $attachment->original_name }}</span>
+                                            <a href="{{ $attachment->url() }}" target="_blank" class="block max-w-[18rem] truncate font-medium text-ink hover:text-brand-700">{{ $attachment->title }}</a>
+                                            <span class="text-[11px] text-muted/80" dir="ltr">{{ $attachment->original_name }}</span>
                                         </div>
                                     </div>
                                 </td>
 
-                                <td class="text-xs text-slate-500">{{ $attachment->sizeForHumans() }}</td>
-                                <td class="text-xs text-slate-500">{{ fa_num($attachment->downloads) }} بار</td>
+                                <td class="text-xs text-muted">{{ $attachment->sizeForHumans() }}</td>
+                                <td class="text-xs text-muted">{{ fa_num($attachment->downloads) }} بار</td>
 
                                 <td>
                                     <div class="flex items-center justify-end gap-1">
@@ -513,7 +526,7 @@
 
                                         <details>
                                             <summary class="btn btn-ghost btn-sm list-none">ویرایش</summary>
-                                            <form method="POST" action="{{ route('panel.attachments.update', [$challenge, $attachment]) }}" class="mt-3 grid w-full max-w-sm gap-3 rounded-2xl bg-slate-50 p-4 text-right">
+                                            <form method="POST" action="{{ route('panel.attachments.update', [$challenge, $attachment]) }}" class="mt-3 grid w-full max-w-sm gap-3 rounded-2xl bg-cream p-4 text-right">
                                                 @csrf
                                                 @method('PUT')
                                                 <div>
@@ -544,7 +557,7 @@
         <div class="flex flex-wrap items-start justify-between gap-4">
             <div>
                 <h2 class="text-base">شرکت‌کننده‌ها ({{ fa_num($participants->count()) }})</h2>
-                <p class="mt-1 text-xs leading-6 text-slate-500">
+                <p class="mt-1 text-xs leading-6 text-muted">
                     نام‌ها را خط‌به‌خط وارد کن. برای هر نفر یک لینک اختصاصی ساخته می‌شود که بدون رمز و ثبت‌نام داشبورد خودش را نشان می‌دهد.
                 </p>
             </div>
@@ -554,7 +567,7 @@
             @endif
         </div>
 
-        <form method="POST" action="{{ route('panel.participants.store', $challenge) }}" class="mt-5 space-y-3 rounded-2xl bg-slate-50 p-4">
+        <form method="POST" action="{{ route('panel.participants.store', $challenge) }}" class="mt-5 space-y-3 rounded-2xl bg-cream p-4">
             @csrf
 
             <label class="label" for="names">افزودن به فهرست چالش</label>
@@ -573,9 +586,9 @@
         </form>
 
         @if ($participants->isEmpty())
-            <div class="mt-6 rounded-2xl bg-slate-50 p-8 text-center">
+            <div class="mt-6 rounded-2xl bg-cream p-8 text-center">
                 <p class="text-2xl">👥</p>
-                <p class="mt-3 text-sm text-slate-600">هنوز کسی در فهرست این چالش نیست.</p>
+                <p class="mt-3 text-sm text-ink/80">هنوز کسی در فهرست این چالش نیست.</p>
             </div>
         @else
             <div class="table-wrap mt-6">
@@ -596,11 +609,11 @@
                             <tr>
                                 <td>
                                     <div class="flex items-center gap-3">
-                                        <span class="grid size-9 place-items-center rounded-xl bg-slate-50 text-xs font-bold text-slate-600">{{ mb_substr($participant->name, 0, 1) }}</span>
+                                        <span class="grid size-9 place-items-center rounded-xl bg-cream text-xs font-bold text-ink/80">{{ mb_substr($participant->name, 0, 1) }}</span>
                                         <div>
-                                            <a href="{{ route('panel.participants.show', $participant) }}" class="block font-medium text-slate-900 hover:text-brand-700">{{ $participant->name }}</a>
+                                            <a href="{{ route('panel.participants.show', $participant) }}" class="block font-medium text-ink hover:text-brand-700">{{ $participant->name }}</a>
                                             @if ($participant->contact)
-                                                <span class="text-[11px] text-slate-400">{{ $participant->contact }}</span>
+                                                <span class="text-[11px] text-muted/80">{{ $participant->contact }}</span>
                                             @endif
                                         </div>
                                     </div>
@@ -608,7 +621,7 @@
 
                                 <td>
                                     <x-progress-bar :percent="$percent" :class="$style['bar']" show-label />
-                                    <p class="mt-1.5 text-[11px] text-slate-500">{{ fa_num($participant->completed_count) }} از {{ fa_num($tasksCount) }} کار</p>
+                                    <p class="mt-1.5 text-[11px] text-muted">{{ fa_num($participant->completed_count) }} از {{ fa_num($tasksCount) }} کار</p>
                                 </td>
 
                                 <td>
@@ -618,7 +631,7 @@
                                     </div>
                                 </td>
 
-                                <td class="text-xs text-slate-500">
+                                <td class="text-xs text-muted">
                                     {{ $participant->last_seen_at ? fa_datetime($participant->last_seen_at) : 'هنوز باز نکرده' }}
                                 </td>
 

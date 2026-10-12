@@ -9,7 +9,7 @@
         <section class="card space-y-5">
             <div>
                 <h2 class="text-base">تنظیمات سایت</h2>
-                <p class="mt-1 text-xs text-slate-500">این متن‌ها در صفحه اصلی و پابرگ سایت نمایش داده می‌شوند.</p>
+                <p class="mt-1 text-xs text-muted">این متن‌ها در صفحه اصلی و پابرگ سایت نمایش داده می‌شوند.</p>
             </div>
 
             <form method="POST" action="{{ route('panel.settings.update') }}" class="space-y-4">
@@ -39,13 +39,13 @@
             <section class="card space-y-5">
                 <div>
                     <h2 class="text-base">رمز ورود پنل</h2>
-                    <p class="mt-1 text-xs leading-6 text-slate-500">
+                    <p class="mt-1 text-xs leading-6 text-muted">
                         ورود به پنل فقط با رمز عبور انجام می‌شود؛ نام کاربری و ایمیل لازم نیست.
                     </p>
                 </div>
 
                 @if ($useDefaultPassword)
-                    <div class="rounded-2xl bg-amber-50 px-4 py-3 text-xs leading-6 text-amber-800 ring-1 ring-amber-600/10">
+                    <div class="rounded-2xl bg-gold/15 px-4 py-3 text-xs leading-6 text-ink/80 ring-1 ring-gold/40">
                         در حال حاضر از رمز پیش‌فرض فایل <code class="rounded bg-white/60 px-1.5 py-0.5" dir="ltr">.env</code> استفاده می‌شود
                         (<code class="rounded bg-white/60 px-1.5 py-0.5" dir="ltr">PANEL_PASSWORD</code>).
                         پیشنهاد می‌شود از همین‌جا رمز را عوض کنی تا از این پس رمز هش‌شده در دیتابیس ذخیره شود.
@@ -60,7 +60,7 @@
                         <label class="label" for="current_password">رمز فعلی</label>
                         <input id="current_password" name="current_password" type="password" required class="input" autocomplete="current-password">
                         @error('current_password')
-                            <p class="mt-2 text-xs text-rose-600">{{ $message }}</p>
+                            <p class="mt-2 text-xs text-danger">{{ $message }}</p>
                         @enderror
                     </div>
 
@@ -81,12 +81,12 @@
 
             <section class="card">
                 <h2 class="text-base">لینک شرکت‌کننده‌ها</h2>
-                <p class="mt-2 text-xs leading-7 text-slate-600">
+                <p class="mt-2 text-xs leading-7 text-ink/80">
                     شرکت‌کننده‌ها نیازی به رمز ندارند. برای هر نفر در صفحه «مدیریت چالش» یک لینک اختصاصی ساخته می‌شود
-                    (مثل <code class="rounded bg-slate-100 px-1.5 py-0.5 text-[10px]" dir="ltr">/p/xxxxxxxxxxxxxxxx</code>) که
+                    (مثل <code class="rounded bg-line/60 px-1.5 py-0.5 text-[10px]" dir="ltr">/p/xxxxxxxxxxxxxxxx</code>) که
                     با باز کردن آن، داشبورد همان نفر نمایش داده می‌شود و می‌تواند کارهایش را تیک بزند.
                 </p>
-                <p class="mt-3 text-xs leading-7 text-slate-600">
+                <p class="mt-3 text-xs leading-7 text-ink/80">
                     اگر لینکی جایی عمومی شده باشد، از همان صفحه روی «لینک جدید» بزن؛ لینک قبلی از کار می‌افتد.
                 </p>
             </section>

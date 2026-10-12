@@ -13,7 +13,7 @@
         @if ($challenges->isEmpty())
             <div class="py-8 text-center">
                 <p class="text-3xl">🦋</p>
-                <p class="mt-3 text-sm text-slate-600">هنوز چالشی ساخته نشده است.</p>
+                <p class="mt-3 text-sm text-ink/80">هنوز چالشی ساخته نشده است.</p>
                 <a href="{{ route('panel.challenges.create') }}" class="btn btn-primary mt-5">ساخت اولین چالش</a>
             </div>
         @else
@@ -35,12 +35,12 @@
                             <tr>
                                 <td>
                                     <div class="flex items-center gap-3">
-                                        <span class="grid size-9 place-items-center rounded-xl bg-slate-50">{{ $challenge->emoji }}</span>
+                                        <span class="grid size-9 place-items-center rounded-xl bg-cream">{{ $challenge->emoji }}</span>
                                         <div class="min-w-0">
-                                            <a href="{{ route('panel.challenges.show', $challenge) }}" class="block max-w-[16rem] truncate font-medium text-slate-900 hover:text-brand-700">
+                                            <a href="{{ route('panel.challenges.show', $challenge) }}" class="block max-w-[16rem] truncate font-medium text-ink hover:text-brand-700">
                                                 {{ $challenge->title }}
                                             </a>
-                                            <span class="text-[11px] text-slate-400" dir="ltr">/{{ $challenge->slug }}</span>
+                                            <span class="text-[11px] text-muted/80" dir="ltr">/{{ $challenge->slug }}</span>
                                         </div>
                                     </div>
                                 </td>
@@ -48,18 +48,18 @@
                                 <td>
                                     <div class="flex flex-col items-start gap-1.5">
                                         <span class="badge {{ $challenge->statusClasses() }}">{{ $challenge->statusLabel() }}</span>
-                                        <span class="text-[11px] {{ $challenge->is_published ? 'text-emerald-600' : 'text-slate-400' }}">
+                                        <span class="text-[11px] {{ $challenge->is_published ? 'text-forest' : 'text-muted/80' }}">
                                             {{ $challenge->is_published ? 'در سایت نمایش داده می‌شود' : 'پنهان از سایت' }}
                                         </span>
                                     </div>
                                 </td>
 
-                                <td class="text-xs text-slate-500">{{ $challenge->dateRangeLabel() }}</td>
+                                <td class="text-xs text-muted">{{ $challenge->dateRangeLabel() }}</td>
 
-                                <td class="text-xs text-slate-600">{{ fa_num($challenge->daysCount()) }} روز · {{ fa_num($challenge->tasks_count) }} کار</td>
+                                <td class="text-xs text-ink/80">{{ fa_num($challenge->daysCount()) }} روز · {{ fa_num($challenge->tasks_count) }} کار</td>
 
                                 <td class="text-sm">
-                                    <a href="{{ route('panel.challenges.show', $challenge) }}#participants" class="text-slate-700 hover:text-brand-700">
+                                    <a href="{{ route('panel.challenges.show', $challenge) }}#participants" class="text-ink hover:text-brand-700">
                                         {{ fa_num($challenge->participants_count) }} نفر
                                     </a>
                                 </td>

@@ -76,6 +76,15 @@ class ParticipantDashboardController extends Controller
     {
         abort_unless((int) $task->challenge_id === (int) $participant->challenge_id, 404);
 
+        // روزهای چالش روزبه‌روز باز می‌شوند؛ روزهای بعدی قفل هستند
+        if ($participant->challenge->isTaskLocked($task)) {
+            $unlock = $participant->challenge->unlockLabel($task->day_number);
+
+            return redirect()
+                ->to(route('participant.show', $participant).'#day-'.($task->day_number ?? 0))
+                ->with('error', 'این روز هنوز باز نشده است'.($unlock ? '؛ از '.$unlock.' در دسترس قرار می‌گیرد' : '').'.');
+        }
+
         $isDone = $participant->toggleTask($task);
 
         return redirect()
