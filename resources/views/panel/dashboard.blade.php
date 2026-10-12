@@ -228,7 +228,7 @@
                                 {{ $answer->participant->name }}
                             </a>
 
-                            <span class="shrink-0 text-[11px] text-muted/80">{{ fa_datetime($answer->updated_at) }}</span>
+                            <span class="shrink-0 text-[11px] text-hint">{{ fa_datetime($answer->updated_at) }}</span>
                         </div>
 
                         <p class="mt-1.5 text-xs font-medium text-ink">{{ $answer->question->question ?? 'پرسش حذف‌شده' }}</p>

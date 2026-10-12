@@ -8,6 +8,7 @@ const app = {
         this.initCopy();
         this.initMenus();
         this.initConfirm();
+        this.initJumpBar();
         this.initAutoGrow();
         this.initPrint();
         this.initPasswordToggles();
@@ -243,6 +244,53 @@ const app = {
                 event.preventDefault();
             }
         });
+    },
+
+    /* نوار پرش سریع: باز کردن کارت روز و اسکرول نرم -------------------- */
+    initJumpBar() {
+        const openAndScroll = (target) => {
+            if (!target) return;
+
+            if (target.tagName === 'DETAILS') {
+                target.open = true;
+            }
+
+            target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        };
+
+        // چیپ روزها
+        document.querySelectorAll('[data-jump-day]').forEach((chip) => {
+            chip.addEventListener('click', (event) => {
+                const target = document.getElementById(chip.dataset.jumpDay);
+                if (!target) return;
+
+                event.preventDefault();
+                history.replaceState(null, '', `#${chip.dataset.jumpDay}`);
+                openAndScroll(target);
+            });
+        });
+
+        // چیپ‌هایی که دو نسخه دارند (مثل فایل‌ها: موبایل/دسکتاپ)
+        document.querySelectorAll('[data-jump-any]').forEach((chip) => {
+            chip.addEventListener('click', (event) => {
+                const candidates = Array.from(document.querySelectorAll(`[data-jump-anchor="${chip.dataset.jumpAny}"]`));
+                const visible = candidates.find((el) => el.offsetParent !== null) || candidates[0];
+
+                if (!visible) return;
+
+                event.preventDefault();
+                openAndScroll(visible);
+            });
+        });
+
+        // اگر آدرس با #day-N باز شود، همان روز باز بماند
+        if (window.location.hash) {
+            const target = document.querySelector(window.location.hash);
+
+            if (target && target.tagName === 'DETAILS') {
+                target.open = true;
+            }
+        }
     },
 
     /* بزرگ‌شدن خودکار textarea های فهرست‌ها */

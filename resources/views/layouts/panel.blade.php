@@ -61,7 +61,7 @@
                         <button type="submit" class="btn btn-ghost w-full justify-start text-xs">🚪 خروج از پنل</button>
                     </form>
 
-                    <p class="px-2 pt-1 text-[11px] leading-5 text-muted/80">
+                    <p class="px-2 pt-1 text-[11px] leading-5 text-hint">
                         رمز عبور خودت را از «تنظیمات» می‌توانی عوض کنی.
                     </p>
                 </div>
@@ -100,7 +100,7 @@
                 @yield('content')
             </main>
 
-            <footer class="pt-4 text-center text-[11px] text-muted/80">
+            <footer class="pt-4 text-center text-[11px] text-hint">
                 {{ $site['site_name'] ?? config('panel.site_name') }} — امروز {{ fa_date(now(), true) }}
             </footer>
         </div>

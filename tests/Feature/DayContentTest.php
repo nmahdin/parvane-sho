@@ -249,20 +249,24 @@ class DayContentTest extends TestCase
 
         $html = $this->get(route('challenges.show', $challenge))->assertOk()->getContent();
 
-        $dayOne = mb_strpos($html, 'روز ۱');
-        $questionOne = mb_strpos($html, 'پرسش روز یک');
-        $dayTwo = mb_strpos($html, 'روز ۲');
-        $questionTwo = mb_strpos($html, 'پرسش روز دو');
+        $dayOne = $this->dayBoxHtml($html, 1);
+        $dayTwo = $this->dayBoxHtml($html, 2);
 
-        $this->assertNotFalse($dayOne);
-        $this->assertNotFalse($questionOne);
-        $this->assertNotFalse($dayTwo);
-        $this->assertNotFalse($questionTwo);
+        // پرسش هر روز فقط داخل کارت همان روز می‌نشیند
+        $this->assertStringContainsString('پرسش روز یک', $dayOne);
+        $this->assertStringContainsString('کار روز یک', $dayOne);
+        $this->assertStringNotContainsString('پرسش روز دو', $dayOne, 'پرسش روز دوم نباید داخل کارت روز اول بیفتد.');
+        $this->assertStringNotContainsString('کار روز دو', $dayOne);
 
-        // پرسش هر روز بین عنوان همان روز و روز بعدی می‌نشیند
-        $this->assertTrue($dayOne < $questionOne, 'پرسش روز اول باید بعد از عنوان روز اول باشد.');
-        $this->assertTrue($questionOne < $dayTwo, 'پرسش روز اول باید قبل از عنوان روز دوم باشد.');
-        $this->assertTrue($dayTwo < $questionTwo, 'پرسش روز دوم باید بعد از عنوان روز دوم باشد.');
+        $this->assertStringContainsString('پرسش روز دو', $dayTwo);
+        $this->assertStringNotContainsString('پرسش روز یک', $dayTwo);
+
+        // و ترتیب داخل کارت: پرسش‌ها قبل از چالش عملی
+        $this->assertLessThan(
+            strpos($dayOne, 'کار روز یک'),
+            strpos($dayOne, 'پرسش روز یک'),
+            'داخل کارت روز، اول پرسش‌ها و بعد چالش عملی می‌آید.'
+        );
     }
 
     public function test_question_inside_a_day_is_shown_in_the_participant_dashboard(): void
@@ -386,18 +390,26 @@ class DayContentTest extends TestCase
         // روز دوم فردا است؛ پس برای شرکت‌کننده و بازدیدکننده قفل است
         foreach ([route('participant.show', $participant), route('challenges.show', $challenge)] as $url) {
             $html = $this->get($url)->assertOk()->getContent();
-            $box = $this->dayBoxHtml($html, 2);
+
+            // کارت روز قفل اصلاً ساخته نمی‌شود؛ فقط یک نوار جمع‌وجور با تاریخ‌ها
+            $this->assertStringNotContainsString('id="day-2"', $html, 'کارت روز قفل نباید ساخته شود: '.$url);
+
+            $start = strpos($html, 'id="locked-days"');
+            $this->assertNotFalse($start, 'نوار روزهای قفل ساخته نشده است: '.$url);
+            $strip = substr($html, $start, 2600);
 
             // نه تعداد کار و پرسش، نه برچسب «در انتظار» و نه نکته
-            $this->assertStringNotContainsString('۲ کار', $box, 'در باکس روز قفل تعداد کارها نوشته شده است: '.$url);
-            $this->assertStringNotContainsString('۲ پرسش', $box, 'در باکس روز قفل تعداد پرسش‌ها نوشته شده است: '.$url);
-            $this->assertStringNotContainsString('در انتظار', $box, 'برچسب «در انتظار» در باکس روز قفل مانده است: '.$url);
-            $this->assertStringNotContainsString('نکته', $box, 'در باکس روز قفل نکته‌ها نشان داده شده‌اند: '.$url);
+            $this->assertStringNotContainsString('۲ کار', $strip, 'در نوار قفل تعداد کارها نوشته شده است: '.$url);
+            $this->assertStringNotContainsString('۲ پرسش', $strip, 'در نوار قفل تعداد پرسش‌ها نوشته شده است: '.$url);
+            $this->assertStringNotContainsString('در انتظار', $strip);
+            $this->assertStringNotContainsString('نکته', $strip, 'در نوار قفل نکته‌ها نشان داده شده‌اند: '.$url);
+            $this->assertStringContainsString('هنوز باز نشده', $strip);
+            $this->assertStringContainsString('هنوز آزاد نشده', $strip);
 
-            // و خود محتوای روز قفل هم پنهان است
-            $this->assertStringNotContainsString('کار روز دوم', $box);
-            $this->assertStringNotContainsString('پرسش اول روز دوم', $box);
-            $this->assertStringNotContainsString('نکته روز دوم', $box);
+            // و خود محتوای روز قفل هم در صفحه نیست
+            $this->assertStringNotContainsString('کار روز دوم', $html);
+            $this->assertStringNotContainsString('پرسش اول روز دوم', $html);
+            $this->assertStringNotContainsString('نکته روز دوم', $html);
         }
 
         // مدیر همه‌چیز را می‌بیند
@@ -516,7 +528,7 @@ class DayContentTest extends TestCase
         $this->assertLessThan(strpos($box, 'کار اول روز'), strpos($box, 'چالش عملی امروز'));
 
         // هر کار در صفحه عمومی یک شماره دارد (برای کسانی که با کد وارد نشده‌اند)
-        preg_match_all('/bg-gold\/25[^>]*>\s*([۰-۹]+)\s*</u', $box, $numbers);
+        preg_match_all('/ring-gold\/40">\s*([۰-۹]+)\s*</u', $box, $numbers);
 
         $this->assertSame(['۱', '۲'], $numbers[1], 'کارهای صفحه عمومی باید شماره‌دار باشند.');
         $this->assertStringNotContainsString('✓', $box, 'صفحه عمومی نباید تیک کار داشته باشد.');

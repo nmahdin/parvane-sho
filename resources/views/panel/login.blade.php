@@ -89,7 +89,7 @@
 
                         <button type="button"
                                 data-password-toggle="#password"
-                                class="absolute inset-y-0 end-0 grid w-12 place-items-center text-muted/80 hover:text-ink/80"
+                                class="absolute inset-y-0 end-0 grid w-12 place-items-center text-hint hover:text-ink/80"
                                 aria-label="نمایش رمز">
                             👁
                         </button>

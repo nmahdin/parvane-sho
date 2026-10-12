@@ -44,10 +44,10 @@
                     </p>
 
                     @if ($challenge->pledgeEnabled() && $participant->hasPledged())
-                        <p class="mt-1 text-[11px] text-muted/80">تعهدنامه را در {{ fa_datetime($participant->pledged_at) }} ثبت کرده است.</p>
+                        <p class="mt-1 text-[11px] text-hint">تعهدنامه را در {{ fa_datetime($participant->pledged_at) }} ثبت کرده است.</p>
                     @endif
 
-                    <p class="mt-1 text-[11px] text-muted/80">
+                    <p class="mt-1 text-[11px] text-hint">
                         آخرین بازدید: {{ $participant->last_seen_at ? fa_datetime($participant->last_seen_at) : 'هنوز باز نکرده' }}
                         @if ($stats['last_activity'])
                             · آخرین تیک: {{ fa_datetime($stats['last_activity']) }}
@@ -142,7 +142,7 @@
                                 @elseif ($row['is_past'])
                                     <span class="text-xs text-danger">انجام نشده</span>
                                 @else
-                                    <span class="text-xs text-muted/80">در انتظار</span>
+                                    <span class="text-xs text-hint">در انتظار</span>
                                 @endif
                             </div>
 
@@ -153,7 +153,7 @@
                             </div>
 
                             @if ($day > 0)
-                                <p class="mt-1.5 text-[10px] text-muted/80">
+                                <p class="mt-1.5 text-[10px] text-hint">
                                     {{ $row['is_today'] ? 'امروز · ' : '' }}{{ fa_date($challenge->dateForDay((int) $day)) }}
                                 </p>
                             @elseif ($row['is_today'])
@@ -161,7 +161,7 @@
                             @endif
 
                             @if ((int) ($questionCounts[$day] ?? 0) > 0)
-                                <p class="mt-1 text-[10px] text-muted/80">❓ {{ fa_num((int) $questionCounts[$day]) }} پرسش</p>
+                                <p class="mt-1 text-[10px] text-hint">❓ {{ fa_num((int) $questionCounts[$day]) }} پرسش</p>
                             @endif
                         </div>
                     @endforeach
@@ -186,8 +186,8 @@
                                      style="height: {{ $height }}%"></div>
                             </div>
 
-                            <span class="text-[10px] {{ $isToday ? 'font-bold text-brand-700' : 'text-muted/80' }}">{{ fa_num($count) }}</span>
-                            <span class="text-[9px] text-muted/80">{{ fa_num(\Illuminate\Support\Carbon::parse($date)->format('j')) }}</span>
+                            <span class="text-[10px] {{ $isToday ? 'font-bold text-brand-700' : 'text-hint' }}">{{ fa_num($count) }}</span>
+                            <span class="text-[9px] text-hint">{{ fa_num(\Illuminate\Support\Carbon::parse($date)->format('j')) }}</span>
                         </div>
                     @endforeach
                 </div>
@@ -263,13 +263,13 @@
                                             <span class="mt-0.5 grid size-6 shrink-0 place-items-center rounded-lg text-xs font-bold {{ $done ? 'bg-leaf text-white' : 'bg-paper text-transparent ring-1 ring-line' }}">✓</span>
 
                                             <span class="min-w-0 flex-1">
-                                                <span class="block text-sm {{ $done ? 'text-muted/80 line-through' : 'font-medium text-ink' }}">{{ $task->title }}</span>
+                                                <span class="block text-sm {{ $done ? 'text-hint line-through' : 'font-medium text-ink' }}">{{ $task->title }}</span>
                                                 @if ($task->description)
                                                     <span class="mt-1 block text-xs text-muted">{{ $task->description }}</span>
                                                 @endif
                                             </span>
 
-                                            <span class="shrink-0 text-[10px] {{ $done ? 'text-muted/80' : 'text-danger' }}">
+                                            <span class="shrink-0 text-[10px] {{ $done ? 'text-hint' : 'text-danger' }}">
                                                 @if ($done && ($times[(int) $task->id] ?? null))
                                                     {{ fa_datetime($times[(int) $task->id]) }}
                                                 @else
@@ -291,12 +291,12 @@
                                                 <p class="text-sm font-medium text-ink">{{ $question->question }}</p>
 
                                                 @if ($question->asked_by)
-                                                    <p class="mt-1 text-[11px] text-muted/80">پرسیده‌شده توسط {{ $question->asked_by }}</p>
+                                                    <p class="mt-1 text-[11px] text-hint">پرسیده‌شده توسط {{ $question->asked_by }}</p>
                                                 @endif
 
                                                 @if ($answer)
                                                     <p class="mt-2 whitespace-pre-line border-s-2 border-jade/40 ps-3 text-xs leading-6 text-ink/80">{{ $answer->body }}</p>
-                                                    <p class="mt-1.5 text-[10px] text-muted/80">آخرین ویرایش پاسخ: {{ fa_datetime($answer->updated_at) }}</p>
+                                                    <p class="mt-1.5 text-[10px] text-hint">آخرین ویرایش پاسخ: {{ fa_datetime($answer->updated_at) }}</p>
                                                 @else
                                                     <p class="mt-2 rounded-xl bg-danger-soft px-3 py-2 text-xs font-medium text-danger">جواب نداده است</p>
                                                 @endif
@@ -343,7 +343,7 @@
                                 <span class="mt-0.5 grid size-6 shrink-0 place-items-center rounded-lg bg-leaf text-[10px] text-white">✓</span>
                                 <span class="min-w-0">
                                     <span class="block text-xs text-ink">{{ $completion->task?->title }}</span>
-                                    <span class="mt-0.5 block text-[10px] text-muted/80">
+                                    <span class="mt-0.5 block text-[10px] text-hint">
                                         {{ $completion->task?->day_number ? 'روز '.fa_num($completion->task->day_number).' · ' : '' }}{{ fa_datetime($completion->completed_at) }}
                                     </span>
                                 </span>

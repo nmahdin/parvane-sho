@@ -257,13 +257,13 @@
                                 @if ($day['counts']['questions'] > 0) · {{ fa_num($day['counts']['questions']) }} پرسش @endif
                                 @if ($day['counts']['tips'] > 0) · {{ fa_num($day['counts']['tips']) }} نکته @endif
                             </span>
-                            <span class="text-muted/70 transition group-open:rotate-180">⌄</span>
+                            <span class="text-hint transition group-open:rotate-180">⌄</span>
                         </span>
                     </summary>
 
                     @unless ($isGeneral)
                         {{-- عنوان و توضیحات همین روز --}}
-                        <div class="border-t border-line/60 bg-paper px-4 py-3 sm:px-5">
+                        <div class="border-t border-line bg-paper px-4 py-3 sm:px-5">
                             <details class="rounded-2xl bg-cream/70 ring-1 ring-line">
                                 <summary class="cursor-pointer px-4 py-2.5 text-xs font-semibold text-ink">
                                     ✏️ عنوان و توضیحات این روز
@@ -331,7 +331,7 @@
                                                                         <li class="flex flex-wrap items-center justify-between gap-2 text-[11px]">
                                                                             <a href="{{ route('panel.participants.show', $row['participant']) }}"
                                                                                class="font-semibold text-forest hover:text-brand-700">{{ $row['participant']->name }}</a>
-                                                                            <span class="text-muted/80">{{ fa_datetime($row['completed_at']) }}</span>
+                                                                            <span class="text-hint">{{ fa_datetime($row['completed_at']) }}</span>
                                                                         </li>
                                                                     @endforeach
                                                                 </ul>
@@ -436,7 +436,7 @@
                                             </div>
 
                                             @if ($question->asked_by)
-                                                <p class="mt-1 text-[11px] text-muted/80">پرسیده‌شده توسط {{ $question->asked_by }}</p>
+                                                <p class="mt-1 text-[11px] text-hint">پرسیده‌شده توسط {{ $question->asked_by }}</p>
                                             @endif
 
                                             @if ($question->answer)
@@ -464,7 +464,7 @@
                                                                         {{ $answerRow->participant->name }}
                                                                     </a>
 
-                                                                    <span class="text-[11px] text-muted/80">{{ fa_datetime($answerRow->updated_at) }}</span>
+                                                                    <span class="text-[11px] text-hint">{{ fa_datetime($answerRow->updated_at) }}</span>
                                                                 </div>
 
                                                                 <p class="mt-1.5 whitespace-pre-line text-xs leading-6 text-ink/80">{{ $answerRow->body }}</p>
@@ -543,7 +543,7 @@
                     @endif
 
                     {{-- نکته‌های این روز --}}
-                    <div class="border-t border-line/60 bg-gold/5 px-5 py-4">
+                    <div class="border-t border-line bg-gold/5 px-5 py-4">
                         <div class="flex flex-wrap items-center justify-between gap-3">
                             <h4 class="flex flex-wrap items-center gap-2 text-xs font-semibold text-ink">
                                 <span>💡</span> {{ $isGeneral ? 'نکته‌های کلی' : 'نکته‌های این روز' }}
@@ -695,7 +695,7 @@
                                         <span class="grid size-9 place-items-center rounded-xl bg-cream text-base">{{ $attachment->icon() }}</span>
                                         <div class="min-w-0">
                                             <a href="{{ $attachment->url() }}" target="_blank" class="block max-w-[18rem] truncate font-medium text-ink hover:text-brand-700">{{ $attachment->title }}</a>
-                                            <span class="text-[11px] text-muted/80" dir="ltr">{{ $attachment->original_name }}</span>
+                                            <span class="text-[11px] text-hint" dir="ltr">{{ $attachment->original_name }}</span>
                                         </div>
                                     </div>
                                 </td>
@@ -789,7 +789,7 @@
                                         <div>
                                             <a href="{{ route('panel.participants.show', $participant) }}" class="block font-medium text-ink hover:text-brand-700">{{ $participant->name }}</a>
                                             @if ($participant->contact)
-                                                <span class="text-[11px] text-muted/80">{{ $participant->contact }}</span>
+                                                <span class="text-[11px] text-hint">{{ $participant->contact }}</span>
                                             @endif
 
                                             @if ($challenge->pledgeEnabled())

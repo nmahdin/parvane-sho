@@ -40,7 +40,7 @@
                                             <a href="{{ route('panel.challenges.show', $challenge) }}" class="block max-w-[16rem] truncate font-medium text-ink hover:text-brand-700">
                                                 {{ $challenge->title }}
                                             </a>
-                                            <span class="text-[11px] text-muted/80" dir="ltr">/{{ $challenge->slug }}</span>
+                                            <span class="text-[11px] text-hint" dir="ltr">/{{ $challenge->slug }}</span>
 
                                             @if ($admin?->isSuper() && $challenge->admin)
                                                 <span class="mt-1 block text-[11px] text-muted">
@@ -57,7 +57,7 @@
                                 <td data-label="وضعیت">
                                     <div class="flex flex-col items-start gap-1.5">
                                         <span class="badge {{ $challenge->statusClasses() }}">{{ $challenge->statusLabel() }}</span>
-                                        <span class="text-[11px] {{ $challenge->is_published ? 'text-forest' : 'text-muted/80' }}">
+                                        <span class="text-[11px] {{ $challenge->is_published ? 'text-forest' : 'text-hint' }}">
                                             {{ $challenge->is_published ? 'در سایت نمایش داده می‌شود' : 'پنهان از سایت' }}
                                         </span>
                                     </div>

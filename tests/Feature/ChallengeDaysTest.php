@@ -217,8 +217,28 @@ class ChallengeDaysTest extends TestCase
 
         $html = $this->get(route('participant.show', $participant))->assertOk()->getContent();
 
-        $this->assertSame([1, 2, 3, 4, 5], $this->boxNumbers($html));
+        // روزهای باز کارت دارند و روزهای قفل در یک نوار با تاریخ‌شان فهرست می‌شوند
+        $openDays = [];
+        $lockedDays = [];
+
+        foreach (range(1, $challenge->totalDays()) as $day) {
+            $challenge->isDayUnlocked($day) ? $openDays[] = $day : $lockedDays[] = $day;
+        }
+
+        $this->assertSame($openDays, $this->boxNumbers($html), 'روزهای باز باید کارت داشته باشند.');
         $this->assertStringContainsString('کار روز اول', $html);
+
+        if ($lockedDays !== []) {
+            $this->assertStringContainsString('id="locked-days"', $html);
+        }
+
+        foreach ($lockedDays as $day) {
+            $this->assertStringContainsString(
+                fa_date($challenge->dateForDay($day)),
+                $html,
+                'تاریخ روز قفل '.$day.' روی صفحه نیست.'
+            );
+        }
     }
 
     public function test_a_participant_sees_the_title_and_description_of_open_days(): void

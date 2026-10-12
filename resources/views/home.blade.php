@@ -274,7 +274,7 @@
                     <summary class="flex cursor-pointer items-center gap-3 px-6 py-5">
                         <span class="grid size-7 shrink-0 place-items-center rounded-xl bg-brand-50 text-xs font-bold text-brand-700">؟</span>
                         <span class="min-w-0 flex-1 text-sm font-medium text-ink">{{ $question }}</span>
-                        <span class="text-muted/80 transition group-open:rotate-180">⌄</span>
+                        <span class="text-hint transition group-open:rotate-180">⌄</span>
                     </summary>
 
                     <div class="border-t border-line bg-cream/70 px-6 py-4 text-xs leading-7 text-ink/80">

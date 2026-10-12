@@ -16,9 +16,11 @@
     --color-leaf: #508d42;
     --color-cream: #fbf9ee;
     --color-gold: #cead60;
-    --color-line: #dce8d7;
+    --color-line: #cadcc1;
     --color-ink: #24473c;
-    --color-muted: #617b70;
+    --color-muted: #566f64;
+    --color-hint: #6d8177;
+    --color-gold-ink: #8a6a26;
     --color-paper: #fffefa;
 
     /* تنها رنگ خارج از پالت: وضعیت خطر و پیام خطا (حذف/اعتبارسنجی) */
@@ -103,11 +105,96 @@
     }
 
     .card {
-        @apply rounded-3xl bg-paper p-5 shadow-sm ring-1 ring-line sm:p-6;
+        @apply rounded-3xl bg-paper p-5 ring-1 ring-line sm:p-6;
+        box-shadow: 0 1px 2px rgb(7 87 65 / 0.06), 0 12px 26px -20px rgb(7 87 65 / 0.28);
     }
 
     .input {
         @apply block w-full rounded-xl border-0 bg-paper px-4 py-3 text-sm text-ink ring-1 ring-line transition placeholder:text-muted/70 focus:ring-2 focus:ring-jade;
+    }
+
+    /* ------------------------------------------------------------------
+       سطح‌ها و ریل‌های رنگی: هر نوع محتوا یک ریل و یک سطح، نه چند کرم تودرتو
+       ------------------------------------------------------------------ */
+    .rail {
+        @apply rounded-2xl border-s-[3px] px-4 py-3.5;
+    }
+
+    .rail-tips {
+        @apply border-s-gold bg-gold/8;
+    }
+
+    .rail-questions {
+        @apply border-s-jade bg-jade/6;
+    }
+
+    .rail-tasks {
+        @apply border-s-leaf bg-leaf/6;
+    }
+
+    .rail-about {
+        @apply border-s-line bg-cream;
+    }
+
+    .rail-label {
+        @apply flex flex-wrap items-center gap-2 text-xs font-semibold;
+    }
+
+    /* کارت روز به‌صورت آکاردئون ---------------------------------------- */
+    .day-card {
+        @apply overflow-hidden rounded-3xl bg-paper ring-1 ring-line;
+        box-shadow: 0 1px 2px rgb(7 87 65 / 0.06), 0 12px 26px -20px rgb(7 87 65 / 0.28);
+    }
+
+    .day-card > summary {
+        @apply flex cursor-pointer items-center gap-3 px-4 py-3 sm:px-5;
+    }
+
+    .day-card > summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .day-num {
+        @apply grid size-9 shrink-0 place-items-center rounded-xl text-xs font-bold;
+    }
+
+    .day-chev {
+        @apply shrink-0 text-xs text-hint transition-transform;
+    }
+
+    .day-card[open] .day-chev {
+        transform: rotate(180deg);
+    }
+
+    .day-body {
+        @apply space-y-3 px-3 pb-3.5 sm:px-4 sm:pb-4;
+    }
+
+    /* نوار پرش سریع ----------------------------------------------------- */
+    .jump-bar {
+        @apply sticky top-16 z-30 -mx-4 flex gap-2 overflow-x-auto border-b border-line bg-cream/95 px-4 py-2.5 backdrop-blur sm:-mx-6 sm:px-6;
+    }
+
+    .jump-chip {
+        @apply flex shrink-0 items-center gap-1.5 rounded-full bg-paper px-3.5 py-1.5 text-xs text-ink ring-1 ring-line transition-colors hover:bg-line/50;
+    }
+
+    .jump-chip.is-active {
+        @apply bg-jade font-semibold text-white ring-jade;
+    }
+
+    .jump-chip.is-locked {
+        @apply bg-cream text-muted;
+    }
+
+    /* سرتیتر بخش‌ها: کوچک با خط مویی ----------------------------------- */
+    .section-title {
+        @apply flex items-center gap-2 text-sm font-semibold text-forest;
+    }
+
+    .section-title::after {
+        content: '';
+        @apply h-px flex-1 bg-line;
     }
 
     .label {
@@ -272,7 +359,8 @@
 }
 
 @media print {
-    .no-print {
+    .no-print,
+    .jump-bar {
         display: none !important;
     }
 }

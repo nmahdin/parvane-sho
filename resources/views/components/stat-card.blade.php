@@ -17,7 +17,7 @@
         <p class="text-xs text-muted">{{ $label }}</p>
         <p class="mt-0.5 text-xl font-bold text-ink">{{ $value }}</p>
         @if ($hint)
-            <p class="mt-0.5 truncate text-[11px] text-muted/80">{{ $hint }}</p>
+            <p class="mt-0.5 truncate text-[11px] text-hint">{{ $hint }}</p>
         @endif
     </div>
 </div>

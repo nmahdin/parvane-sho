@@ -100,7 +100,7 @@
 
                 @if ($isSuper)
                     <a href="{{ route('panel.admins.index') }}" class="btn btn-primary btn-sm">مدیریت مدیران</a>
-                    <p class="text-[11px] leading-6 text-muted/80">
+                    <p class="text-[11px] leading-6 text-hint">
                         از آن صفحه می‌توانی مدیر جدید بسازی، رمزش را عوض کنی یا حسابش را غیرفعال کنی.
                     </p>
                 @else

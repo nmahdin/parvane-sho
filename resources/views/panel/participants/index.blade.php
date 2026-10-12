@@ -102,7 +102,7 @@
                                         <span>
                                             <span class="block font-medium text-ink hover:text-brand-700">{{ $participant->name }}</span>
                                             @if ($participant->contact)
-                                                <span class="text-[11px] text-muted/80">{{ $participant->contact }}</span>
+                                                <span class="text-[11px] text-hint">{{ $participant->contact }}</span>
                                             @endif
 
                                             @if ($participant->challenge->pledgeEnabled())
