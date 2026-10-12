@@ -12,12 +12,18 @@
 </head>
 <body class="min-h-screen bg-line/60">
     @php
+        $currentAdmin = auth('admin')->user();
+
         $navigation = [
             ['label' => 'داشبورد', 'icon' => '📊', 'url' => route('panel.dashboard'), 'active' => request()->routeIs('panel.dashboard')],
             ['label' => 'چالش‌ها', 'icon' => '🦋', 'url' => route('panel.challenges.index'), 'active' => request()->routeIs('panel.challenges.*') || request()->routeIs('panel.tasks.*')],
             ['label' => 'شرکت‌کننده‌ها', 'icon' => '👥', 'url' => route('panel.participants.index'), 'active' => request()->routeIs('panel.participants.*')],
             ['label' => 'تنظیمات', 'icon' => '⚙️', 'url' => route('panel.settings.edit'), 'active' => request()->routeIs('panel.settings.*')],
         ];
+
+        if ($currentAdmin?->isSuper()) {
+            $navigation[] = ['label' => 'مدیران', 'icon' => '🧑‍💼', 'url' => route('panel.admins.index'), 'active' => request()->routeIs('panel.admins.*')];
+        }
     @endphp
 
     <div class="mx-auto flex max-w-[90rem] gap-6 px-4 py-6 sm:px-6">
@@ -43,7 +49,22 @@
                     @endforeach
                 </nav>
 
-                <div class="space-y-2 rounded-3xl bg-paper p-4 shadow-sm ring-1 ring-line">
+                <div class="space-y-3 rounded-3xl bg-paper p-4 shadow-sm ring-1 ring-line">
+                    @if ($currentAdmin)
+                        <div class="flex items-center gap-3 rounded-2xl bg-cream px-3 py-2.5">
+                            <span class="grid size-9 shrink-0 place-items-center rounded-xl bg-paper text-xs font-bold text-ink/80 ring-1 ring-line">
+                                {{ mb_substr($currentAdmin->name, 0, 1) }}
+                            </span>
+
+                            <span class="min-w-0">
+                                <span class="block truncate text-xs font-semibold text-ink">{{ $currentAdmin->name }}</span>
+                                <span class="mt-0.5 block truncate text-[11px] text-muted" dir="ltr">{{ $currentAdmin->username }}</span>
+                            </span>
+                        </div>
+
+                        <span class="badge {{ $currentAdmin->roleClasses() }}">{{ $currentAdmin->roleLabel() }}</span>
+                    @endif
+
                     <a href="{{ route('home') }}" target="_blank" class="btn btn-ghost w-full justify-start text-xs">🌐 مشاهده سایت</a>
 
                     <form method="POST" action="{{ route('panel.logout') }}">
@@ -51,8 +72,8 @@
                         <button type="submit" class="btn btn-ghost w-full justify-start text-xs">🚪 خروج از پنل</button>
                     </form>
 
-                    <p class="px-2 pt-2 text-[11px] leading-5 text-muted/80">
-                        ورود به پنل فقط با رمز عبور انجام می‌شود. رمز را از «تنظیمات» می‌توانی تغییر دهی.
+                    <p class="px-2 pt-1 text-[11px] leading-5 text-muted/80">
+                        رمز عبور خودت را از «تنظیمات» می‌توانی عوض کنی.
                     </p>
                 </div>
             </div>
@@ -68,6 +89,14 @@
 
                 <div class="flex items-center gap-2">
                     @yield('page-actions')
+
+                    @if ($currentAdmin)
+                        <span class="hidden items-center gap-2 rounded-2xl bg-cream px-3 py-2 text-[11px] text-ink/80 ring-1 ring-line sm:flex">
+                            <span>👤</span>
+                            {{ $currentAdmin->name }}
+                            <span class="badge {{ $currentAdmin->roleClasses() }}">{{ $currentAdmin->roleLabel() }}</span>
+                        </span>
+                    @endif
 
                     <form method="POST" action="{{ route('panel.logout') }}" class="lg:hidden">
                         @csrf

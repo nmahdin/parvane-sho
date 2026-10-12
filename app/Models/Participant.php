@@ -4,11 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\RouteKey;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 
 #[Fillable(['challenge_id', 'name', 'contact', 'note', 'token', 'last_seen_at'])]
 #[RouteKey('token')]
@@ -75,6 +77,47 @@ class Participant extends Model
     public function questionAnswers(): HasMany
     {
         return $this->hasMany(ChallengeQuestionAnswer::class);
+    }
+
+    /**
+     * در پنل، مدیر چالش فقط شرکت‌کننده‌های چالش‌های خودش را می‌بیند.
+     *
+     * @param  Builder<Participant>  $query
+     * @return Builder<Participant>
+     */
+    public function scopeVisibleToAdmin(Builder $query, ?Admin $admin): Builder
+    {
+        if (! $admin || $admin->isSuper()) {
+            return $query;
+        }
+
+        return $query->whereHas('challenge', fn (Builder $challenge) => $challenge->where('admin_id', $admin->getKey()));
+    }
+
+    /**
+     * مدیری که چالش این شرکت‌کننده به او تعلق دارد.
+     */
+    public function admin(): ?Admin
+    {
+        return $this->challenge?->admin;
+    }
+
+    /**
+     * در پنل، هر مدیر فقط شرکت‌کننده‌های چالش‌های خودش را می‌بیند.
+     */
+    public function resolveRouteBinding($value, $field = null)
+    {
+        $query = static::query();
+
+        if (request()->routeIs('panel.*')) {
+            $admin = Auth::guard('admin')->user();
+
+            if ($admin && ! $admin->isSuper()) {
+                $query->whereHas('challenge', fn ($challenge) => $challenge->where('admin_id', $admin->getKey()));
+            }
+        }
+
+        return $query->where($field ?? $this->getRouteKeyName(), $value)->firstOrFail();
     }
 
     /**

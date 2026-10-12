@@ -4,7 +4,6 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Hash;
 
 #[Fillable(['key', 'value'])]
 class Setting extends Model
@@ -17,19 +16,6 @@ class Setting extends Model
     public static function put(string $key, ?string $value): void
     {
         static::updateOrCreate(['key' => $key], ['value' => $value]);
-    }
-
-    /**
-     * The hashed admin panel password. Null when the default (env) password is used.
-     */
-    public static function panelPasswordHash(): ?string
-    {
-        return static::get('panel_password_hash');
-    }
-
-    public static function setPanelPassword(string $plainPassword): void
-    {
-        static::put('panel_password_hash', Hash::make($plainPassword));
     }
 
     /**

@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\Panel;
 
 use App\Http\Controllers\Controller;
+use App\Models\Admin;
 use App\Models\Challenge;
 use App\Support\Jalali;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 
@@ -15,8 +18,11 @@ class ChallengeController extends Controller
 {
     public function index(): View
     {
+        $admin = $this->currentAdmin();
+
         $challenges = Challenge::query()
-            ->with(['participants', 'tasks', 'questions'])
+            ->visibleToAdmin($admin)
+            ->with(['participants', 'tasks', 'questions', 'admin'])
             ->withCount(['tasks', 'questions', 'participants'])
             ->orderBy('sort_order')
             ->orderByDesc('id')
@@ -24,27 +30,35 @@ class ChallengeController extends Controller
 
         return view('panel.challenges.index', [
             'challenges' => $challenges,
+            'admin' => $admin,
         ]);
     }
 
     public function create(): View
     {
+        $admin = $this->currentAdmin();
+
         return view('panel.challenges.form', [
             'challenge' => new Challenge([
+                'admin_id' => $admin?->getKey(),
                 'emoji' => '🦋',
                 'accent' => 'jade',
                 'is_published' => true,
                 'starts_on' => today(),
             ]),
+            'adminOptions' => $this->ownerOptions(),
         ]);
     }
 
     public function store(Request $request): RedirectResponse
     {
+        $admin = $this->currentAdmin();
+
         [$data] = $this->validated($request);
 
         $data['slug'] = Challenge::uniqueSlug($data['slug'] ?: $data['title']);
         $data['sort_order'] = $data['sort_order'] ?? ((int) Challenge::query()->max('sort_order') + 1);
+        $data['admin_id'] = $this->resolveOwnerId($request, $admin);
 
         $challenge = Challenge::create($data);
 
@@ -92,12 +106,19 @@ class ChallengeController extends Controller
     {
         return view('panel.challenges.form', [
             'challenge' => $challenge,
+            'adminOptions' => $this->ownerOptions(),
         ]);
     }
 
     public function update(Request $request, Challenge $challenge): RedirectResponse
     {
         [$data] = $this->validated($request);
+
+        $ownerId = $this->resolveOwnerId($request, $this->currentAdmin(), $challenge);
+
+        if ($ownerId) {
+            $data['admin_id'] = $ownerId;
+        }
 
         $data['slug'] = $data['slug'] && $data['slug'] !== $challenge->slug
             ? Challenge::uniqueSlug($data['slug'], $challenge->id)
@@ -183,6 +204,51 @@ class ChallengeController extends Controller
             'daily_release' => $request->boolean('daily_release'),
             'sort_order' => isset($validated['sort_order']) ? (int) $validated['sort_order'] : null,
         ]];
+    }
+
+    private function currentAdmin(): ?Admin
+    {
+        return Auth::guard('admin')->user();
+    }
+
+    /**
+     * فهرست مدیران برای انتخاب «مدیر چالش» — فقط مدیر اصلی می‌تواند چالش را
+     * به مدیر دیگری بسپارد (برای مدیر چالش، فهرست خالی است و فیلدی هم نشان
+     * داده نمی‌شود).
+     *
+     * @return Collection<int, Admin>
+     */
+    private function ownerOptions(): Collection
+    {
+        $admin = $this->currentAdmin();
+
+        if (! $admin?->isSuper()) {
+            return collect();
+        }
+
+        return Admin::query()->orderByDesc('is_super')->orderBy('name')->get();
+    }
+
+    /**
+     * مدیر چالش انتخاب‌شده؛ مدیر چالش عادی همیشه مالک چالش‌های خودش است.
+     */
+    private function resolveOwnerId(Request $request, ?Admin $admin, ?Challenge $challenge = null): ?int
+    {
+        if (! $admin) {
+            return null;
+        }
+
+        if (! $admin->isSuper()) {
+            return $challenge?->admin_id ?? $admin->getKey();
+        }
+
+        $requested = $request->input('admin_id');
+
+        if (filled($requested) && Admin::query()->whereKey((int) $requested)->exists()) {
+            return (int) $requested;
+        }
+
+        return $challenge?->admin_id ?? $admin->getKey();
     }
 
     /**

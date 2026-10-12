@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Admin;
 use App\Models\Challenge;
 use App\Models\Setting;
 use Illuminate\Database\Seeder;
@@ -32,7 +33,11 @@ class DatabaseSeeder extends Seeder
             return;
         }
 
+        // چالش نمونه به نام مدیر اصلی ساخته می‌شود
+        $adminId = Admin::query()->where('username', 'admin')->value('id');
+
         $challenge = Challenge::create([
+            'admin_id' => $adminId,
             'title' => 'چالش ۷ روزه شکرگزاری و آرامش',
             'slug' => 'shokr-gozari-7',
             'tagline' => 'هفت روز، هر روز دو کار کوچک برای آرام‌تر شدن و شکرگزارتر بودن.',

@@ -14,7 +14,7 @@
     <div class="w-full max-w-md">
         <div class="mb-6 text-center text-white">
             <span class="mx-auto grid size-14 place-items-center rounded-3xl bg-white/15 text-2xl backdrop-blur">🦋</span>
-            <h1 class="mt-4 text-xl text-white">ورود مدیر {{ $site['site_name'] ?? config('panel.site_name') }}</h1>
+            <h1 class="mt-4 text-xl text-white">ورود به پنل {{ $site['site_name'] ?? config('panel.site_name') }}</h1>
         </div>
 
         <div class="animate-rise rounded-[2rem] bg-paper p-7 shadow-xl ring-1 ring-line">
@@ -24,6 +24,24 @@
                 @csrf
 
                 <div>
+                    <label for="username" class="label">نام کاربری</label>
+
+                    <input id="username"
+                           name="username"
+                           type="text"
+                           required
+                           autofocus
+                           dir="ltr"
+                           autocomplete="username"
+                           value="{{ old('username') }}"
+                           class="input text-center">
+
+                    @error('username')
+                        <p class="mt-2 text-xs text-danger">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
                     <label for="password" class="label">رمز عبور</label>
 
                     <div class="relative">
@@ -31,9 +49,9 @@
                                name="password"
                                type="password"
                                required
-                               autofocus
+                               dir="ltr"
                                autocomplete="current-password"
-                               class="input pe-12"
+                               class="input pe-12 text-center"
                                placeholder="••••••••">
 
                         <button type="button"

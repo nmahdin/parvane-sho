@@ -6,7 +6,6 @@ use App\Models\Challenge;
 use App\Models\ChallengeQuestion;
 use App\Models\ChallengeTip;
 use App\Models\Participant;
-use App\Models\Setting;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Hash;
@@ -20,35 +19,57 @@ class PanelTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-
-        config(['panel.password' => 'secret-panel-pass']);
     }
 
-    public function test_panel_requires_the_password(): void
+    public function test_panel_requires_login(): void
     {
         $this->get(route('panel.dashboard'))->assertRedirect(route('panel.login'));
         $this->get(route('panel.challenges.index'))->assertRedirect(route('panel.login'));
     }
 
-    public function test_login_works_with_password_only(): void
+    public function test_login_works_with_username_and_password(): void
     {
-        $this->post(route('panel.login.attempt'), ['password' => 'secret-panel-pass'])
-            ->assertRedirect(route('panel.dashboard'));
+        $this->makeSuperAdmin();
+
+        $this->post(route('panel.login.attempt'), [
+            'username' => 'admin',
+            'password' => 'a12345678',
+        ])->assertRedirect(route('panel.dashboard'));
 
         $this->get(route('panel.dashboard'))->assertOk()->assertSee('داشبورد');
     }
 
-    public function test_login_fails_with_wrong_password(): void
+    public function test_login_fails_with_wrong_credentials(): void
     {
-        $this->post(route('panel.login.attempt'), ['password' => 'wrong-password'])
-            ->assertSessionHasErrors('password');
+        $this->makeSuperAdmin();
+
+        $this->post(route('panel.login.attempt'), [
+            'username' => 'admin',
+            'password' => 'wrong-password',
+        ])->assertSessionHasErrors('username');
+
+        $this->post(route('panel.login.attempt'), [
+            'username' => 'unknown-admin',
+            'password' => 'a12345678',
+        ])->assertSessionHasErrors('username');
 
         $this->get(route('panel.dashboard'))->assertRedirect(route('panel.login'));
     }
 
+    public function test_login_needs_both_fields(): void
+    {
+        $this->makeSuperAdmin();
+
+        $this->post(route('panel.login.attempt'), ['password' => 'a12345678'])
+            ->assertSessionHasErrors('username');
+
+        $this->post(route('panel.login.attempt'), ['username' => 'admin'])
+            ->assertSessionHasErrors('password');
+    }
+
     public function test_admin_can_manage_challenges_and_participants(): void
     {
-        $this->post(route('panel.login.attempt'), ['password' => 'secret-panel-pass']);
+        $this->loginAsAdmin();
 
         // ساخت چالش
         $this->post(route('panel.challenges.store'), [
@@ -88,26 +109,39 @@ class PanelTest extends TestCase
         $this->assertNotSame($oldToken, $participant->fresh()->token);
     }
 
-    public function test_admin_can_change_the_panel_password(): void
+    public function test_admin_can_change_their_own_password(): void
     {
-        $this->post(route('panel.login.attempt'), ['password' => 'secret-panel-pass']);
+        $admin = $this->loginAsAdmin($this->superAdmin());
 
         $this->put(route('panel.settings.password'), [
-            'current_password' => 'secret-panel-pass',
+            'current_password' => 'a12345678',
             'password' => 'new-secret-pass',
             'password_confirmation' => 'new-secret-pass',
         ])->assertSessionHasNoErrors();
 
-        $this->assertTrue(Hash::check('new-secret-pass', Setting::panelPasswordHash()));
+        $this->assertTrue(Hash::check('new-secret-pass', $admin->fresh()->password));
 
         // رمز قدیمی دیگر کار نمی‌کند و رمز جدید وارد می‌کند
         $this->post(route('panel.logout'));
 
-        $this->post(route('panel.login.attempt'), ['password' => 'secret-panel-pass'])
-            ->assertSessionHasErrors('password');
+        $this->post(route('panel.login.attempt'), ['username' => 'admin', 'password' => 'a12345678'])
+            ->assertSessionHasErrors('username');
 
-        $this->post(route('panel.login.attempt'), ['password' => 'new-secret-pass'])
+        $this->post(route('panel.login.attempt'), ['username' => 'admin', 'password' => 'new-secret-pass'])
             ->assertRedirect(route('panel.dashboard'));
+    }
+
+    public function test_wrong_current_password_is_rejected(): void
+    {
+        $admin = $this->loginAsAdmin($this->superAdmin());
+
+        $this->put(route('panel.settings.password'), [
+            'current_password' => 'not-my-password',
+            'password' => 'new-secret-pass',
+            'password_confirmation' => 'new-secret-pass',
+        ])->assertSessionHasErrors('current_password');
+
+        $this->assertTrue(Hash::check('a12345678', $admin->fresh()->password));
     }
 
     public function test_participant_dashboard_can_be_opened_without_login(): void
@@ -154,7 +188,7 @@ class PanelTest extends TestCase
             'is_published' => true,
         ]);
 
-        $this->post(route('panel.login.attempt'), ['password' => 'secret-panel-pass']);
+        $this->loginAsAdmin();
 
         // نکته
         $this->post(route('panel.tips.store', $challenge), [
@@ -227,7 +261,7 @@ class PanelTest extends TestCase
     {
         $challenge = Challenge::create(['title' => 'چالش کوتاه', 'slug' => 'short', 'is_published' => true]);
 
-        $this->post(route('panel.login.attempt'), ['password' => 'secret-panel-pass']);
+        $this->loginAsAdmin();
 
         $this->post(route('panel.participants.store', $challenge), ['names' => 'مینا شریفی'])->assertRedirect();
 
@@ -264,7 +298,7 @@ class PanelTest extends TestCase
         $participant = Participant::create(['challenge_id' => $challenge->id, 'name' => 'سارا']);
         $participant->completions()->create(['challenge_task_id' => $task->id, 'completed_at' => now()]);
 
-        $this->post(route('panel.login.attempt'), ['password' => 'secret-panel-pass']);
+        $this->loginAsAdmin();
 
         $this->get(route('panel.participants.show', $participant))
             ->assertOk()

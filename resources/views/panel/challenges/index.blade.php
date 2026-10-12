@@ -41,6 +41,15 @@
                                                 {{ $challenge->title }}
                                             </a>
                                             <span class="text-[11px] text-muted/80" dir="ltr">/{{ $challenge->slug }}</span>
+
+                                            @if ($admin?->isSuper() && $challenge->admin)
+                                                <span class="mt-1 block text-[11px] text-muted">
+                                                    مدیر: {{ $challenge->admin->name }}
+                                                    @if ($challenge->admin->isSuper())
+                                                        <span class="badge bg-gold/15 text-ink ring-gold/50">مدیر اصلی</span>
+                                                    @endif
+                                                </span>
+                                            @endif
                                         </div>
                                     </div>
                                 </td>

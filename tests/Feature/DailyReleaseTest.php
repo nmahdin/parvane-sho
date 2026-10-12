@@ -118,9 +118,8 @@ class DailyReleaseTest extends TestCase
 
     public function test_admin_can_toggle_daily_release_when_saving_a_challenge(): void
     {
-        config(['panel.password' => 'secret-panel-pass']);
 
-        $this->post(route('panel.login.attempt'), ['password' => 'secret-panel-pass']);
+        $this->loginAsAdmin();
 
         $challenge = $this->makeChallenge(['slug' => 'toggle-me']);
 

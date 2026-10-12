@@ -13,6 +13,7 @@ use Illuminate\Http\Request;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 
 class ParticipantController extends Controller
 {
@@ -42,7 +43,10 @@ class ParticipantController extends Controller
         $status = array_key_exists($status, self::FILTERS) ? $status : 'all';
         $sort = array_key_exists($sort, self::SORTS) ? $sort : 'progress';
 
+        $admin = Auth::guard('admin')->user();
+
         $participants = Participant::query()
+            ->visibleToAdmin($admin)
             ->with(['challenge.tasks'])
             ->withCount(['completions as completed_count' => fn ($query) => $query->whereNotNull('completed_at')])
             ->withMax('completions as last_completed_at', 'completed_at')
@@ -89,7 +93,7 @@ class ParticipantController extends Controller
 
         return view('panel.participants.index', [
             'participants' => $paginated,
-            'challenges' => Challenge::query()->orderBy('title')->get(),
+            'challenges' => Challenge::query()->visibleToAdmin($admin)->orderBy('title')->get(),
             'search' => $search,
             'challengeFilter' => $challengeFilter,
             'status' => $status,

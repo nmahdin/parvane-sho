@@ -17,7 +17,6 @@ class QuestionAnswerTest extends TestCase
     {
         parent::setUp();
 
-        config(['panel.password' => 'secret-panel-pass']);
     }
 
     private function makeChallenge(array $attributes = []): Challenge
@@ -148,7 +147,7 @@ class QuestionAnswerTest extends TestCase
             'body' => 'پاسخ زهرا برای مدیر',
         ]);
 
-        $this->post(route('panel.login.attempt'), ['password' => 'secret-panel-pass']);
+        $this->loginAsAdmin();
 
         $this->get(route('panel.challenges.show', $challenge))
             ->assertOk()

@@ -22,8 +22,13 @@
     <section class="card">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
-                <h2 class="text-base">چالش‌ها</h2>
-                <p class="mt-1 text-xs text-muted">برای مدیریت روزها، کارها و شرکت‌کننده‌ها روی «مدیریت» بزن.</p>
+                <h2 class="text-base">{{ $stats['super'] ? 'همه چالش‌ها' : 'چالش‌های من' }}</h2>
+                <p class="mt-1 text-xs text-muted">
+                    برای مدیریت روزها، کارها و شرکت‌کننده‌ها روی «مدیریت» بزن.
+                    @unless ($stats['super'])
+                        (چالش‌هایی که به نام شما ساخته شده‌اند)
+                    @endunless
+                </p>
             </div>
 
             <a href="{{ route('panel.challenges.index') }}" class="btn btn-white btn-sm">همه چالش‌ها</a>
@@ -58,7 +63,12 @@
                                             <a href="{{ route('panel.challenges.show', $challenge) }}" class="block truncate font-medium text-ink hover:text-brand-700">
                                                 {{ $challenge->title }}
                                             </a>
-                                            <span class="text-[11px] text-muted">{{ fa_num($challenge->tasksCount()) }} کار · {{ fa_num($challenge->questionsCount()) }} پرسش · {{ fa_num($challenge->daysCount()) }} روز</span>
+                                            <span class="text-[11px] text-muted">
+                                                {{ fa_num($challenge->tasksCount()) }} کار · {{ fa_num($challenge->questionsCount()) }} پرسش · {{ fa_num($challenge->daysCount()) }} روز
+                                                @if ($stats['super'] && $challenge->admin)
+                                                    · مدیر: {{ $challenge->admin->name }}
+                                                @endif
+                                            </span>
                                         </div>
                                     </div>
                                 </td>

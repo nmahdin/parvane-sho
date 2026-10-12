@@ -3,6 +3,7 @@
 use App\Http\Controllers\ChallengeController;
 use App\Http\Controllers\ChallengeFileController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\Panel\AdminController as PanelAdminController;
 use App\Http\Controllers\Panel\AuthController;
 use App\Http\Controllers\Panel\ChallengeAttachmentController;
 use App\Http\Controllers\Panel\ChallengeController as PanelChallengeController;
@@ -44,7 +45,7 @@ Route::put('/p/{participant}/note', [ParticipantDashboardController::class, 'upd
 
 /*
 |--------------------------------------------------------------------------
-| پنل مدیریت — ورود فقط با رمز عبور
+| پنل مدیریت — هر مدیر با نام کاربری و رمز خودش
 |--------------------------------------------------------------------------
 */
 
@@ -107,5 +108,14 @@ Route::prefix('panel')->name('panel.')->group(function () {
         Route::get('settings', [SettingController::class, 'edit'])->name('settings.edit');
         Route::put('settings', [SettingController::class, 'update'])->name('settings.update');
         Route::put('settings/password', [SettingController::class, 'updatePassword'])->name('settings.password');
+
+        // مدیران — فقط مدیر اصلی
+        Route::middleware('panel.super')->group(function () {
+            Route::get('admins', [PanelAdminController::class, 'index'])->name('admins.index');
+            Route::post('admins', [PanelAdminController::class, 'store'])->name('admins.store');
+            Route::put('admins/{admin}', [PanelAdminController::class, 'update'])->name('admins.update');
+            Route::patch('admins/{admin}/toggle', [PanelAdminController::class, 'toggle'])->name('admins.toggle');
+            Route::delete('admins/{admin}', [PanelAdminController::class, 'destroy'])->name('admins.destroy');
+        });
     });
 });

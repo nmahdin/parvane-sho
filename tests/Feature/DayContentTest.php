@@ -17,7 +17,6 @@ class DayContentTest extends TestCase
     {
         parent::setUp();
 
-        config(['panel.password' => 'secret-panel-pass']);
     }
 
     private function makeChallenge(array $attributes = []): Challenge
@@ -33,7 +32,7 @@ class DayContentTest extends TestCase
 
     private function login(): void
     {
-        $this->post(route('panel.login.attempt'), ['password' => 'secret-panel-pass']);
+        $this->loginAsAdmin();
     }
 
     /**

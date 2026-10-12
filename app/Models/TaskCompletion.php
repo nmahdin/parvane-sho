@@ -3,12 +3,28 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable(['participant_id', 'challenge_task_id', 'completed_at'])]
 class TaskCompletion extends Model
 {
+    /**
+     * در پنل، مدیر چالش فقط تیک‌های چالش‌های خودش را می‌بیند.
+     *
+     * @param  Builder<TaskCompletion>  $query
+     * @return Builder<TaskCompletion>
+     */
+    public function scopeVisibleToAdmin(Builder $query, ?Admin $admin): Builder
+    {
+        if (! $admin || $admin->isSuper()) {
+            return $query;
+        }
+
+        return $query->whereHas('participant.challenge', fn (Builder $challenge) => $challenge->where('admin_id', $admin->getKey()));
+    }
+
     protected function casts(): array
     {
         return [

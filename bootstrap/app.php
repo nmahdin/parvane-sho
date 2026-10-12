@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\EnsureAdminIsSuper;
 use App\Http\Middleware\EnsurePanelIsAuthenticated;
 use App\Http\Middleware\RedirectIfPanelAuthenticated;
 use Illuminate\Foundation\Application;
@@ -20,6 +21,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'panel.auth' => EnsurePanelIsAuthenticated::class,
             'panel.guest' => RedirectIfPanelAuthenticated::class,
+            'panel.super' => EnsureAdminIsSuper::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

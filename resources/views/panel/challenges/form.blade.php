@@ -101,6 +101,20 @@
                         </select>
                     </div>
 
+                    @if ($adminOptions->isNotEmpty())
+                        <div>
+                            <label for="admin_id" class="label">مدیر این چالش</label>
+                            <select id="admin_id" name="admin_id" class="input">
+                                @foreach ($adminOptions as $adminOption)
+                                    <option value="{{ $adminOption->id }}" @selected((int) old('admin_id', $challenge->admin_id) === (int) $adminOption->id)>
+                                        {{ $adminOption->name }} ({{ $adminOption->username }}) — {{ $adminOption->roleLabel() }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <p class="hint">مدیر اصلی می‌تواند چالش را به یک مدیر چالش بسپارد؛ آن مدیر فقط چالش‌های خودش را می‌بیند.</p>
+                        </div>
+                    @endif
+
                     <div>
                         <label for="slug" class="label">آدرس انگلیسی (اختیاری)</label>
                         <input id="slug" name="slug" type="text" dir="ltr" value="{{ old('slug', $isEdit ? $challenge->slug : '') }}" class="input" placeholder="gratitude-21">

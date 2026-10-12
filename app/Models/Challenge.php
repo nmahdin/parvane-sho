@@ -5,13 +5,17 @@ namespace App\Models;
 use App\Support\RichText;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\RouteKey;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 #[Fillable([
+    'admin_id',
     'title',
     'slug',
     'tagline',
@@ -146,6 +150,46 @@ class Challenge extends Model
             'is_published' => 'boolean',
             'daily_release' => 'boolean',
         ];
+    }
+
+    /**
+     * مدیری که این چالش را ساخته است.
+     *
+     * @return BelongsTo<Admin, $this>
+     */
+    public function admin(): BelongsTo
+    {
+        return $this->belongsTo(Admin::class);
+    }
+
+    /**
+     * مدیر جاری به چه چالش‌هایی دسترسی دارد؟
+     * مدیر اصلی همه چالش‌ها، مدیر چالش فقط چالش‌های خودش.
+     *
+     * @param  Builder<Challenge>  $query
+     * @return Builder<Challenge>
+     */
+    public function scopeVisibleToAdmin(Builder $query, ?Admin $admin): Builder
+    {
+        if (! $admin || $admin->isSuper()) {
+            return $query;
+        }
+
+        return $query->where('admin_id', $admin->getKey());
+    }
+
+    /**
+     * در پنل، مدیر چالش فقط به چالش‌های خودش دسترسی دارد؛ بقیه ۴۰۴ می‌شوند.
+     */
+    public function resolveRouteBinding($value, $field = null)
+    {
+        $query = static::query();
+
+        if (request()->routeIs('panel.*')) {
+            $query->visibleToAdmin(Auth::guard('admin')->user());
+        }
+
+        return $query->where($field ?? $this->getRouteKeyName(), $value)->firstOrFail();
     }
 
     /**
