@@ -172,9 +172,11 @@
                                 </div>
                             </div>
 
-                            <span class="text-xs text-muted">
-                                {{ fa_num($tasks->count()) }} کار@if ($dayQuestions->isNotEmpty()) · {{ fa_num($dayQuestions->count()) }} پرسش @endif
-                            </span>
+                            @unless ($locked)
+                                <span class="text-xs text-muted">
+                                    {{ fa_num($tasks->count()) }} کار@if ($dayQuestions->isNotEmpty()) · {{ fa_num($dayQuestions->count()) }} پرسش @endif
+                                </span>
+                            @endunless
                         </div>
 
                         @if ($locked)
@@ -188,20 +190,10 @@
                                         کمی صبر کن.
                                     @endif
                                 </p>
-
-                                @if ($tasks->isNotEmpty() || $dayQuestions->isNotEmpty())
-                                    <div class="mt-4 flex flex-wrap justify-center gap-2">
-                                        @if ($tasks->isNotEmpty())
-                                            <span class="badge bg-gold/15 text-ink ring-gold/50">📝 {{ fa_num($tasks->count()) }} کار در انتظار</span>
-                                        @endif
-
-                                        @if ($dayQuestions->isNotEmpty())
-                                            <span class="badge bg-gold/15 text-ink ring-gold/50">❓ {{ fa_num($dayQuestions->count()) }} پرسش در انتظار</span>
-                                        @endif
-                                    </div>
-                                @endif
                             </div>
                         @else
+                            <x-day-tips :challenge="$challenge" :day="$dayNumber" :divider="false" />
+
                             @if ($dayNumber && $challenge->dayDescription($dayNumber))
                                 <div class="border-b border-line/60 bg-cream/60 px-4 py-4 text-xs leading-7 text-ink/85 sm:px-6">
                                     {!! \App\Support\RichText::toHtml($challenge->dayDescription($dayNumber)) !!}
@@ -260,8 +252,6 @@
                                 <p class="bg-paper px-6 py-5 text-xs text-muted">محتوای این روز به‌زودی اضافه می‌شود.</p>
                             @endif
                         @endif
-
-                        <x-day-tips :challenge="$challenge" :day="$dayNumber" />
                     </div>
                 @empty
                     <div class="card text-center text-sm text-muted">

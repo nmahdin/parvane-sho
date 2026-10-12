@@ -358,7 +358,20 @@ class DayContentTest extends TestCase
         $this->assertSame(['tasks' => 0, 'questions' => 2, 'total' => 2], $challenge->dayCounts(3));
     }
 
-    public function test_lock_box_counts_tasks_and_questions_separately(): void
+    /**
+     * تکه HTML باکس یک روز از یک صفحه.
+     */
+    private function dayBoxHtml(string $html, int $day): string
+    {
+        $start = strpos($html, 'id="day-'.$day.'"');
+        $this->assertNotFalse($start, 'باکس روز '.$day.' ساخته نشده است.');
+
+        $next = strpos($html, 'id="day-'.($day + 1).'"', $start);
+
+        return substr($html, $start, $next === false ? null : $next - $start);
+    }
+
+    public function test_locked_days_do_not_show_the_number_of_tasks_questions_or_tips(): void
     {
         $challenge = $this->makeChallenge();
 
@@ -366,18 +379,99 @@ class DayContentTest extends TestCase
         $challenge->tasks()->create(['day_number' => 2, 'title' => 'کار دوم روز دوم']);
         $challenge->questions()->create(['day_number' => 2, 'question' => 'پرسش اول روز دوم', 'is_published' => true]);
         $challenge->questions()->create(['day_number' => 2, 'question' => 'پرسش دوم روز دوم', 'is_published' => true]);
+        $challenge->tips()->create(['day_number' => 2, 'title' => 'نکته روز دوم', 'emoji' => '💡']);
 
         $participant = $challenge->participants()->create(['name' => 'زهرا محمدی']);
 
-        $this->get(route('participant.show', $participant))
-            ->assertOk()
-            ->assertSee('۲ کار در انتظار')
-            ->assertSee('۲ پرسش در انتظار');
+        // روز دوم فردا است؛ پس برای شرکت‌کننده و بازدیدکننده قفل است
+        foreach ([route('participant.show', $participant), route('challenges.show', $challenge)] as $url) {
+            $html = $this->get($url)->assertOk()->getContent();
+            $box = $this->dayBoxHtml($html, 2);
 
-        $this->get(route('challenges.show', $challenge))
+            // نه تعداد کار و پرسش، نه برچسب «در انتظار» و نه نکته
+            $this->assertStringNotContainsString('۲ کار', $box, 'در باکس روز قفل تعداد کارها نوشته شده است: '.$url);
+            $this->assertStringNotContainsString('۲ پرسش', $box, 'در باکس روز قفل تعداد پرسش‌ها نوشته شده است: '.$url);
+            $this->assertStringNotContainsString('در انتظار', $box, 'برچسب «در انتظار» در باکس روز قفل مانده است: '.$url);
+            $this->assertStringNotContainsString('نکته', $box, 'در باکس روز قفل نکته‌ها نشان داده شده‌اند: '.$url);
+
+            // و خود محتوای روز قفل هم پنهان است
+            $this->assertStringNotContainsString('کار روز دوم', $box);
+            $this->assertStringNotContainsString('پرسش اول روز دوم', $box);
+            $this->assertStringNotContainsString('نکته روز دوم', $box);
+        }
+
+        // مدیر همه‌چیز را می‌بیند
+        $this->login();
+
+        $this->get(route('panel.challenges.show', $challenge))
             ->assertOk()
-            ->assertSee('۲ کار در انتظار')
-            ->assertSee('۲ پرسش در انتظار');
+            ->assertSee('کار روز دوم')
+            ->assertSee('پرسش اول روز دوم')
+            ->assertSee('نکته روز دوم');
+    }
+
+    public function test_tips_come_before_tasks_and_questions_on_the_challenge_page(): void
+    {
+        $challenge = $this->makeChallenge(['daily_release' => false]);
+
+        $challenge->tasks()->create(['day_number' => 1, 'title' => 'کار روز اول']);
+        $challenge->questions()->create(['day_number' => 1, 'question' => 'پرسش روز اول', 'is_published' => true]);
+        $challenge->tips()->create(['day_number' => 1, 'title' => 'نکته روز اول', 'emoji' => '💡']);
+        $challenge->tips()->create(['title' => 'نکته کلی چالش', 'emoji' => '📌']);
+
+        $html = $this->get(route('challenges.show', $challenge))->assertOk()->getContent();
+        $box = $this->dayBoxHtml($html, 1);
+
+        $tips = strpos($box, 'نکته‌های این روز');
+        $task = strpos($box, 'کار روز اول');
+        $question = strpos($box, 'پرسش روز اول');
+
+        $this->assertNotFalse($tips, 'باکس نکته‌های روز در کارت روز نیست.');
+        $this->assertNotFalse($task);
+        $this->assertNotFalse($question);
+
+        $this->assertLessThan($task, $tips, 'نکته‌های روز باید بالای کارها بیاید.');
+        $this->assertLessThan($question, $tips, 'نکته‌های روز باید بالای پرسش‌ها بیاید.');
+
+        // نکته‌های کلی هم بالای بخش روزها می‌آیند
+        $this->assertLessThan(
+            strpos($html, 'روزها، کارها و پرسش‌ها'),
+            strpos($html, 'نکته کلی چالش'),
+            'نکته‌های کلی چالش باید بالای بخش روزها و کارها بیاید.'
+        );
+    }
+
+    public function test_tips_come_before_tasks_and_questions_in_the_participant_dashboard(): void
+    {
+        $challenge = $this->makeChallenge(['daily_release' => false]);
+
+        $challenge->tasks()->create(['day_number' => 1, 'title' => 'کار روز اول']);
+        $challenge->questions()->create(['day_number' => 1, 'question' => 'پرسش روز اول', 'is_published' => true]);
+        $challenge->tips()->create(['day_number' => 1, 'title' => 'نکته روز اول', 'emoji' => '💡']);
+        $challenge->tips()->create(['title' => 'نکته کلی چالش', 'emoji' => '📌']);
+
+        $participant = $challenge->participants()->create(['name' => 'زهرا محمدی']);
+
+        $html = $this->get(route('participant.show', $participant))->assertOk()->getContent();
+        $box = $this->dayBoxHtml($html, 1);
+
+        $tips = strpos($box, 'نکته‌های این روز');
+        $task = strpos($box, 'کار روز اول');
+        $question = strpos($box, 'پرسش روز اول');
+
+        $this->assertNotFalse($tips, 'باکس نکته‌های روز در کارت روز نیست.');
+        $this->assertNotFalse($task);
+        $this->assertNotFalse($question);
+
+        $this->assertLessThan($task, $tips, 'نکته‌های روز باید بالای کارها بیاید.');
+        $this->assertLessThan($question, $tips, 'نکته‌های روز باید بالای پرسش‌ها بیاید.');
+
+        // نکته‌های کلی بالای کارت روزها هستند، نه بعد از آن‌ها
+        $this->assertLessThan(
+            strpos($html, 'id="day-1"'),
+            strpos($html, 'نکته کلی چالش'),
+            'نکته‌های کلی چالش باید بالای کارت روزها بیاید.'
+        );
     }
 
     public function test_day_cards_count_tasks_and_questions_together(): void

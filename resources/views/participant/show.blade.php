@@ -208,6 +208,33 @@
                     </a>
                 @endif
 
+                {{-- نکته‌های کلی چالش (نکته‌های هر روز داخل کارت همان روز است) --}}
+                @if ($challenge->generalTips()->isNotEmpty())
+                    <div>
+                        <div class="mb-4 flex items-center gap-2">
+                            <span class="grid size-9 place-items-center rounded-2xl bg-gold/20 text-base">💡</span>
+                            <h2 class="text-lg">نکته‌های کلی چالش</h2>
+                        </div>
+
+                        <div class="grid gap-4 sm:grid-cols-2">
+                            @foreach ($challenge->generalTips() as $tip)
+                                <div class="relative overflow-hidden rounded-3xl bg-gradient-to-tl from-gold/15 to-paper p-5 ring-1 ring-gold/50">
+                                    <div class="relative flex items-start gap-3">
+                                        <span class="grid size-10 shrink-0 place-items-center rounded-2xl bg-paper text-lg shadow-sm ring-1 ring-gold/50">{{ $tip->emoji }}</span>
+
+                                        <div class="min-w-0">
+                                            <p class="text-sm font-semibold text-forest">{{ $tip->title }}</p>
+                                            @if ($tip->body)
+                                                <p class="mt-2 text-xs leading-6 text-ink/80">{{ $tip->body }}</p>
+                                            @endif
+                                        </div>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
                 @forelse ($challenge->dayPlan(true) as $day => $content)
                     @php
                         $tasks = $content['tasks'];
@@ -275,20 +302,10 @@
                                         این روز به‌زودی باز می‌شود.
                                     @endif
                                 </p>
-
-                                @if ($tasks->isNotEmpty() || $dayQuestions->isNotEmpty())
-                                    <div class="mt-4 flex flex-wrap justify-center gap-2">
-                                        @if ($tasks->isNotEmpty())
-                                            <span class="badge bg-gold/15 text-ink ring-gold/50">📝 {{ fa_num($tasks->count()) }} کار در انتظار</span>
-                                        @endif
-
-                                        @if ($dayQuestions->isNotEmpty())
-                                            <span class="badge bg-gold/15 text-ink ring-gold/50">❓ {{ fa_num($dayQuestions->count()) }} پرسش در انتظار</span>
-                                        @endif
-                                    </div>
-                                @endif
                             </div>
                         @else
+                        <x-day-tips :challenge="$challenge" :day="$dayNumber" :divider="false" />
+
                         @if ($dayNumber && $challenge->dayDescription($dayNumber))
                             <div class="border-b border-line/60 bg-cream/60 px-4 py-4 text-xs leading-7 text-ink/85 sm:px-5">
                                 {!! \App\Support\RichText::toHtml($challenge->dayDescription($dayNumber)) !!}
@@ -395,8 +412,6 @@
                                 <p class="rounded-2xl bg-cream px-4 py-5 text-center text-xs text-muted">محتوای این روز به‌زودی اضافه می‌شود.</p>
                             @endif
                             </div>
-
-                            <x-day-tips :challenge="$challenge" :day="$dayNumber" />
                         @endif
                     </div>
                 @empty
@@ -404,33 +419,6 @@
                         هنوز کاری برای این چالش ثبت نشده است. کمی بعد دوباره سر بزن.
                     </div>
                 @endforelse
-
-                {{-- نکته‌های کلی چالش (نکته‌های هر روز داخل کارت همان روز است) --}}
-                @if ($challenge->generalTips()->isNotEmpty())
-                    <div>
-                        <div class="mb-4 flex items-center gap-2">
-                            <span class="grid size-9 place-items-center rounded-2xl bg-gold/20 text-base">💡</span>
-                            <h2 class="text-lg">نکته‌های کلی چالش</h2>
-                        </div>
-
-                        <div class="grid gap-4 sm:grid-cols-2">
-                            @foreach ($challenge->generalTips() as $tip)
-                                <div class="relative overflow-hidden rounded-3xl bg-gradient-to-tl from-gold/15 to-paper p-5 ring-1 ring-gold/50">
-                                    <div class="relative flex items-start gap-3">
-                                        <span class="grid size-10 shrink-0 place-items-center rounded-2xl bg-paper text-lg shadow-sm ring-1 ring-gold/50">{{ $tip->emoji }}</span>
-
-                                        <div class="min-w-0">
-                                            <p class="text-sm font-semibold text-forest">{{ $tip->title }}</p>
-                                            @if ($tip->body)
-                                                <p class="mt-2 text-xs leading-6 text-ink/80">{{ $tip->body }}</p>
-                                            @endif
-                                        </div>
-                                    </div>
-                                </div>
-                            @endforeach
-                        </div>
-                    </div>
-                @endif
 
             </div>
 

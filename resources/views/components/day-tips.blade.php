@@ -1,12 +1,14 @@
-@props(['challenge', 'day' => null, 'title' => null])
+@props(['challenge', 'day' => null, 'title' => null, 'divider' => true])
 
 @php
     // فقط روزهای شمارهدار؛ نکته‌های کلی در بخش «نکته‌های کلی چالش» می‌آیند
     $tips = ($day === null || (int) $day < 1) ? collect() : $challenge->tipsForDay((int) $day);
+    // وقتی این باکس راست بعد از سرِ کارت روز می‌آید، خط جداکننده لازم نیست
+    $classes = 'bg-gold/5 px-4 py-4 sm:px-5'.($divider ? ' border-t border-line/60' : '');
 @endphp
 
 @if ($tips->isNotEmpty())
-    <div {{ $attributes->merge(['class' => 'border-t border-line/60 bg-gold/5 px-5 py-4']) }}>
+    <div {{ $attributes->merge(['class' => $classes]) }}>
         <p class="flex flex-wrap items-center gap-2 text-xs font-semibold text-forest">
             <span>💡</span> {{ $title ?? 'نکته‌های این روز' }}
             <span class="font-normal text-muted">{{ fa_num($tips->count()) }} نکته</span>
