@@ -26,9 +26,18 @@ class ViewCompileTest extends TestCase
             }
 
             $compiled = (string) $compiler->compileString(File::get($file->getPathname()));
+            $name = str_replace(resource_path('views').DIRECTORY_SEPARATOR, '', $file->getPathname());
 
             if (preg_match('/(?<!@)@(section|endsection|if|endif|unless|endunless|foreach|endforeach|forelse|empty|endforelse|php|endphp|csrf|method|checked|push|endpush)\b/', $compiled)) {
-                $broken[] = str_replace(resource_path('views').DIRECTORY_SEPARATOR, '', $file->getPathname());
+                $broken[] = $name;
+            }
+
+            // خروجی کامپایل‌شده باید از نظر نحوی PHP سالم باشد (بدون اجرا):
+            // token_get_all با TOKEN_PARSE روی کد نامعتبر ParseError می‌دهد.
+            try {
+                token_get_all($compiled, TOKEN_PARSE);
+            } catch (\ParseError $error) {
+                $broken[] = $name.' (خطای نحوی: '.$error->getMessage().')';
             }
         }
 
