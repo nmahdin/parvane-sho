@@ -84,7 +84,7 @@
         </div>
     </section>
 
-    <section class="mx-auto grid max-w-6xl gap-6 px-4 py-8 sm:px-6 lg:grid-cols-[1.6fr_1fr]">
+    <section class="mx-auto grid max-w-6xl gap-6 px-4 pt-10 pb-8 sm:px-6 sm:pt-12 lg:grid-cols-[1.6fr_1fr]">
         <div class="space-y-5">
             {{-- فایل‌های ضمیمه در موبایل بالای صفحه می‌آیند (نسخه دسکتاپ در ستون کنار است) --}}
             <x-challenge-files :challenge="$challenge" id="files" class="lg:hidden" />

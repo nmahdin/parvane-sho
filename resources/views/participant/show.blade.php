@@ -17,15 +17,13 @@
         ? $challenge->dayCounts($todayDay)
         : ['tasks' => 0, 'questions' => 0, 'total' => 0];
     $plan = $challenge->dayPlan(true);
-    $openDayNumbers = [];
     $lockedDayNumbers = [];
 
+    // روزهای قفل در یک نوار جمع می‌شوند (بقیه روزها کارت می‌گیرند)
     foreach ($plan as $dayKey => $planRow) {
         $number = (int) $dayKey;
 
-        if ($challenge->isDayUnlocked($number > 0 ? $number : null)) {
-            $openDayNumbers[] = $number;
-        } else {
+        if (! $challenge->isDayUnlocked($number > 0 ? $number : null)) {
             $lockedDayNumbers[] = $number;
         }
     }
@@ -125,20 +123,8 @@
             </div>
         </section>
     @else
-    <section class="mx-auto max-w-5xl px-4 py-6 sm:px-6">
-        <x-jump-bar
-            :open-days="$openDayNumbers"
-            :today="$todayUnlocked ? $todayDay : null"
-            :locked-days="$lockedDayNumbers"
-            :anchors="[
-                ['href' => '#my-progress', 'label' => 'پیشرفت من'],
-                ['href' => '#tips', 'label' => '💡 نکته‌ها'],
-                ['href' => '#files', 'label' => '📎 فایل‌ها'],
-                ['href' => '#note', 'label' => '📝 یادداشت من'],
-            ]"
-        />
-
-        <div class="mt-4 grid gap-5 lg:grid-cols-[1.6fr_1fr]">
+    <section class="mx-auto max-w-5xl px-4 pt-8 pb-6 sm:px-6 sm:pt-10">
+        <div class="grid gap-5 lg:grid-cols-[1.6fr_1fr]">
             {{-- ستون کارها --}}
             <div class="space-y-6">
                 <div class="card" id="my-progress">

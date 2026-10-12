@@ -192,6 +192,31 @@ class MobileLayoutTest extends TestCase
         $this->assertGreaterThan($days, $desktop, 'در دسکتاپ باکس فایل‌ها باید در ستون کنار و پایین محتوا بماند.');
     }
 
+    public function test_neither_the_challenge_page_nor_the_participant_dashboard_has_the_jump_bar(): void
+    {
+        [$challenge, $participant] = $this->makeChallenge();
+
+        $challenge->attachments()->create([
+            'title' => 'راهنمای چالش',
+            'path' => 'attachments/guide.txt',
+            'original_name' => 'guide.txt',
+            'size' => 2048,
+            'mime' => 'text/plain',
+        ]);
+
+        foreach (['challenges.show' => $challenge, 'participant.show' => $participant] as $route => $model) {
+            $html = $this->get(route($route, $model))->assertOk()->getContent();
+
+            $this->assertStringNotContainsString('jump-bar', $html, $route.' نباید نوار پرش داشته باشد.');
+            $this->assertStringNotContainsString('jump-chip', $html, $route.' نباید چیپ پرش داشته باشد.');
+        }
+
+        // نوار پرش رفت، ولی دسترسی به فایل‌ها سر جایش ماند
+        $dashboard = $this->get(route('participant.show', $participant))->assertOk()->getContent();
+        $this->assertStringContainsString('id="files"', $dashboard);
+        $this->assertStringContainsString('راهنمای چالش', $dashboard);
+    }
+
     public function test_the_public_challenge_page_keeps_day_cards_tight_on_phones(): void
     {
         [$challenge] = $this->makeChallenge();
