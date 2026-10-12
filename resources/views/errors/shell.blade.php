@@ -18,7 +18,7 @@
 
     @vite(['resources/css/app.css'])
 </head>
-<body class="grid min-h-screen place-items-center bg-cream px-4 py-10">
+<body class="grid min-h-screen place-items-center bg-canvas px-4 py-10">
     <div class="w-full max-w-lg text-center">
         <a href="{{ route('home') }}" class="inline-flex items-center gap-3">
             <img src="{{ asset('favicon.svg') }}" alt="{{ config('panel.site_name') }}" class="size-12 rounded-2xl bg-white p-2 shadow-sm ring-1 ring-line">

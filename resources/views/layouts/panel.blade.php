@@ -14,7 +14,7 @@
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
-<body class="min-h-screen bg-line/60">
+<body class="min-h-screen bg-canvas">
     @php
         $currentAdmin = auth('admin')->user();
 

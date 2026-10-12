@@ -19,7 +19,7 @@
     $dateLabel = $number > 0 ? $challenge->dayDateLabel($number) : null;
 @endphp
 
-<details id="day-{{ $day }}" @if ($open) open @endif class="day-card">
+<details id="day-{{ $day }}" @if ($open) open @endif class="day-card {{ $today ? 'is-today' : '' }}">
     <summary>
         <span class="day-num {{ $today ? 'bg-jade text-white' : 'bg-gold/20 text-forest ring-1 ring-gold/40' }}"
               aria-hidden="true">{{ $number > 0 ? fa_num($number) : '★' }}</span>
@@ -46,7 +46,11 @@
             <span class="hidden shrink-0 text-[11px] {{ $statusClass }} sm:inline">{{ $status }}</span>
         @endif
 
-        <span class="day-chev">▾</span>
+        <span class="day-chev" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="size-5">
+                <path d="M6 9l6 6 6-6"/>
+            </svg>
+        </span>
     </summary>
 
     <div class="day-body">

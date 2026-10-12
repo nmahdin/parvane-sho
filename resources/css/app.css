@@ -14,7 +14,9 @@
     --color-forest: #075741;
     --color-jade: #11735b;
     --color-leaf: #508d42;
-    --color-cream: #fbf9ee;
+    /* بوم صفحه: کرم بسیار کم‌رنگ؛ cream برای سطح‌های داخلی کارت‌ها پررنگ‌تر است */
+    --color-cream: #f7f4e8;
+    --color-canvas: #fdfcf7;
     --color-gold: #cead60;
     --color-line: #cadcc1;
     --color-ink: #24473c;
@@ -49,7 +51,7 @@
     }
 
     body {
-        @apply bg-cream font-sans text-ink antialiased;
+        @apply bg-canvas font-sans text-ink antialiased;
     }
 
     h1,
@@ -146,6 +148,16 @@
         box-shadow: 0 1px 2px rgb(7 87 65 / 0.06), 0 12px 26px -20px rgb(7 87 65 / 0.28);
     }
 
+    /* روزی که هستیم: حاشیه رنگی و کمی پررنگ‌تر */
+    .day-card.is-today {
+        @apply ring-2 ring-jade;
+        box-shadow: 0 1px 2px rgb(17 115 91 / 0.12), 0 16px 32px -22px rgb(17 115 91 / 0.45);
+    }
+
+    .day-card.is-today > summary {
+        @apply bg-jade/6;
+    }
+
     .day-card > summary {
         @apply flex cursor-pointer items-center gap-3 px-4 py-3 sm:px-5;
     }
@@ -159,7 +171,15 @@
     }
 
     .day-chev {
-        @apply shrink-0 text-xs text-hint transition-transform;
+        @apply grid size-10 shrink-0 place-items-center rounded-2xl bg-cream text-muted ring-1 ring-line transition-all;
+    }
+
+    .day-card > summary:hover .day-chev {
+        @apply bg-line/60 text-forest;
+    }
+
+    .day-card[open] .day-chev {
+        @apply bg-jade/10 text-jade ring-jade/30;
     }
 
     .day-card[open] .day-chev {
@@ -172,7 +192,7 @@
 
     /* نوار پرش سریع ----------------------------------------------------- */
     .jump-bar {
-        @apply sticky top-16 z-30 -mx-4 flex gap-2 overflow-x-auto border-b border-line bg-cream/95 px-4 py-2.5 backdrop-blur sm:-mx-6 sm:px-6;
+        @apply sticky top-16 z-30 -mx-4 flex gap-2 overflow-x-auto border-b border-line bg-canvas/95 px-4 py-2.5 backdrop-blur sm:-mx-6 sm:px-6;
     }
 
     .jump-chip {

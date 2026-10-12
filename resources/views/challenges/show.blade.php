@@ -251,7 +251,7 @@
                                     <span class="font-normal text-muted">— برای تیک زدن هر کار، با کد شخصی خودت وارد داشبوردت شو.</span>
                                 </p>
 
-                                <ul class="mt-2.5 grid gap-2 {{ $tasks->count() > 2 ? 'sm:grid-cols-2' : '' }}">
+                                <ul class="mt-2.5 space-y-2">
                                     @foreach ($tasks as $task)
                                         <li class="flex items-start gap-2.5">
                                             <span class="mt-0.5 grid size-6 shrink-0 place-items-center rounded-lg bg-paper text-[11px] font-bold text-forest ring-1 ring-gold/40">
@@ -311,7 +311,11 @@
                     <details>
                         <summary class="flex cursor-pointer list-none items-center gap-2 text-sm font-semibold text-forest">
                             <span>🧭</span> چطور در این چالش شرکت کنم؟
-                            <span class="day-chev ms-auto">▾</span>
+                            <span class="day-chev ms-auto" aria-hidden="true">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="size-5">
+                                    <path d="M6 9l6 6 6-6"/>
+                                </svg>
+                            </span>
                         </summary>
 
                         <ol class="mt-3 space-y-3 text-xs leading-6 text-ink/80">

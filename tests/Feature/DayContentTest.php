@@ -557,6 +557,36 @@ class DayContentTest extends TestCase
         $this->assertStringContainsString('✓', $box);
     }
 
+    public function test_today_gets_a_colored_border_and_the_practical_tasks_stack_under_each_other(): void
+    {
+        $challenge = $this->makeChallenge(['daily_release' => false]);
+
+        foreach ([1, 2, 3] as $index) {
+            $challenge->tasks()->create(['day_number' => 1, 'title' => 'کار شماره '.$index]);
+        }
+
+        $html = $this->get(route('challenges.show', $challenge))->assertOk()->getContent();
+
+        // فقط کارت روز جاری حاشیه رنگی دارد و باز است
+        $this->assertSame(1, substr_count($html, 'day-card is-today'), 'فقط روز جاری باید حاشیه رنگی بگیرد.');
+        $this->assertSame(1, substr_count($html, 'day-card is-today'));
+
+        preg_match('/<details id="day-(\d+)"[^>]*class="day-card is-today"[^>]*>/', $html, $today);
+        $this->assertNotEmpty($today, 'کارت روز جاری پیدا نشد.');
+        $this->assertSame('1', $today[1]);
+        $this->assertStringContainsString('open', $today[0], 'کارت روز جاری باید باز باشد.');
+
+        $box = $this->dayBoxHtml($html, 1);
+
+        // کارهای «چالش عملی» همه زیر هم می‌آیند، نه دو ستونه
+        $this->assertStringContainsString('<ul class="mt-2.5 space-y-2">', $box);
+        $this->assertStringNotContainsString('sm:grid-cols-2"', $box);
+
+        // دکمه آکاردئون بزرگ و آیکون‌دار است
+        $this->assertStringContainsString('class="day-chev"', $box);
+        $this->assertStringContainsString('M6 9l6 6 6-6', $box, 'آیکون دکمه آکاردئون در کارت روز نیست.');
+    }
+
     public function test_day_cards_count_tasks_and_questions_together(): void
     {
         $challenge = $this->makeChallenge(['daily_release' => false]);
