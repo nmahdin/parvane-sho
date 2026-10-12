@@ -36,7 +36,7 @@
         <aside class="hidden w-64 shrink-0 lg:block">
             <div class="sticky top-6 space-y-6">
                 <a href="{{ route('panel.dashboard') }}" class="flex items-center gap-3">
-                    <img src="{{ asset('favicon.svg') }}" alt="پنل مدیریت" class="size-10 rounded-2xl bg-gradient-to-tl from-forest to-leaf p-1.5 shadow-sm">
+                    <img src="{{ asset('favicon.svg') }}" alt="پنل مدیریت" class="size-10 rounded-2xl bg-white p-1.5 shadow-sm ring-1 ring-line">
                     <span>
                         <span class="block text-sm font-semibold text-ink">{{ $site['site_name'] ?? config('panel.site_name') }}</span>
                         <span class="block text-[11px] text-muted">پنل مدیریت چالش‌ها</span>

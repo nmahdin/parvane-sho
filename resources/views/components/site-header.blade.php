@@ -11,7 +11,7 @@
 <header class="no-print sticky top-0 z-40 border-b border-line bg-white/85 backdrop-blur">
     <div class="mx-auto flex max-w-6xl items-center gap-4 px-4 py-3 sm:px-6">
         <a href="{{ route('home') }}" class="flex items-center gap-3">
-            <img src="{{ asset('favicon.svg') }}" alt="{{ $site['site_name'] ?? config('panel.site_name') }}" class="size-10 rounded-2xl bg-gradient-to-tl from-forest to-leaf p-1.5 shadow-sm">
+            <img src="{{ asset('favicon.svg') }}" alt="{{ $site['site_name'] ?? config('panel.site_name') }}" class="size-10 rounded-2xl bg-white p-1.5 shadow-sm ring-1 ring-line">
             <span class="text-base font-semibold text-ink">{{ $siteName }}</span>
         </a>
 
