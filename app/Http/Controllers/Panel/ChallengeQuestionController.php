@@ -15,7 +15,7 @@ class ChallengeQuestionController extends Controller
 
     public function store(Request $request, Challenge $challenge): RedirectResponse
     {
-        $validated = $this->validated($request);
+        $validated = $this->validated($request, $challenge);
         $dayNumber = $this->resolveDayNumber($request, $challenge);
 
         $challenge->questions()->create([
@@ -36,7 +36,7 @@ class ChallengeQuestionController extends Controller
     {
         $this->ensureBelongsToChallenge($challenge, $question);
 
-        $validated = $this->validated($request);
+        $validated = $this->validated($request, $challenge);
 
         $question->update([
             'day_number' => $this->resolveDayNumber($request, $challenge),
@@ -100,10 +100,10 @@ class ChallengeQuestionController extends Controller
     /**
      * @return array<string, mixed>
      */
-    private function validated(Request $request): array
+    private function validated(Request $request, Challenge $challenge): array
     {
         return $request->validate([
-            'date' => ['nullable', 'string', 'max:16', $this->jalaliDateRule()],
+            'date' => $this->dateRules($challenge),
             'day_number' => ['nullable', 'integer', 'min:1', 'max:365'],
             'question' => ['required', 'string', 'max:190'],
             'answer' => ['nullable', 'string', 'max:4000'],

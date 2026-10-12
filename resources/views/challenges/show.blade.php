@@ -117,7 +117,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <h2 class="text-lg">روزها، کارها و پرسش‌ها</h2>
-                        <p class="mt-1 text-xs leading-6 text-muted">کارها و پرسش و پاسخ‌های هر روز کنار هم، داخل کارت همان روز آمده‌اند.</p>
+                        <p class="mt-1 text-xs leading-6 text-muted">کارها و پرسش‌های هر روز کنار هم، داخل کارت همان روز آمده‌اند. پرسش‌ها همه‌جا نمایش داده می‌شوند؛ پاسخ دادنشان فقط از داشبورد شرکت‌کننده‌ها ممکن است.</p>
                     </div>
 
                     <span class="shrink-0 text-xs text-muted">
@@ -175,7 +175,7 @@
                         @if ($locked)
                             <div class="locked-panel m-4">
                                 <p class="text-2xl">🔒</p>
-                                <p class="mt-2 text-sm font-medium text-forest">کارها و پرسش‌های این روز هنوز آزاد نشده است</p>
+                                <p class="mt-2 text-sm font-medium text-forest">کارها و پرسش‌های این روز هنوز آزاد نشده‌اند</p>
                                 <p class="mt-1 text-xs leading-6 text-muted">
                                     روزهای چالش یکی‌یکی باز می‌شوند؛ برای دیدن محتوای این روز
                                     @if ($unlockLabel)
@@ -213,35 +213,34 @@
 
                             @if ($dayQuestions->isNotEmpty())
                                 <div class="border-t border-line bg-cream/60 px-6 py-5">
-                                    <p class="flex items-center gap-2 text-xs font-semibold text-forest">
-                                        <span>❓</span> پرسش و پاسخ این روز
+                                    <p class="flex flex-wrap items-center gap-2 text-xs font-semibold text-forest">
+                                        <span>❓</span> پرسش‌های این روز
+                                        <span class="font-normal text-muted">— پاسخ دادن به پرسش‌ها از داشبورد اختصاصی شرکت‌کننده‌ها انجام می‌شود.</span>
                                     </p>
 
-                                    <div class="mt-3 space-y-3">
+                                    <ul class="mt-3 space-y-3">
                                         @foreach ($dayQuestions as $question)
-                                            <details class="group overflow-hidden rounded-2xl bg-paper ring-1 ring-line">
-                                                <summary class="flex cursor-pointer items-start gap-3 px-4 py-3">
+                                            <li class="rounded-2xl bg-paper p-4 ring-1 ring-line">
+                                                <div class="flex items-start gap-3">
                                                     <span class="mt-0.5 grid size-6 shrink-0 place-items-center rounded-xl bg-jade/10 text-[11px] font-bold text-jade">
                                                         {{ fa_num($loop->iteration) }}
                                                     </span>
 
-                                                    <span class="min-w-0 flex-1">
-                                                        <span class="block text-sm font-medium text-ink">{{ $question->question }}</span>
+                                                    <div class="min-w-0 flex-1">
+                                                        <p class="text-sm font-medium text-ink">{{ $question->question }}</p>
 
                                                         @if ($question->asked_by)
-                                                            <span class="mt-1 block text-[11px] text-muted/80">پرسیده‌شده توسط {{ $question->asked_by }}</span>
+                                                            <p class="mt-1 text-[11px] text-muted/80">پرسیده‌شده توسط {{ $question->asked_by }}</p>
                                                         @endif
-                                                    </span>
 
-                                                    <span class="mt-0.5 text-muted/80 transition group-open:rotate-180">⌄</span>
-                                                </summary>
-
-                                                <div class="border-t border-line bg-cream/70 px-4 py-3 text-xs leading-7 text-ink/80">
-                                                    {!! $question->answer ? \App\Support\RichText::toHtml($question->answer) : 'پاسخ این پرسش هنوز ثبت نشده است.' !!}
+                                                        <div class="mt-2 rounded-xl bg-cream/70 px-3 py-2 text-xs leading-7 text-ink/80">
+                                                            {!! $question->answer ? \App\Support\RichText::toHtml($question->answer) : 'پاسخ این پرسش هنوز ثبت نشده است.' !!}
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            </details>
+                                            </li>
                                         @endforeach
-                                    </div>
+                                    </ul>
                                 </div>
                             @endif
 
@@ -308,7 +307,7 @@
                     </li>
                     <li class="flex gap-3">
                         <span class="grid size-6 shrink-0 place-items-center rounded-lg {{ $style['bg'] }} {{ $style['text'] }} text-[11px] font-bold">۳</span>
-                        <span>با آن کد وارد داشبورد خودت می‌شوی، بدون رمز و ثبت‌نام، و کارهای هر روز را تیک می‌زنی. روزهای بعدی تا تاریخ خودشان قفل می‌مانند.</span>
+                        <span>با آن کد وارد داشبورد خودت می‌شوی، بدون رمز و ثبت‌نام: کارهای هر روز را تیک می‌زنی و به پرسش‌های همان روز پاسخ می‌نویسی. روزهای بعدی تا تاریخ خودشان قفل می‌مانند.</span>
                     </li>
                 </ol>
 

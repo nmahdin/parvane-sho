@@ -16,7 +16,7 @@ class ChallengeTaskController extends Controller
 
     public function store(Request $request, Challenge $challenge): RedirectResponse
     {
-        $validated = $this->validateTask($request);
+        $validated = $this->validateTask($request, $challenge);
         $dayNumber = $this->resolveDayNumber($request, $challenge);
 
         $challenge->tasks()->create([
@@ -37,7 +37,7 @@ class ChallengeTaskController extends Controller
     public function bulkStore(Request $request, Challenge $challenge): RedirectResponse
     {
         $validated = $request->validate([
-            'date' => ['nullable', 'string', 'max:16', $this->jalaliDateRule()],
+            'date' => $this->dateRules($challenge),
             'day_number' => ['nullable', 'integer', 'min:1', 'max:365'],
             'items' => ['required', 'string', 'max:10000'],
         ], [
@@ -68,7 +68,7 @@ class ChallengeTaskController extends Controller
     {
         $this->ensureBelongsToChallenge($challenge, $task);
 
-        $validated = $this->validateTask($request);
+        $validated = $this->validateTask($request, $challenge);
 
         $task->update([
             'day_number' => $this->resolveDayNumber($request, $challenge),
@@ -126,10 +126,10 @@ class ChallengeTaskController extends Controller
     /**
      * @return array<string, mixed>
      */
-    private function validateTask(Request $request): array
+    private function validateTask(Request $request, Challenge $challenge): array
     {
         return $request->validate([
-            'date' => ['nullable', 'string', 'max:16', $this->jalaliDateRule()],
+            'date' => $this->dateRules($challenge),
             'day_number' => ['nullable', 'integer', 'min:1', 'max:365'],
             'title' => ['required', 'string', 'max:190'],
             'description' => ['nullable', 'string', 'max:2000'],

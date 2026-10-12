@@ -13,6 +13,16 @@ use Illuminate\Http\Request;
 trait ResolvesChallengeDay
 {
     /**
+     * قاعده‌های اعتبارسنجی فیلد تاریخ روز.
+     *
+     * @return array<int, mixed>
+     */
+    protected function dateRules(Challenge $challenge): array
+    {
+        return ['nullable', 'string', 'max:16', $this->jalaliDateRule(), $this->onOrAfterStartRule($challenge)];
+    }
+
+    /**
      * قاعده اعتبارسنجی تاریخ شمسی/میلادی ورودی فرم.
      */
     protected function jalaliDateRule(): Closure
@@ -21,6 +31,26 @@ trait ResolvesChallengeDay
             if (is_string($value) && trim($value) !== '' && Jalali::parseInput($value) === null) {
                 $fail('تاریخ را درست وارد کنید؛ مثل ۱۴۰۵/۰۷/۲۰.');
             }
+        };
+    }
+
+    /**
+     * روزهای چالش از تاریخ شروع شمرده می‌شوند؛ پس تاریخ قبل از شروع معنا ندارد.
+     */
+    protected function onOrAfterStartRule(Challenge $challenge): Closure
+    {
+        return function (string $attribute, mixed $value, Closure $fail) use ($challenge): void {
+            $date = Jalali::parseInput(is_string($value) ? $value : null);
+
+            if (! $date || $date->greaterThanOrEqualTo($challenge->dayOneDate())) {
+                return;
+            }
+
+            $start = $challenge->dayOneDate();
+
+            $fail('این تاریخ قبل از شروع چالش است؛ روز ۱ این چالش '.fa_date($start, true).' است. '
+                .'برای اضافه‌کردن کار یا پرسش به روزهای گذشته، یکی از روزهای فهرست «روزهای چالش» را انتخاب کن '
+                .'یا اگر می‌خواهی چالش از روزهای قبل شروع شود، تاریخ شروع را در «ویرایش مشخصات» عقب‌تر ببر.');
         };
     }
 

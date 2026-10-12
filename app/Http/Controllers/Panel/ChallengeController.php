@@ -55,7 +55,7 @@ class ChallengeController extends Controller
 
     public function show(Challenge $challenge): View
     {
-        $challenge->load(['tasks', 'tips', 'questions', 'attachments']);
+        $challenge->load(['tasks', 'tips', 'questions.answers.participant', 'attachments']);
 
         $participants = $challenge->participants()
             ->withCount(['completions as completed_count' => fn ($query) => $query->whereNotNull('completed_at')])
@@ -76,6 +76,15 @@ class ChallengeController extends Controller
             'defaultDay' => $defaultDay,
             'defaultDate' => Jalali::inputValue($challenge->dateForDay($defaultDay)),
             'defaultDayLabel' => $challenge->dayDateLabel($defaultDay),
+            'dayChoices' => $challenge->selectableDays()->map(fn (int $day) => [
+                'day' => $day,
+                'input' => Jalali::inputValue($challenge->dateForDay($day)),
+                'label' => fa_date($challenge->dateForDay($day)),
+                'is_past' => $challenge->dateForDay($day)->lt(today()),
+                'is_today' => $challenge->dateForDay($day)->isToday(),
+                'is_locked' => ! $challenge->isDayUnlocked($day),
+                'count' => $challenge->dayCounts($day)['total'],
+            ]),
         ]);
     }
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Panel;
 
 use App\Http\Controllers\Controller;
 use App\Models\Challenge;
+use App\Models\ChallengeQuestionAnswer;
 use App\Models\Participant;
 use App\Models\TaskCompletion;
 use Illuminate\Contracts\View\View;
@@ -33,7 +34,14 @@ class DashboardController extends Controller
             ->limit(8)
             ->get();
 
+        $recentAnswers = ChallengeQuestionAnswer::query()
+            ->with(['participant', 'question'])
+            ->latest('updated_at')
+            ->limit(6)
+            ->get();
+
         $stats = [
+            'answers' => ChallengeQuestionAnswer::query()->count(),
             'challenges' => $challenges->count(),
             'published' => $challenges->where('is_published', true)->count(),
             'participants' => $participants->count(),
@@ -49,6 +57,7 @@ class DashboardController extends Controller
             'participants' => $participants,
             'topParticipants' => $participants->where('completed_count', '>', 0)->take(5),
             'recent' => $recent,
+            'recentAnswers' => $recentAnswers,
             'stats' => $stats,
         ]);
     }

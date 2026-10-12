@@ -20,7 +20,7 @@ class ChallengeDayController extends Controller
         $type = $request->input('type') === 'question' ? 'question' : 'task';
 
         $request->validate([
-            'date' => ['nullable', 'string', 'max:16', $this->jalaliDateRule()],
+            'date' => $this->dateRules($challenge),
             'day_number' => ['nullable', 'integer', 'min:1', 'max:365'],
             'type' => ['nullable', 'in:task,question'],
             'title' => [$type === 'task' ? 'required' : 'nullable', 'string', 'max:190'],

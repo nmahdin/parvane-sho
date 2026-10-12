@@ -6,6 +6,7 @@
         'emerald' => 'bg-leaf/10 text-forest',
         'amber' => 'bg-gold/15 text-ink',
         'sky' => 'bg-jade/10 text-jade',
+        'rose' => 'bg-danger-soft text-danger',
     ];
 @endphp
 

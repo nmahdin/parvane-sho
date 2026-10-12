@@ -208,6 +208,7 @@ class ParticipantController extends Controller
             'challenge' => $challenge,
             'breakdown' => $breakdown,
             'questionCounts' => $challenge->questionsByDay()->map->count(),
+            'answers' => $participant->questionAnswers()->with('question')->latest('updated_at')->get(),
             'activity' => $activity,
             'recent' => $participant->recentCompletions(10),
             'times' => $participant->completionTimes(),

@@ -68,6 +68,16 @@ class Participant extends Model
     }
 
     /**
+     * پاسخ‌های این شرکت‌کننده به پرسش‌های چالش.
+     *
+     * @return HasMany<ChallengeQuestionAnswer, $this>
+     */
+    public function questionAnswers(): HasMany
+    {
+        return $this->hasMany(ChallengeQuestionAnswer::class);
+    }
+
+    /**
      * Ids of the tasks this participant has completed (cached per request).
      *
      * @return array<int, int>

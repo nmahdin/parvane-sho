@@ -154,6 +154,48 @@
                 </div>
             </section>
 
+            {{-- پاسخ‌های او به پرسش‌های چالش --}}
+            <section class="card">
+                <div class="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                        <h2 class="text-base">پاسخ‌های او به پرسش‌ها</h2>
+                        <p class="mt-1 text-xs leading-6 text-muted">
+                            هر پاسخی که برای پرسش‌های چالش نوشته است، اینجا همراه با تاریخ ثبت می‌شود.
+                        </p>
+                    </div>
+
+                    <span class="badge {{ $answers->isNotEmpty() ? 'bg-jade/10 text-jade ring-jade/30' : 'bg-cream text-muted ring-line' }}">
+                        {{ fa_num($answers->count()) }} پاسخ
+                    </span>
+                </div>
+
+                @if ($answers->isEmpty())
+                    <p class="mt-5 rounded-2xl bg-cream px-4 py-6 text-center text-xs text-muted">
+                        هنوز به هیچ پرسشی پاسخ نداده است.
+                    </p>
+                @else
+                    <div class="mt-5 space-y-3">
+                        @foreach ($answers as $answer)
+                            <div class="rounded-2xl bg-cream p-4">
+                                <div class="flex flex-wrap items-start justify-between gap-2">
+                                    <p class="text-sm font-medium text-ink">
+                                        {{ $answer->question->question ?? 'پرسش حذف‌شده' }}
+                                    </p>
+
+                                    <span class="shrink-0 text-[11px] text-muted/80">{{ fa_datetime($answer->updated_at) }}</span>
+                                </div>
+
+                                @if ($answer->question?->day_number)
+                                    <p class="mt-1 text-[11px] text-muted/80">{{ $answer->question->dayLabel() }}</p>
+                                @endif
+
+                                <p class="mt-2 whitespace-pre-line border-s-2 border-line ps-3 text-xs leading-6 text-ink/80">{{ $answer->body }}</p>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+            </section>
+
             {{-- نمودار فعالیت --}}
             <section class="card">
                 <h2 class="text-base">فعالیت ۱۴ روز اخیر</h2>

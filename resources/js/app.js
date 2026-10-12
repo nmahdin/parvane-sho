@@ -1,4 +1,4 @@
-import { initJalaliPickers } from './jalali-datepicker';
+import { initJalaliPickers, jalaliInputToDate, toPersianDigits } from './jalali-datepicker';
 
 /**
  * اسکریپت‌های سبک سایت: انتخابگر تاریخ شمسی، کپی لینک، منوی موبایل و تأیید حذف.
@@ -14,6 +14,7 @@ const app = {
         this.initEmojiPickers();
         this.initValueFillers();
         this.initDayTypeForms();
+        this.initDayPreviews();
         this.initJalaliDates();
     },
 
@@ -79,6 +80,44 @@ const app = {
 
             radios.forEach((radio) => radio.addEventListener('change', sync));
             sync();
+        });
+    },
+
+    /* نمایش زنده «روز چندم» زیر فیلد تاریخ: data-day-preview="#target" data-day-start="۱۴۰۵/۰۷/۱۸" */
+    initDayPreviews() {
+        document.querySelectorAll('input[data-day-preview]').forEach((input) => {
+            const target = document.querySelector(input.getAttribute('data-day-preview'));
+            const start = jalaliInputToDate(input.getAttribute('data-day-start'));
+            const startLabel = input.getAttribute('data-day-start-label') ?? '';
+
+            if (!target || !start) return;
+
+            const dayLength = 24 * 60 * 60 * 1000;
+
+            const update = () => {
+                const date = jalaliInputToDate(input.value);
+
+                if (!date) {
+                    target.textContent = 'تاریخ را انتخاب کن تا روزش را نشان بدهم.';
+                    target.classList.remove('text-danger');
+                    return;
+                }
+
+                const day = Math.round((date - start) / dayLength) + 1;
+
+                if (day < 1) {
+                    target.textContent = `این تاریخ قبل از شروع چالش است (روز ۱: ${startLabel}).`;
+                    target.classList.add('text-danger');
+                    return;
+                }
+
+                target.textContent = `این محتوا در روز ${toPersianDigits(day)} از چالش ثبت می‌شود.`;
+                target.classList.remove('text-danger');
+            };
+
+            input.addEventListener('input', update);
+            input.addEventListener('change', update);
+            update();
         });
     },
 

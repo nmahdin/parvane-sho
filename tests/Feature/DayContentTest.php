@@ -400,4 +400,64 @@ class DayContentTest extends TestCase
             ->assertSee('۱ کار · ۲ پرسش', false)
             ->assertSee('کل موارد (کار + پرسش)');
     }
+
+    public function test_content_can_be_added_for_a_past_day(): void
+    {
+        // چالش ۵ روز پیش شروع شده است؛ روزهای ۱ تا ۴ گذشته‌اند
+        $challenge = $this->makeChallenge(['starts_on' => today()->subDays(4)]);
+        $this->login();
+
+        $this->post(route('panel.days.store', $challenge), [
+            'type' => 'task',
+            'date' => $this->jalaliDateOfDay($challenge, 2),
+            'title' => 'کار روز گذشته',
+        ])->assertRedirect();
+
+        $this->post(route('panel.days.store', $challenge), [
+            'type' => 'question',
+            'date' => $this->jalaliDateOfDay($challenge, 3),
+            'question' => 'پرسش روز گذشته',
+        ])->assertRedirect();
+
+        $this->assertSame(2, ChallengeTask::query()->firstOrFail()->day_number);
+        $this->assertSame(3, ChallengeQuestion::query()->firstOrFail()->day_number);
+
+        // و در فهرست روزهای پنل، همه روزهای گذشته هستندهستند
+        $this->get(route('panel.challenges.show', $challenge))
+            ->assertOk()
+            ->assertSee('روزهای چالش')
+            ->assertSee('روز '.fa_num(1))
+            ->assertSee('روز '.fa_num(5));
+    }
+
+    public function test_a_date_before_the_challenge_start_is_rejected(): void
+    {
+        $challenge = $this->makeChallenge(['starts_on' => today()->subDays(2)]);
+        $this->login();
+
+        $beforeStart = Jalali::inputValue($challenge->dateForDay(1)->subDay());
+
+        $this->post(route('panel.days.store', $challenge), [
+            'type' => 'task',
+            'date' => $beforeStart,
+            'title' => 'کار قبل از شروع',
+        ])->assertSessionHasErrors('date');
+
+        $this->assertSame(0, ChallengeTask::query()->count());
+    }
+
+    public function test_selectable_days_cover_the_challenge_range(): void
+    {
+        $challenge = $this->makeChallenge([
+            'starts_on' => today()->subDays(2),
+            'ends_on' => today()->addDays(4),
+        ]);
+
+        $challenge->tasks()->create(['day_number' => 1, 'title' => 'کار روز ۱']);
+        $challenge->load('tasks');
+
+        // روزهای ۱ تا ۷ (شروع تا پایان) در فهرست انتخاب روزها هستند
+        $this->assertSame([1, 2, 3, 4, 5, 6, 7], $challenge->selectableDays()->all());
+        $this->assertSame(7, $challenge->plannedDaysCount());
+    }
 }

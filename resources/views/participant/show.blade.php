@@ -6,6 +6,10 @@
     $completed = $participant->completedCount();
     $total = $participant->totalTasks();
     $initial = mb_substr(trim($participant->name), 0, 1);
+    $openQuestions = $challenge->questions
+        ->where('is_published', true)
+        ->filter(fn ($question) => $challenge->isDayUnlocked($question->day_number));
+    $answeredQuestions = $myAnswers->only($openQuestions->pluck('id')->all())->count();
     $todayDay = $challenge->currentDayNumber();
     $todayCounts = $todayDay
         ? $challenge->dayCounts($todayDay)
@@ -57,7 +61,8 @@
                             <p class="mt-1.5 text-xs leading-6 text-muted">
                                 {{ fa_num($completed) }} از {{ fa_num($total) }} کار انجام شده است.
                                 @if ($challenge->questionsCount() > 0)
-                                    · {{ fa_num($challenge->questionsCount()) }} پرسش و پاسخ هم در این چالش هست.
+                                    · {{ fa_num($challenge->questionsCount()) }} پرسش و پاسخ هم در این چالش هست
+                                    <span class="text-forest">({{ fa_num($answeredQuestions) }} پاسخ داده‌ای)</span>.
                                 @endif
                                 @if ($challenge->currentDayNumber())
                                     امروز روز {{ fa_num($challenge->currentDayNumber()) }} این چالش است.
@@ -233,18 +238,62 @@
                                 <div class="rounded-2xl bg-cream/70 px-4 py-4">
                                     <p class="flex items-center gap-2 text-xs font-semibold text-forest">
                                         <span>❓</span> پرسش و پاسخ این روز
+                                        <span class="font-normal text-muted">— روی هر پرسش بزن و پاسخت را بنویس</span>
                                     </p>
 
                                     <div class="mt-3 space-y-2">
                                         @foreach ($dayQuestions as $question)
-                                            <details class="group overflow-hidden rounded-2xl bg-paper ring-1 ring-line">
+                                            @php($myAnswer = $myAnswers->get($question->id))
+
+                                            <details id="question-{{ $question->id }}" class="group overflow-hidden rounded-2xl bg-paper ring-1 ring-line">
                                                 <summary class="flex cursor-pointer items-start gap-3 px-4 py-3">
                                                     <span class="min-w-0 flex-1 text-sm font-medium text-ink">{{ $question->question }}</span>
+
+                                                    @if ($myAnswer)
+                                                        <span class="badge shrink-0 bg-leaf/10 text-forest ring-leaf/30">✓ پاسخ دادی</span>
+                                                    @endif
+
                                                     <span class="mt-0.5 text-muted/80 transition group-open:rotate-180">⌄</span>
                                                 </summary>
 
-                                                <div class="border-t border-line bg-cream/70 px-4 py-3 text-xs leading-7 text-ink/80">
-                                                    {!! $question->answer ? \App\Support\RichText::toHtml($question->answer) : 'پاسخ این پرسش هنوز ثبت نشده است.' !!}
+                                                <div class="space-y-4 border-t border-line bg-cream/70 px-4 py-4">
+                                                    @if ($question->answer)
+                                                        <div>
+                                                            <p class="text-[11px] font-semibold text-forest">پاسخ مسئول چالش</p>
+                                                            <div class="mt-1 text-xs leading-7 text-ink/80">
+                                                                {!! \App\Support\RichText::toHtml($question->answer) !!}
+                                                            </div>
+                                                        </div>
+                                                    @endif
+
+                                                    <form method="POST" action="{{ route('participant.questions.answer', [$participant, $question]) }}" class="space-y-3">
+                                                        @csrf
+
+                                                        <div>
+                                                            <label class="label" for="answer-{{ $question->id }}">پاسخ تو به این پرسش</label>
+                                                            <textarea id="answer-{{ $question->id }}" name="body" rows="3" class="input resize-y"
+                                                                      placeholder="هر چه دوست داری بنویس؛ فقط مسئول چالش می‌بیندش.">{{ old('body', $myAnswer?->body) }}</textarea>
+                                                            <p class="hint">
+                                                                @if ($myAnswer)
+                                                                    پاسخ ثبت شده است؛ می‌توانی ویرایشش کنی. اگر کامل پاکش کنی، پاسخت برداشته می‌شود.
+                                                                @else
+                                                                    پاسخت فقط برای مسئول چالش نمایش داده می‌شود و در صفحه عمومی سایت دیده نمی‌شود.
+                                                                @endif
+                                                            </p>
+                                                        </div>
+
+                                                        <div class="flex flex-wrap items-center gap-2">
+                                                            <button type="submit" class="btn btn-primary btn-sm">
+                                                                {{ $myAnswer ? 'ذخیره ویرایش' : 'ثبت پاسخ' }}
+                                                            </button>
+
+                                                            @if ($myAnswer)
+                                                                <span class="text-[11px] text-muted/80">
+                                                                    آخرین ویرایش: {{ fa_datetime($myAnswer->updated_at) }}
+                                                                </span>
+                                                            @endif
+                                                        </div>
+                                                    </form>
                                                 </div>
                                             </details>
                                         @endforeach
@@ -312,8 +361,10 @@
                             <p class="mt-1 text-lg font-bold text-ink">{{ fa_num($completed) }}</p>
                         </div>
                         <div class="rounded-2xl bg-cream px-3 py-3">
-                            <p class="text-[11px] text-muted">پرسش و پاسخ‌ها</p>
-                            <p class="mt-1 text-lg font-bold text-ink">{{ fa_num($challenge->questionsCount()) }}</p>
+                            <p class="text-[11px] text-muted">پرسش پاسخ‌داده</p>
+                            <p class="mt-1 text-lg font-bold text-ink">
+                                {{ fa_num($answeredQuestions) }}<span class="text-sm font-normal text-muted"> / {{ fa_num($openQuestions->count()) }}</span>
+                            </p>
                         </div>
                         <div class="rounded-2xl bg-cream px-3 py-3">
                             <p class="text-[11px] text-muted">روز باقی‌مانده</p>

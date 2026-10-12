@@ -423,6 +423,48 @@ class Challenge extends Model
     }
 
     /**
+     * شماره روز امروز بر اساس تاریخ شروع چالش (بدون توجه به این که محتوا دارد یا نه).
+     */
+    public function todayDayNumber(): ?int
+    {
+        if (! $this->hasStarted()) {
+            return null;
+        }
+
+        return max(1, (int) $this->dayOneDate()->diffInDays(Carbon::today()->startOfDay(), false) + 1);
+    }
+
+    /**
+     * تعداد روزهایی که چالش تا تاریخ پایانش دارد.
+     */
+    public function plannedDaysCount(): int
+    {
+        if (! $this->ends_on) {
+            return 0;
+        }
+
+        return max(0, (int) $this->dayOneDate()->diffInDays($this->ends_on->copy()->startOfDay(), false) + 1);
+    }
+
+    /**
+     * روزهایی که در پنل برای انتخاب سریع نمایش داده می‌شوند: از روز ۱ تا
+     * آخرین روزی که محتوا دارد، یا تاریخ پایان چالش است، یا امروز چالش است.
+     *
+     * @return Collection<int, int>
+     */
+    public function selectableDays(): Collection
+    {
+        $last = max(
+            1,
+            (int) ($this->contentDayNumbers()->last() ?? 0),
+            (int) ($this->todayDayNumber() ?? 0),
+            $this->plannedDaysCount()
+        );
+
+        return collect(range(1, min(365, $last)));
+    }
+
+    /**
      * برچسب تاریخ یک روز، مثل «سه‌شنبه، ۲۱ مهر ۱۴۰۵».
      */
     public function dayDateLabel(?int $dayNumber): ?string

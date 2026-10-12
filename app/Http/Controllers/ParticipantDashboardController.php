@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ChallengeQuestion;
 use App\Models\ChallengeTask;
 use App\Models\Participant;
 use Illuminate\Contracts\View\View;
@@ -20,6 +21,7 @@ class ParticipantDashboardController extends Controller
             'challenge.tips',
             'challenge.questions',
             'challenge.attachments',
+            'questionAnswers',
         ]);
 
         $participant->markSeen();
@@ -27,7 +29,61 @@ class ParticipantDashboardController extends Controller
         return view('participant.show', [
             'participant' => $participant,
             'challenge' => $participant->challenge,
+            'myAnswers' => $participant->questionAnswers->keyBy('challenge_question_id'),
         ]);
+    }
+
+    /**
+     * ثبت یا ویرایش پاسخ شرکت‌کننده به یک پرسش چالش.
+     * پاسخ خالی یعنی برداشتن پاسخ قبلی.
+     */
+    public function answerQuestion(Request $request, Participant $participant, ChallengeQuestion $question): RedirectResponse
+    {
+        $challenge = $participant->challenge;
+
+        // پرسش باید از چالش همین شرکت‌کننده و منتشرشده باشد
+        abort_unless((int) $question->challenge_id === (int) $challenge->id, 404);
+        abort_unless($question->is_published, 404);
+
+        // پرسش‌های روزهای قفل‌شده تا تاریخ خودشان پنهان و پاسخ‌ندادنی هستند
+        if (! $challenge->isDayUnlocked($question->day_number)) {
+            return redirect()
+                ->to(route('participant.show', $participant).'#question-'.$question->id)
+                ->with('error', 'این پرسش هنوز باز نشده است؛ از '
+                    .($challenge->unlockLabel($question->day_number) ?? 'تاریخ باز شدنش')
+                    .' می‌توانی پاسخ بدهی.');
+        }
+
+        $validated = $request->validate([
+            'body' => ['nullable', 'string', 'max:4000'],
+        ], [], ['body' => 'پاسخ']);
+
+        $body = trim((string) ($validated['body'] ?? ''));
+
+        $existing = $participant->questionAnswers()
+            ->where('challenge_question_id', $question->id)
+            ->first();
+
+        if ($body === '') {
+            $existing?->delete();
+
+            return redirect()
+                ->to(route('participant.show', $participant).'#question-'.$question->id)
+                ->with('status', 'پاسخت برداشته شد.');
+        }
+
+        if ($existing) {
+            $existing->update(['body' => $body]);
+        } else {
+            $participant->questionAnswers()->create([
+                'challenge_question_id' => $question->id,
+                'body' => $body,
+            ]);
+        }
+
+        return redirect()
+            ->to(route('participant.show', $participant).'#question-'.$question->id)
+            ->with('status', 'پاسخت ثبت شد. 🌱');
     }
 
     /**

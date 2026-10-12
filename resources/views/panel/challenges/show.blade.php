@@ -91,7 +91,8 @@
             <div>
                 <h2 class="text-base">روزها: کارها و پرسش‌ها</h2>
                 <p class="mt-1 text-xs leading-6 text-muted">
-                    برای هر کار یا پرسش، <span class="font-semibold text-ink">تاریخ همان روز</span> را انتخاب کن (روز ۱ = تاریخ شروع چالش).
+                    برای هر کار یا پرسش، <span class="font-semibold text-ink">تاریخ همان روز</span> را انتخاب کن (روز ۱ = تاریخ شروع چالش)؛
+                    روزهای گذشته هم در فهرست روزها هستند و بعداً هم می‌توانی برایشان کار یا پرسش اضافه کنی.
                     کارها و پرسش‌های هر روز با هم داخل کارت همان روز می‌نشینند و شرکت‌کننده‌ها هر روز فقط محتوای همان روز را می‌بینند.
                 </p>
 
@@ -114,19 +115,37 @@
                         <div>
                             <label class="label" for="day-date">تاریخ روز</label>
                             <input id="day-date" name="date" type="text" value="{{ old('date', $defaultDate) }}" dir="ltr"
-                                   data-jalali-picker autocomplete="off" class="input text-center">
-                            <p class="hint">روز خودکار حساب می‌شود؛ پیشنهاد: {{ $defaultDayLabel }} (روز {{ fa_num($defaultDay) }})</p>
+                                   data-jalali-picker autocomplete="off" class="input text-center"
+                                   data-day-preview="#day-preview"
+                                   data-day-start="{{ \App\Support\Jalali::inputValue($challenge->dayOneDate()) }}"
+                                   data-day-start-label="{{ fa_date($challenge->dayOneDate(), true) }}">
+
+                            <p class="hint" id="day-preview">روز خودکار حساب می‌شود.</p>
+                            <p class="hint">پیشنهاد: {{ $defaultDayLabel }} (روز {{ fa_num($defaultDay) }})</p>
                         </div>
 
                         <div>
-                            <span class="label">روزهای ساخته‌شده</span>
-                            <div class="flex flex-wrap gap-1.5">
-                                @foreach ($challenge->contentDayNumbers() as $dayChip)
+                            <span class="label">روزهای چالش — روی هر روز بزن تا در فیلد تاریخ بیاید</span>
+
+                            <div class="flex max-h-44 flex-wrap gap-1.5 overflow-y-auto rounded-2xl bg-paper p-2 ring-1 ring-line">
+                                @foreach ($dayChoices as $choice)
                                     <button type="button"
                                             data-fill-target="#day-date"
-                                            data-fill-value="{{ \App\Support\Jalali::inputValue($challenge->dateForDay((int) $dayChip)) }}"
-                                            class="rounded-xl bg-paper px-2.5 py-1.5 text-[11px] text-ink/80 ring-1 ring-line transition hover:bg-gold/15">
-                                        روز {{ fa_num($dayChip) }} · {{ fa_date($challenge->dateForDay((int) $dayChip)) }}
+                                            data-fill-value="{{ $choice['input'] }}"
+                                            class="rounded-xl px-2.5 py-1.5 text-[11px] ring-1 transition
+                                                {{ $choice['is_today']
+                                                    ? 'bg-jade/15 font-semibold text-jade ring-jade/40'
+                                                    : ($choice['is_past'] ? 'bg-cream text-ink/80 ring-line hover:bg-gold/15' : 'bg-paper text-ink/80 ring-line hover:bg-gold/15') }}">
+                                        روز {{ fa_num($choice['day']) }}
+                                        · {{ $choice['label'] }}
+                                        @if ($choice['is_today'])
+                                            · امروز
+                                        @elseif ($choice['is_locked'])
+                                            · 🔒
+                                        @endif
+                                        @if ($choice['count'] > 0)
+                                            · {{ fa_num($choice['count']) }} مورد
+                                        @endif
                                     </button>
                                 @endforeach
 
@@ -135,6 +154,8 @@
                                     بدون روز مشخص
                                 </button>
                             </div>
+
+                            <p class="hint">روزهای گذشته هم در همین فهرست‌اند؛ کافی است روی روز مورد نظر بزنی. اگر تاریخی قبل از شروع چالش بدهی، پیام راهنما می‌بینی.</p>
                         </div>
                     </div>
 
@@ -181,6 +202,7 @@
                             </div>
 
                             <label class="flex items-center gap-2 pb-3 text-xs text-ink/80">
+                                <input type="hidden" name="is_published" value="0">
                                 <input type="checkbox" name="is_published" value="1" checked class="size-4 rounded border-line text-brand-600 focus:ring-brand-500">
                                 نمایش در صفحه چالش
                             </label>
@@ -313,6 +335,9 @@
                                                 <span class="badge {{ $question->is_published ? 'bg-leaf/10 text-forest ring-leaf/30' : 'bg-line text-ink/80 ring-line' }}">
                                                     {{ $question->is_published ? 'نمایش داده می‌شود' : 'پنهان' }}
                                                 </span>
+                                                <span class="badge {{ $question->answers->isNotEmpty() ? 'bg-jade/10 text-jade ring-jade/30' : 'bg-cream text-muted ring-line' }}">
+                                                    {{ fa_num($question->answers->count()) }} پاسخ شرکت‌کننده‌ها
+                                                </span>
                                             </div>
 
                                             @if ($question->asked_by)
@@ -322,6 +347,35 @@
                                             <p class="mt-2 border-s-2 border-line ps-3 text-xs leading-6 text-ink/80">
                                                 {!! $question->answer ? \App\Support\RichText::toHtml($question->answer) : '<span class="text-muted/80">بدون پاسخ</span>' !!}
                                             </p>
+
+                                            <details class="mt-3">
+                                                <summary class="cursor-pointer text-xs font-medium text-brand-700">
+                                                    پاسخ‌های شرکت‌کننده‌ها ({{ fa_num($question->answers->count()) }})
+                                                </summary>
+
+                                                @if ($question->answers->isEmpty())
+                                                    <p class="mt-3 rounded-2xl bg-paper px-3 py-4 text-center text-[11px] text-muted ring-1 ring-line">
+                                                        هنوز کسی به این پرسش پاسخ نداده است.
+                                                    </p>
+                                                @else
+                                                    <ul class="mt-3 space-y-2">
+                                                        @foreach ($question->answers as $answerRow)
+                                                            <li class="rounded-2xl bg-paper p-3 ring-1 ring-line">
+                                                                <div class="flex flex-wrap items-center justify-between gap-2">
+                                                                    <a href="{{ route('panel.participants.show', $answerRow->participant) }}"
+                                                                       class="text-xs font-semibold text-forest hover:text-brand-700">
+                                                                        {{ $answerRow->participant->name }}
+                                                                    </a>
+
+                                                                    <span class="text-[11px] text-muted/80">{{ fa_datetime($answerRow->updated_at) }}</span>
+                                                                </div>
+
+                                                                <p class="mt-1.5 whitespace-pre-line text-xs leading-6 text-ink/80">{{ $answerRow->body }}</p>
+                                                            </li>
+                                                        @endforeach
+                                                    </ul>
+                                                @endif
+                                            </details>
                                         </div>
 
                                         <div class="flex items-center gap-1">
@@ -375,6 +429,7 @@
                                                     </div>
 
                                                     <label class="flex items-center gap-2 text-xs text-ink/80">
+                                                        <input type="hidden" name="is_published" value="0">
                                                         <input type="checkbox" name="is_published" value="1" @checked($question->is_published) class="size-4 rounded border-line text-brand-600 focus:ring-brand-500">
                                                         نمایش در صفحه چالش
                                                     </label>

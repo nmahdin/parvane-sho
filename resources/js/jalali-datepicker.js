@@ -255,6 +255,24 @@ class JalaliDatePicker {
     }
 }
 
+/** تبدیل مقدار یک input تاریخ (شمسی یا میلادی) به Date میلادی؛ نامعتبر => null */
+export function jalaliInputToDate(raw) {
+    const parts = parseValue(raw);
+
+    if (!parts) {
+        return null;
+    }
+
+    const { gy, gm, gd } = toGregorian(parts.jy, parts.jm, parts.jd);
+
+    return new Date(gy, gm - 1, gd);
+}
+
+/** ارقام لاتین را فارسی می‌کند (۰ تا ۹) */
+export function toPersianDigits(value) {
+    return toFa(value);
+}
+
 export function initJalaliPickers(root = document) {
     root.querySelectorAll('input[data-jalali-picker]').forEach((input) => {
         if (!input.dataset.pickerReady) {

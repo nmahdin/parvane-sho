@@ -10,11 +10,12 @@
 
 @section('content')
     {{-- آمار کلی --}}
-    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
         <x-stat-card label="چالش‌ها" :value="fa_num($stats['challenges'])" :hint="fa_num($stats['published']).' چالش منتشرشده'" icon="🦋" />
         <x-stat-card label="شرکت‌کننده‌ها" :value="fa_num($stats['participants'])" hint="در همه چالش‌ها" icon="👥" tone="sky" />
         <x-stat-card label="تیک‌های امروز" :value="fa_num($stats['today'])" hint="{{ fa_date(now(), true) }}" icon="✅" tone="emerald" />
         <x-stat-card label="کارهای انجام‌شده" :value="fa_num($stats['done'])" hint="در همه چالش‌ها" icon="🎯" tone="amber" />
+        <x-stat-card label="پاسخ پرسش‌ها" :value="fa_num($stats['answers'])" hint="نوشته‌شده توسط شرکت‌کننده‌ها" icon="❓" tone="rose" />
     </div>
 
     {{-- چالش‌ها --}}
@@ -192,4 +193,45 @@
             @endif
         </section>
     </div>
+
+    {{-- آخرین پاسخ‌های شرکت‌کننده‌ها --}}
+    <section class="card">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <div>
+                <h2 class="text-base">آخرین پاسخ‌های شرکت‌کننده‌ها</h2>
+                <p class="mt-1 text-xs text-muted">پاسخ‌هایی که شرکت‌کننده‌ها برای پرسش‌های چالش‌ها نوشته‌اند؛ برای خواندن همه، سراغ صفحه همان چالش برو.</p>
+            </div>
+
+            <span class="badge {{ $stats['answers'] > 0 ? 'bg-jade/10 text-jade ring-jade/30' : 'bg-cream text-muted ring-line' }}">
+                {{ fa_num($stats['answers']) }} پاسخ
+            </span>
+        </div>
+
+        @if ($recentAnswers->isEmpty())
+            <p class="mt-5 rounded-2xl bg-cream px-4 py-6 text-center text-xs text-muted">هنوز کسی به پرسشی پاسخ نداده است.</p>
+        @else
+            <div class="mt-5 grid gap-3 lg:grid-cols-2">
+                @foreach ($recentAnswers as $answer)
+                    <div class="rounded-2xl bg-cream p-4">
+                        <div class="flex flex-wrap items-start justify-between gap-2">
+                            <a href="{{ route('panel.participants.show', $answer->participant) }}" class="text-sm font-semibold text-forest hover:text-brand-700">
+                                {{ $answer->participant->name }}
+                            </a>
+
+                            <span class="shrink-0 text-[11px] text-muted/80">{{ fa_datetime($answer->updated_at) }}</span>
+                        </div>
+
+                        <p class="mt-1.5 text-xs font-medium text-ink">{{ $answer->question->question ?? 'پرسش حذف‌شده' }}</p>
+                        <p class="mt-1.5 line-clamp-3 whitespace-pre-line text-xs leading-6 text-ink/80">{{ $answer->body }}</p>
+
+                        @if ($answer->question?->challenge)
+                            <a href="{{ route('panel.challenges.show', $answer->question->challenge) }}#tasks" class="mt-2 inline-block text-[11px] text-brand-700 hover:underline">
+                                {{ $answer->question->challenge->title }} — دیدن پرسش‌ها و پاسخ‌ها
+                            </a>
+                        @endif
+                    </div>
+                @endforeach
+            </div>
+        @endif
+    </section>
 @endsection
