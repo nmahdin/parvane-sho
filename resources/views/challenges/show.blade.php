@@ -117,7 +117,7 @@
                 <div class="flex items-center justify-between">
                     <div>
                         <h2 class="text-lg">روزها، کارها و پرسش‌ها</h2>
-                        <p class="mt-1 text-xs leading-6 text-muted">کارها و پرسش‌های هر روز کنار هم، داخل کارت همان روز آمده‌اند. پرسش‌ها همه‌جا نمایش داده می‌شوند؛ پاسخ دادنشان فقط از داشبورد شرکت‌کننده‌ها ممکن است.</p>
+                        <p class="mt-1 text-xs leading-6 text-muted">داخل کارت هر روز، اول نکته‌های همان روز، بعد پرسش‌ها و بعد چالش عملی آن روز آمده است. پاسخ دادن به پرسش‌ها فقط از داشبورد اختصاصی شرکت‌کننده‌ها ممکن است.</p>
                     </div>
 
                     <span class="shrink-0 text-xs text-muted">
@@ -174,14 +174,14 @@
 
                             @unless ($locked)
                                 <span class="text-xs text-muted">
-                                    {{ fa_num($tasks->count()) }} کار@if ($dayQuestions->isNotEmpty()) · {{ fa_num($dayQuestions->count()) }} پرسش @endif
+                                    @if ($dayQuestions->isNotEmpty()){{ fa_num($dayQuestions->count()) }} پرسش · @endif{{ fa_num($tasks->count()) }} کار
                                 </span>
                             @endunless
                         </div>
 
                         @if ($locked)
                             <div class="locked-panel m-4">
-                                <p class="text-sm font-medium text-forest">کارها و پرسش‌های این روز هنوز آزاد نشده‌اند</p>
+                                <p class="text-sm font-medium text-forest">پرسش‌ها و چالش عملی این روز هنوز آزاد نشده‌اند</p>
                                 <p class="mt-1 text-xs leading-6 text-muted">
                                     روزهای چالش یکی‌یکی باز می‌شوند؛ برای دیدن محتوای این روز
                                     @if ($unlockLabel)
@@ -198,19 +198,6 @@
                                 <div class="border-b border-line/60 bg-cream/60 px-4 py-4 text-xs leading-7 text-ink/85 sm:px-6">
                                     {!! \App\Support\RichText::toHtml($challenge->dayDescription($dayNumber)) !!}
                                 </div>
-                            @endif
-
-                            @if ($tasks->isNotEmpty())
-                                <ul class="divide-y divide-line">
-                                    @foreach ($tasks as $task)
-                                        <li class="px-4 py-3.5 sm:px-6 sm:py-4">
-                                            <p class="text-sm font-medium text-ink">{{ $task->title }}</p>
-                                            @if ($task->description)
-                                                <p class="mt-1.5 text-xs leading-6 text-muted">{{ $task->description }}</p>
-                                            @endif
-                                        </li>
-                                    @endforeach
-                                </ul>
                             @endif
 
                             @if ($dayQuestions->isNotEmpty())
@@ -241,6 +228,31 @@
                                                             </div>
                                                         @endif
                                                     </div>
+                                                </div>
+                                            </li>
+                                        @endforeach
+                                    </ul>
+                                </div>
+                            @endif
+                            @if ($tasks->isNotEmpty())
+                                <div class="border-t border-line px-4 py-5 sm:px-6">
+                                    <p class="flex flex-wrap items-center gap-2 text-xs font-semibold text-forest">
+                                        <span>🎯</span> {{ $challenge->tasksHeading($dayNumber) }}
+                                        <span class="font-normal text-muted">— برای تیک زدن هر کار، با کد شخصی خودت وارد داشبوردت شو.</span>
+                                    </p>
+
+                                    <ul class="mt-3 space-y-3">
+                                        @foreach ($tasks as $task)
+                                            <li class="flex items-start gap-3 rounded-2xl bg-cream/60 p-4 ring-1 ring-line">
+                                                <span class="mt-0.5 grid size-6 shrink-0 place-items-center rounded-xl bg-gold/25 text-[11px] font-bold text-ink">
+                                                    {{ fa_num($loop->iteration) }}
+                                                </span>
+
+                                                <div class="min-w-0 flex-1">
+                                                    <p class="text-sm font-medium text-ink">{{ $task->title }}</p>
+                                                    @if ($task->description)
+                                                        <p class="mt-1.5 text-xs leading-6 text-muted">{{ $task->description }}</p>
+                                                    @endif
                                                 </div>
                                             </li>
                                         @endforeach

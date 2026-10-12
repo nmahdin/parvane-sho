@@ -474,6 +474,77 @@ class DayContentTest extends TestCase
         );
     }
 
+    public function test_practical_heading_is_today_for_the_current_day_and_numbered_for_the_rest(): void
+    {
+        $challenge = $this->makeChallenge();
+
+        $this->assertSame('چالش عملی امروز', $challenge->tasksHeading(1));
+        $this->assertSame('چالش عملی روز ۲', $challenge->tasksHeading(2));
+        $this->assertSame('چالش عملی', $challenge->tasksHeading(0));
+        $this->assertSame('چالش عملی', $challenge->tasksHeading(null));
+
+        // روزهای گذشته «چالش عملی امروز» نمی‌گیرند
+        $past = $this->makeChallenge([
+            'slug' => 'day-content-past',
+            'starts_on' => today()->subDays(4),
+        ]);
+
+        $this->assertSame('چالش عملی روز ۱', $past->tasksHeading(1));
+        $this->assertSame('چالش عملی امروز', $past->tasksHeading(5));
+    }
+
+    public function test_public_challenge_page_puts_questions_first_and_numbers_the_practical_tasks(): void
+    {
+        $challenge = $this->makeChallenge(['daily_release' => false]);
+
+        $challenge->tasks()->create(['day_number' => 1, 'title' => 'کار اول روز']);
+        $challenge->tasks()->create(['day_number' => 1, 'title' => 'کار دوم روز']);
+        $challenge->questions()->create(['day_number' => 1, 'question' => 'پرسش روز اول', 'is_published' => true]);
+
+        $html = $this->get(route('challenges.show', $challenge))->assertOk()->getContent();
+        $box = $this->dayBoxHtml($html, 1);
+
+        // اول پرسش‌ها، بعد چالش عملی
+        $this->assertLessThan(
+            strpos($box, 'کار اول روز'),
+            strpos($box, 'پرسش روز اول'),
+            'در صفحه چالش اول باید پرسش‌ها بیایند و بعد چالش عملی.'
+        );
+
+        // بالای کارها «چالش عملی امروز» نوشته شده است
+        $this->assertStringContainsString('چالش عملی امروز', $box);
+        $this->assertLessThan(strpos($box, 'کار اول روز'), strpos($box, 'چالش عملی امروز'));
+
+        // هر کار در صفحه عمومی یک شماره دارد (برای کسانی که با کد وارد نشده‌اند)
+        preg_match_all('/bg-gold\/25[^>]*>\s*([۰-۹]+)\s*</u', $box, $numbers);
+
+        $this->assertSame(['۱', '۲'], $numbers[1], 'کارهای صفحه عمومی باید شماره‌دار باشند.');
+        $this->assertStringNotContainsString('✓', $box, 'صفحه عمومی نباید تیک کار داشته باشد.');
+    }
+
+    public function test_participant_dashboard_puts_questions_first_and_keeps_the_practical_heading(): void
+    {
+        $challenge = $this->makeChallenge(['daily_release' => false]);
+
+        $challenge->tasks()->create(['day_number' => 1, 'title' => 'کار روز اول']);
+        $challenge->questions()->create(['day_number' => 1, 'question' => 'پرسش روز اول', 'is_published' => true]);
+
+        $participant = $challenge->participants()->create(['name' => 'زهرا محمدی']);
+
+        $html = $this->get(route('participant.show', $participant))->assertOk()->getContent();
+        $box = $this->dayBoxHtml($html, 1);
+
+        $this->assertLessThan(
+            strpos($box, 'کار روز اول'),
+            strpos($box, 'پرسش روز اول'),
+            'در داشبورد شرکت‌کننده هم اول پرسش‌ها و بعد چالش عملی می‌آید.'
+        );
+
+        $this->assertStringContainsString('چالش عملی امروز', $box);
+        // شرکت‌کننده تیک زدن دارد، نه شماره
+        $this->assertStringContainsString('✓', $box);
+    }
+
     public function test_day_cards_count_tasks_and_questions_together(): void
     {
         $challenge = $this->makeChallenge(['daily_release' => false]);
@@ -482,9 +553,10 @@ class DayContentTest extends TestCase
         $challenge->questions()->create(['day_number' => 1, 'question' => 'پرسش تنها', 'is_published' => true]);
         $challenge->questions()->create(['day_number' => 1, 'question' => 'پرسش دوم', 'is_published' => true]);
 
+        // در صفحه عمومی ترتیب «پرسش‌ها و بعد چالش عملی» است، پس شمارش هم اول پرسش می‌آید
         $this->get(route('challenges.show', $challenge))
             ->assertOk()
-            ->assertSee('۱ کار · ۲ پرسش', false);
+            ->assertSee('۲ پرسش · ۱ کار', false);
 
         $this->login();
 

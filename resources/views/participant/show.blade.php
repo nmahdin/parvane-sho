@@ -297,7 +297,7 @@
                                 <p class="mt-1 text-xs leading-6 text-muted">
                                     {{-- کارها و پرسش‌های این روز روزانه آزاد می‌شوند؛ نمی‌توانی از قبل ببینی‌شان --}}
                                     @if ($unlockLabel)
-                                        از {{ $unlockLabel }} می‌توانی کارها و پرسش‌های این روز را ببینی.
+                                        از {{ $unlockLabel }} می‌توانی پرسش‌ها و چالش عملی این روز را ببینی.
                                     @else
                                         این روز به‌زودی باز می‌شود.
                                     @endif
@@ -313,34 +313,6 @@
                         @endif
 
                         <div class="space-y-2 p-3">
-                            @foreach ($tasks as $task)
-                                @php($done = $participant->isTaskDone($task))
-
-                                <form id="task-{{ $task->id }}" method="POST" action="{{ route('participant.tasks.toggle', [$participant, $task]) }}">
-                                    @csrf
-
-                                    <button type="submit"
-                                            class="flex w-full items-start gap-3 rounded-2xl px-3 py-3 text-right transition {{ $done ? 'bg-leaf/10 hover:bg-leaf/10' : 'bg-cream hover:bg-line/60' }}"
-                                            aria-pressed="{{ $done ? 'true' : 'false' }}">
-                                        <span class="mt-0.5 grid size-6 shrink-0 place-items-center rounded-lg text-xs font-bold transition {{ $done ? 'bg-leaf text-white' : 'bg-paper text-transparent ring-1 ring-line' }}">
-                                            ✓
-                                        </span>
-
-                                        <span class="min-w-0">
-                                            <span class="block text-sm {{ $done ? 'text-muted/80 line-through' : 'font-medium text-ink' }}">
-                                                {{ $task->title }}
-                                            </span>
-
-                                            @if ($task->description)
-                                                <span class="mt-1 block text-xs leading-6 {{ $done ? 'text-muted/80' : 'text-muted' }}">
-                                                    {{ $task->description }}
-                                                </span>
-                                            @endif
-                                        </span>
-                                    </button>
-                                </form>
-                            @endforeach
-
                             @if ($dayQuestions->isNotEmpty())
                                 <div class="rounded-2xl bg-cream/70 px-4 py-4">
                                     <p class="flex items-center gap-2 text-xs font-semibold text-forest">
@@ -407,6 +379,39 @@
                                     </div>
                                 </div>
                             @endif
+
+                            @if ($tasks->isNotEmpty())
+                                <p class="flex flex-wrap items-center gap-2 px-1 pt-2 text-xs font-semibold text-forest">
+                                    <span>🎯</span> {{ $challenge->tasksHeading($dayNumber) }}
+                                </p>
+                            @endif
+                            @foreach ($tasks as $task)
+                                @php($done = $participant->isTaskDone($task))
+
+                                <form id="task-{{ $task->id }}" method="POST" action="{{ route('participant.tasks.toggle', [$participant, $task]) }}">
+                                    @csrf
+
+                                    <button type="submit"
+                                            class="flex w-full items-start gap-3 rounded-2xl px-3 py-3 text-right transition {{ $done ? 'bg-leaf/10 hover:bg-leaf/10' : 'bg-cream hover:bg-line/60' }}"
+                                            aria-pressed="{{ $done ? 'true' : 'false' }}">
+                                        <span class="mt-0.5 grid size-6 shrink-0 place-items-center rounded-lg text-xs font-bold transition {{ $done ? 'bg-leaf text-white' : 'bg-paper text-transparent ring-1 ring-line' }}">
+                                            ✓
+                                        </span>
+
+                                        <span class="min-w-0">
+                                            <span class="block text-sm {{ $done ? 'text-muted/80 line-through' : 'font-medium text-ink' }}">
+                                                {{ $task->title }}
+                                            </span>
+
+                                            @if ($task->description)
+                                                <span class="mt-1 block text-xs leading-6 {{ $done ? 'text-muted/80' : 'text-muted' }}">
+                                                    {{ $task->description }}
+                                                </span>
+                                            @endif
+                                        </span>
+                                    </button>
+                                </form>
+                            @endforeach
 
                             @if ($tasks->isEmpty() && $dayQuestions->isEmpty() && $challenge->tipsForDay($dayNumber)->isEmpty())
                                 <p class="rounded-2xl bg-cream px-4 py-5 text-center text-xs text-muted">محتوای این روز به‌زودی اضافه می‌شود.</p>

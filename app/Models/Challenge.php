@@ -197,6 +197,23 @@ class Challenge extends Model
     }
 
     /**
+     * عنوانی که بالای کارهای یک روز در سایت نوشته می‌شود: برای روز جاری
+     * «چالش عملی امروز» و برای بقیه روزها «چالش عملی روز N».
+     */
+    public function tasksHeading(?int $dayNumber): string
+    {
+        if (! $dayNumber || $dayNumber < 1) {
+            return 'چالش عملی';
+        }
+
+        if ($this->currentDayNumber() === $dayNumber) {
+            return 'چالش عملی امروز';
+        }
+
+        return 'چالش عملی روز '.fa_num($dayNumber);
+    }
+
+    /**
      * نکته‌های یک روز مشخص. روز `null` یا ۰ یعنی نکته‌های کلی چالش.
      *
      * @return Collection<int, ChallengeTip>
