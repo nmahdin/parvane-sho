@@ -87,6 +87,7 @@ class ChallengeExport
         return [
             'خلاصه چالش' => self::summarySheet($challenge, $participants),
             'شرکت‌کننده‌ها' => self::participantsSheet($challenge, $participants),
+            'کارها و پاسخ‌های هر نفر' => self::perParticipantSheet($challenge, $participants),
             'وضعیت روز به روز' => self::daysSheet($challenge, $participants),
             'کارها و پرسش‌ها' => self::itemsSheet($challenge, $participants),
             'نکته‌ها' => self::tipsSheet($challenge),
@@ -173,6 +174,84 @@ class ChallengeExport
 
         if ($participants->isEmpty()) {
             $rows[] = ['هنوز کسی در این چالش نیست.'];
+        }
+
+        return $rows;
+    }
+
+    /**
+     * کارها و پاسخ‌های هر نفر: برای هر شرکت‌کننده، تک‌تک کارها و پرسش‌های چالش
+     * با وضعیت انجام‌شده/انجام‌نشده، زمان انجام و متن پاسخ خودش به پرسش‌ها.
+     *
+     * @param  Collection<int, Participant>  $participants
+     * @return list<list<mixed>>
+     */
+    private static function perParticipantSheet(Challenge $challenge, Collection $participants): array
+    {
+        $rows = [[
+            'نام شرکت‌کننده',
+            'کار یا پرسش',
+            'روز',
+            'تاریخ روز',
+            'عنوان یا متن',
+            'وضعیت',
+            'زمان انجام یا پاسخ',
+            'پاسخ خودش',
+        ]];
+
+        if ($participants->isEmpty()) {
+            $rows[] = ['هنوز کسی در این چالش نیست.', '—', '—', '—', '—', '—', '—', '—'];
+
+            return $rows;
+        }
+
+        $items = self::dayItems($challenge);
+
+        foreach ($participants as $participant) {
+            if ($items === []) {
+                $rows[] = [$participant->name, '—', '—', '—', 'هنوز کاری یا پرسشی ثبت نشده است.', '—', '—', '—'];
+
+                continue;
+            }
+
+            $completions = $participant->completions->keyBy('challenge_task_id');
+            $answers = $participant->questionAnswers->keyBy('challenge_question_id');
+
+            foreach ($items as $item) {
+                $day = $item['day'] ? (int) $item['day'] : null;
+
+                if ($item['type'] === 'task') {
+                    $completion = $completions->get($item['model']->getKey());
+                    $doneAt = $completion?->completed_at;
+
+                    $rows[] = [
+                        $participant->name,
+                        'کار',
+                        self::dayLabel($challenge, $day),
+                        self::dayDate($challenge, $day),
+                        $item['model']->title,
+                        $doneAt ? '✓ انجام داده' : 'انجام نشده',
+                        $doneAt ? fa_datetime($doneAt) : '—',
+                        '—',
+                    ];
+
+                    continue;
+                }
+
+                $answer = $answers->get($item['model']->getKey());
+                $body = $answer ? trim((string) $answer->body) : '';
+
+                $rows[] = [
+                    $participant->name,
+                    'پرسش',
+                    self::dayLabel($challenge, $day),
+                    self::dayDate($challenge, $day),
+                    $item['model']->question,
+                    $body !== '' ? '✓ پاسخ داده' : 'جواب نداده است',
+                    $body !== '' ? fa_datetime($answer->updated_at) : '—',
+                    $body !== '' ? $body : '—',
+                ];
+            }
         }
 
         return $rows;
@@ -284,6 +363,8 @@ class ChallengeExport
      */
     private static function itemsSheet(Challenge $challenge, Collection $participants): array
     {
+        $answersByQuestion = self::answersByQuestion($participants);
+
         $rows = [[
             'روز',
             'تاریخ',
@@ -292,19 +373,14 @@ class ChallengeExport
             'انجام‌شده',
             'انجام داده‌اند',
             'انجام نداده‌اند',
+            'پاسخ شرکت‌کننده‌ها',
             'پاسخ مدیر',
         ]];
 
-        foreach ($challenge->contentByDay() as $day => $content) {
-            $dayNumber = (int) $day;
-
-            foreach ($content['tasks'] as $task) {
-                $rows[] = self::taskRow($challenge, $task, $participants);
-            }
-
-            foreach ($content['questions'] as $question) {
-                $rows[] = self::questionRow($challenge, $question, $participants, $dayNumber);
-            }
+        foreach (self::dayItems($challenge) as $item) {
+            $rows[] = $item['type'] === 'task'
+                ? self::taskRow($challenge, $item['model'], $participants)
+                : self::questionRow($challenge, $item['model'], $participants, (int) $item['day'], $answersByQuestion);
         }
 
         if (count($rows) === 1) {
@@ -353,10 +429,19 @@ class ChallengeExport
         return implode('، ', $names);
     }
 
-    private static function questionRow(Challenge $challenge, ChallengeQuestion $question, Collection $participants, int $dayNumber): array
-    {
+    /**
+     * @param  Collection<int, list<string>>  $answersByQuestion
+     */
+    private static function questionRow(
+        Challenge $challenge,
+        ChallengeQuestion $question,
+        Collection $participants,
+        int $dayNumber,
+        Collection $answersByQuestion,
+    ): array {
         $status = $question->statusForParticipants($participants);
         $day = $question->day_number ?? ($dayNumber ?: null);
+        $answers = $answersByQuestion->get((int) $question->getKey(), []);
 
         return [
             self::dayLabel($challenge, $day),
@@ -366,8 +451,62 @@ class ChallengeExport
             count($status['answered']).' از '.$status['total'],
             self::names($status['answered']),
             self::names($status['pending']),
+            $answers === [] ? '—' : implode(' | ', $answers),
             $question->answer ?: '—',
         ];
+    }
+
+    /**
+     * پاسخ شرکت‌کننده‌ها به هر پرسش: شناسه پرسش => فهرست «نام: متن پاسخ».
+     *
+     * @param  Collection<int, Participant>  $participants
+     * @return Collection<int, list<string>>
+     */
+    private static function answersByQuestion(Collection $participants): Collection
+    {
+        $map = [];
+
+        foreach ($participants as $participant) {
+            foreach ($participant->questionAnswers as $answer) {
+                $body = trim((string) $answer->body);
+
+                if ($body === '') {
+                    continue;
+                }
+
+                $map[(int) $answer->challenge_question_id][] = $participant->name.': '.$body;
+            }
+        }
+
+        return collect($map);
+    }
+
+    /**
+     * همه کارها و پرسش‌های چالش به ترتیب روز (اول موارد بدون روز مشخص).
+     *
+     * @return list<array{day: ?int, type: string, model: ChallengeTask|ChallengeQuestion}>
+     */
+    private static function dayItems(Challenge $challenge): array
+    {
+        $items = [];
+
+        foreach ($challenge->contentByDay() as $day => $content) {
+            $dayNumber = (int) $day;
+
+            foreach ($content['tasks'] as $task) {
+                $items[] = ['day' => $dayNumber ?: null, 'type' => 'task', 'model' => $task];
+            }
+
+            foreach ($content['questions'] as $question) {
+                $items[] = [
+                    'day' => $question->day_number ?? ($dayNumber ?: null),
+                    'type' => 'question',
+                    'model' => $question,
+                ];
+            }
+        }
+
+        return $items;
     }
 
     private static function dayLabel(Challenge $challenge, ?int $day): string

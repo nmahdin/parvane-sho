@@ -140,7 +140,7 @@ class ChallengeExportTest extends TestCase
 
         $sheets = $this->sheetsOf($binary);
 
-        foreach (['خلاصه چالش', 'شرکت‌کننده‌ها', 'وضعیت روز به روز', 'کارها و پرسش‌ها'] as $name) {
+        foreach (['خلاصه چالش', 'شرکت‌کننده‌ها', 'کارها و پاسخ‌های هر نفر', 'وضعیت روز به روز', 'کارها و پرسش‌ها', 'نکته‌ها'] as $name) {
             $this->assertArrayHasKey($name, $sheets, 'برگه «'.$name.'» در فایل اکسل نیست.');
         }
     }
@@ -163,6 +163,91 @@ class ChallengeExportTest extends TestCase
         $this->assertContains('پرسش', $strings);
         $this->assertContains('نوشتن سه نعمت', $strings);
         $this->assertContains('امروز بابت چه چیزی سپاسگزاری؟', $strings);
+    }
+
+    public function test_the_export_lists_every_persons_tasks_and_question_answers(): void
+    {
+        [$challenge, $zahra, $amir] = $this->makeChallenge();
+
+        $question = $challenge->questions()->firstOrFail();
+        $zahra->questionAnswers()->create([
+            'challenge_question_id' => $question->getKey(),
+            'body' => 'بابت سلامتی و خانواده‌ام.',
+        ]);
+
+        $sheets = ChallengeExport::sheets($challenge);
+
+        $this->assertArrayHasKey('کارها و پاسخ‌های هر نفر', $sheets, 'برگه کارها و پاسخ‌های هر نفر ساخته نشد.');
+
+        $rows = $sheets['کارها و پاسخ‌های هر نفر'];
+
+        $this->assertSame([
+            'نام شرکت‌کننده', 'کار یا پرسش', 'روز', 'تاریخ روز', 'عنوان یا متن', 'وضعیت', 'زمان انجام یا پاسخ', 'پاسخ خودش',
+        ], $rows[0]);
+
+        $body = array_slice($rows, 1);
+
+        // هر نفر: دو کار + یک پرسش
+        foreach ([$zahra->name, $amir->name] as $name) {
+            $mine = array_values(array_filter($body, fn (array $row) => $row[0] === $name));
+            $this->assertCount(3, $mine, 'سطرهای «'.$name.'» کامل نیست.');
+        }
+
+        $find = fn (string $name, string $title) => collect($body)->first(
+            fn (array $row) => $row[0] === $name && $row[4] === $title
+        );
+
+        // زهرا کار اول را انجام داده است
+        $done = $find($zahra->name, 'نوشتن سه نعمت');
+        $this->assertNotNull($done);
+        $this->assertSame('کار', $done[1]);
+        $this->assertSame('✓ انجام داده', $done[5]);
+        $this->assertNotSame('—', $done[6], 'زمان انجام کار ثبت نشده است.');
+        $this->assertStringStartsWith('روز ۱ از ۲', (string) $done[2]);
+        $this->assertSame('—', $done[7], 'کارها ستون «پاسخ خودش» را خط تیره می‌گیرند.');
+
+        // امیر همان کار را انجام نداده است
+        $notDone = $find($amir->name, 'نوشتن سه نعمت');
+        $this->assertNotNull($notDone);
+        $this->assertSame('انجام نشده', $notDone[5]);
+        $this->assertSame('—', $notDone[6]);
+
+        // پاسخ زهرا به پرسش، با متن خودش
+        $answered = $find($zahra->name, $question->question);
+        $this->assertNotNull($answered);
+        $this->assertSame('پرسش', $answered[1]);
+        $this->assertSame('✓ پاسخ داده', $answered[5]);
+        $this->assertSame('بابت سلامتی و خانواده‌ام.', $answered[7]);
+
+        // امیر به پرسش جواب نداده است
+        $unanswered = $find($amir->name, $question->question);
+        $this->assertNotNull($unanswered);
+        $this->assertSame('جواب نداده است', $unanswered[5]);
+        $this->assertSame('—', $unanswered[7]);
+    }
+
+    public function test_the_items_sheet_shows_the_participants_own_answers(): void
+    {
+        [$challenge, $zahra] = $this->makeChallenge();
+
+        $question = $challenge->questions()->firstOrFail();
+        $zahra->questionAnswers()->create([
+            'challenge_question_id' => $question->getKey(),
+            'body' => 'بابت سلامتی و خانواده‌ام.',
+        ]);
+
+        $rows = ChallengeExport::sheets($challenge)['کارها و پرسش‌ها'];
+
+        $this->assertContains('پاسخ شرکت‌کننده‌ها', $rows[0]);
+
+        $questionRow = collect(array_slice($rows, 1))->first(fn (array $row) => $row[2] === 'پرسش');
+        $taskRow = collect(array_slice($rows, 1))->first(fn (array $row) => $row[2] === 'کار');
+
+        $this->assertNotNull($questionRow);
+        $this->assertNotNull($taskRow);
+
+        $this->assertSame($zahra->name.': بابت سلامتی و خانواده‌ام.', $questionRow[7]);
+        $this->assertSame('—', $taskRow[7], 'کارها در ستون پاسخ شرکت‌کننده‌ها خط تیره دارند.');
     }
 
     public function test_the_summary_sheet_holds_the_real_numbers(): void
