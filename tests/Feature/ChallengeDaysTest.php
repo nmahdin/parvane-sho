@@ -52,11 +52,12 @@ class ChallengeDaysTest extends TestCase
      */
     private function dayBox(string $html, int $day, ?string $until = null): string
     {
-        $start = strpos($html, 'id="day-'.$day.'"');
+        // نشانهٔ دقیقِ خودِ باکس روز؛ زیربخش‌های همان روز id مثل day-3-tips دارند
+        $start = strpos($html, 'id="day-'.$day.'" class="');
 
         $this->assertNotFalse($start, 'باکس روز '.$day.' ساخته نشده است.');
 
-        $end = strpos($html, 'id="day-'.($day + 1).'"', $start);
+        $end = strpos($html, 'id="day-'.($day + 1).'" class="', $start);
 
         // برای آخرین باکس (یا وقتی بعد از آن بخش دیگری می‌آید) انتهای محدوده را
         // با یک نشانه صریح مشخص می‌کنیم تا متن بخش‌های بعدی داخل باکس نیفتد.
@@ -203,9 +204,24 @@ class ChallengeDaysTest extends TestCase
 
         $this->assertStringContainsString('نکته کلی چالش', $html);
 
+        // نکتهٔ کلی فقط در بخش «نکته‌های کلی» (id="tips") می‌آید، نه داخل باکس روزها
+        // نکتهٔ کلی در باکس «بدون روز مشخص» (★) و در بخش نکته‌های کلی هست،
+        // اما داخل باکس روزهای شماره‌دار (۱ تا ۵) نمی‌افتد. مودال‌های افزودن
+        // بعد از آخرین باکس رندر می‌شوند، پس انتهای باکس آخر را نشانهٔ مودال می‌بریم.
         foreach ([1, 2, 3, 4, 5] as $day) {
-            $this->assertStringNotContainsString('نکته کلی چالش', $this->dayBox($html, $day, 'id="tips"'));
+            $until = $day === 5 ? '<dialog id="modal-content"' : 'id="tips"';
+
+            $this->assertStringNotContainsString('نکته کلی چالش', $this->dayBox($html, $day, $until));
         }
+
+        // و داخل خود بخش نکته‌های کلی نشان داده می‌شود
+        $tipsStart = strpos($html, 'id="tips"');
+        $modalStart = strpos($html, '<dialog id="modal-content"');
+
+        $this->assertNotFalse($modalStart, 'مودال افزودن باید بعد از بخش‌های صفحه باشد.');
+
+        $tipsSection = substr($html, (int) $tipsStart, $modalStart - (int) $tipsStart);
+        $this->assertStringContainsString('نکته کلی چالش', $tipsSection);
     }
 
     public function test_a_participant_sees_every_day_of_the_challenge_including_empty_days(): void

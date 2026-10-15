@@ -111,10 +111,10 @@
                 @endif
             </div>
 
-            <details class="w-full sm:w-auto">
-                <summary class="btn btn-primary btn-sm list-none">+ افزودن سریع به یک روز دیگر</summary>
+            <div class="w-full sm:w-auto">
+                <button type="button" class="btn btn-primary btn-sm" data-open-modal="modal-content" data-modal-day="" data-modal-type="task">+ افزودن کار یا پرسش</button>
 
-                <form method="POST" action="{{ route('panel.days.store', $challenge) }}" data-day-type-form data-ajax-save
+                <form method="POST" action="{{ route('panel.days.store', $challenge) }}" data-day-type-form data-ajax-save data-modal-form
                       class="mt-4 grid w-full gap-4 rounded-2xl bg-cream p-4 text-right sm:max-w-2xl">
                     @csrf
 
@@ -211,11 +211,12 @@
                         </div>
                     </div>
 
-                    <div>
+                    <div class="flex flex-wrap items-center gap-2">
                         <button type="submit" class="btn btn-primary">ذخیره در این روز</button>
+                        <button type="button" class="btn btn-ghost btn-sm" data-close-modal>بستن</button>
                     </div>
                 </form>
-            </details>
+            </div>
         </div>
 
         <div class="mt-6 space-y-5">
@@ -266,9 +267,9 @@
                     @unless ($isGeneral)
                         {{-- عنوان و توضیحات همین روز --}}
                         <div class="border-t border-line bg-paper px-4 py-3 sm:px-5">
-                            <details class="rounded-2xl bg-cream/70 ring-1 ring-line">
-                                <summary class="cursor-pointer px-4 py-2.5 text-xs font-semibold text-ink">
-                                    ✏️ عنوان و توضیحات این روز
+                            <details id="day-{{ $dayNumber }}-title" class="day-group rounded-2xl bg-cream/70 ring-1 ring-line">
+                                <summary class="day-group-head">
+                                    <span>✏️ عنوان و توضیحات این روز</span>
                                     <span class="font-normal text-muted">
                                         @if ($day['title'])
                                             — {{ $day['title'] }}
@@ -545,63 +546,49 @@
                     @endif
 
                     {{-- نکته‌های این روز --}}
-                    <div class="border-t border-line bg-gold/5 px-5 py-4">
-                        <div class="flex flex-wrap items-center justify-between gap-3">
-                            <h4 class="flex flex-wrap items-center gap-2 text-xs font-semibold text-ink">
-                                <span>💡</span> {{ $isGeneral ? 'نکته‌های کلی' : 'نکته‌های این روز' }}
-                                <span class="font-normal text-muted">{{ fa_num($dayTips->count()) }} نکته</span>
-                            </h4>
+                    <div class="border-t border-line bg-gold/5 px-4 py-3 sm:px-5">
+                        <details id="day-{{ $dayNumber }}-tips" class="day-group rounded-2xl bg-paper/80 ring-1 ring-gold/40" @if ($dayTips->isNotEmpty()) open @endif>
+                            <summary class="day-group-head">
+                                <span class="flex flex-wrap items-center gap-2">
+                                    <span>💡</span> {{ $isGeneral ? 'نکته‌های کلی' : 'نکته‌های این روز' }}
+                                    <span class="badge bg-gold/15 text-gold-ink ring-gold/50">{{ fa_num($dayTips->count()) }}</span>
+                                </span>
 
-                            <details class="w-full sm:w-auto">
-                                <summary class="cursor-pointer text-xs font-medium text-brand-700">+ افزودن نکته {{ $isGeneral ? 'کلی' : 'به این روز' }}</summary>
+                                <button type="button" class="btn btn-gold btn-sm"
+                                        data-open-modal="modal-tip"
+                                        data-modal-day="{{ $isGeneral ? '' : $dayNumber }}">+ نکته</button>
+                            </summary>
 
-                                <x-tip-form :challenge="$challenge" :day="$isGeneral ? null : $dayNumber" class="bg-paper" />
-                            </details>
-                        </div>
-
-                        @if ($dayTips->isNotEmpty())
-                            <div class="mt-3 space-y-3">
-                                @foreach ($dayTips as $tip)
-                                    <x-tip-item :challenge="$challenge" :tip="$tip" :day-choices="$dayChoices" with-day-picker />
-                                @endforeach
+                            <div class="border-t border-gold/30 px-4 py-4">
+                                @if ($dayTips->isEmpty())
+                                    <p class="text-[11px] text-muted">برای {{ $isGeneral ? 'کل چالش' : 'این روز' }} هنوز نکته‌ای نوشته نشده است.</p>
+                                @else
+                                    <div class="space-y-3">
+                                        @foreach ($dayTips as $tip)
+                                            <x-tip-item :challenge="$challenge" :tip="$tip" :day-choices="$dayChoices" with-day-picker />
+                                        @endforeach
+                                    </div>
+                                @endif
                             </div>
-                        @endif
+                        </details>
                     </div>
 
                     {{-- فایل‌ها و فایل‌های صوتی همین روز --}}
                     @unless ($isGeneral)
-                        <div class="border-t border-line bg-paper px-5 py-4">
-                            <div class="flex flex-wrap items-center justify-between gap-3">
-                                <h4 class="flex flex-wrap items-center gap-2 text-xs font-semibold text-ink">
-                                    <span>📎</span> فایل‌ها و فایل‌های صوتی این روز
-                                    <span class="font-normal text-muted">{{ fa_num($dayFiles->count()) }} فایل</span>
-                                </h4>
+                        <div class="border-t border-line bg-paper px-4 py-3 sm:px-5">
+                            <details id="day-{{ $dayNumber }}-files" class="day-group rounded-2xl bg-cream/70 ring-1 ring-line" @if ($dayFiles->isNotEmpty()) open @endif>
+                                <summary class="day-group-head">
+                                    <span class="flex flex-wrap items-center gap-2">
+                                        <span>📎</span> فایل‌ها و فایل‌های صوتی این روز
+                                        <span class="badge bg-jade/10 text-jade ring-jade/30">{{ fa_num($dayFiles->count()) }}</span>
+                                    </span>
 
-                                <span class="text-[11px] text-hint">
-                                    صوتی‌ها در سایت با پخش‌کننده خود سایت پخش می‌شوند؛ تا ۶۰ مگابایت.
-                                </span>
-                            </div>
+                                    <button type="button" class="btn btn-white btn-sm"
+                                            data-open-modal="modal-file"
+                                            data-modal-day="{{ $dayNumber }}">+ فایل</button>
+                                </summary>
 
-                            <form method="POST" action="{{ route('panel.day-files.store', $challenge) }}" data-ajax-save enctype="multipart/form-data" class="mt-4 grid gap-3 rounded-2xl bg-cream p-4 sm:grid-cols-[1.2fr_1.6fr_auto]">
-                                @csrf
-                                <input type="hidden" name="day_number" value="{{ $dayNumber }}">
-
-                                <div>
-                                    <label class="label" for="day-file-title-{{ $dayNumber }}">عنوان فایل (اختیاری)</label>
-                                    <input id="day-file-title-{{ $dayNumber }}" name="title" type="text" maxlength="190" class="input" placeholder="مثلاً صوت روز سوم">
-                                </div>
-
-                                <div>
-                                    <label class="label" for="day-file-input-{{ $dayNumber }}">فایل یا فایل صوتی</label>
-                                    <input id="day-file-input-{{ $dayNumber }}" name="file" type="file" required class="input py-2.5 text-xs file:me-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-1.5 file:text-brand-700">
-                                    <p class="hint">mp3، m4a، wav، ogg برای صوت؛ pdf، تصویر، zip و ... برای فایل.</p>
-                                </div>
-
-                                <div class="flex items-end">
-                                    <button type="submit" class="btn btn-primary btn-sm w-full sm:w-auto">افزودن به روز {{ fa_num($dayNumber) }}</button>
-                                </div>
-                            </form>
-
+                                <div class="border-t border-line px-4 py-4">
                             @if ($dayFiles->isEmpty())
                                 <p class="mt-4 rounded-2xl bg-cream px-4 py-5 text-center text-[11px] text-muted">برای این روز هنوز فایلی گذاشته نشده است.</p>
                             @else
@@ -671,61 +658,173 @@
                                     @endforeach
                                 </ul>
                             @endif
+                                </div>
+                            </details>
                         </div>
                     @endunless
 
-                    {{-- افزودن سریع به همین روز --}}
-                    <div class="grid gap-3 border-t border-line bg-cream/70 px-5 py-3 lg:grid-cols-2">
-                        <details>
-                            <summary class="cursor-pointer text-xs font-medium text-brand-700">+ افزودن چند کار به این روز</summary>
+                    {{-- افزودن سریع به همین روز — فرم‌ها در مودال‌های پایین صفحه‌اند --}}
+                    <div class="flex flex-wrap items-center gap-2 border-t border-line bg-cream/70 px-4 py-3 sm:px-5">
+                        <button type="button" class="btn btn-white btn-sm"
+                                data-open-modal="modal-content"
+                                data-modal-day="{{ $isGeneral ? '' : $dayNumber }}"
+                                data-modal-type="task">📝 + کار</button>
 
-                            <form method="POST" action="{{ route('panel.tasks.bulk', $challenge) }}" data-ajax-save class="mt-4 space-y-3 text-right">
-                                @csrf
+                        <button type="button" class="btn btn-white btn-sm"
+                                data-open-modal="modal-bulk"
+                                data-modal-day="{{ $isGeneral ? '' : $dayNumber }}">📃 + چند کار یک‌جا</button>
 
-                                @if (! $isGeneral)
-                                    <input type="hidden" name="day_number" value="{{ $dayNumber }}">
-                                @endif
+                        <button type="button" class="btn btn-white btn-sm"
+                                data-open-modal="modal-content"
+                                data-modal-day="{{ $isGeneral ? '' : $dayNumber }}"
+                                data-modal-type="question">❓ + پرسش</button>
 
-                                <label class="label" for="bulk-{{ $dayNumber }}">هر خط یک کار</label>
-                                <textarea id="bulk-{{ $dayNumber }}" name="items" rows="4" required class="input resize-y" placeholder="۲۰ دقیقه پیاده‌روی&#10;نوشتن سه جمله شکرگزاری&#10;۱۰ دقیقه تمرین تمرکز"></textarea>
+                        @unless ($isGeneral)
+                            <button type="button" class="btn btn-white btn-sm"
+                                    data-open-modal="modal-file"
+                                    data-modal-day="{{ $dayNumber }}">📎 + فایل</button>
+                        @endunless
 
-                                <button type="submit" class="btn btn-primary btn-sm">افزودن به {{ $isGeneral ? 'بدون روز' : 'روز '.fa_num($dayNumber) }}</button>
-                            </form>
-                        </details>
-
-                        <details>
-                            <summary class="cursor-pointer text-xs font-medium text-brand-700">+ افزودن پرسش به این روز</summary>
-
-                            <form method="POST" action="{{ route('panel.questions.store', $challenge) }}" data-ajax-save class="mt-4 space-y-3 text-right">
-                                @csrf
-
-                                @if (! $isGeneral)
-                                    <input type="hidden" name="day_number" value="{{ $dayNumber }}">
-                                @endif
-
-                                <div>
-                                    <label class="label">متن پرسش</label>
-                                    <input name="question" type="text" required class="input" placeholder="مثلاً این چالش برای چه کسانی مناسب است؟">
-                                </div>
-
-                                <div>
-                                    <label class="label">پرسنده (اختیاری)</label>
-                                    <input name="asked_by" type="text" class="input">
-                                </div>
-
-                                <label class="flex items-center gap-2 text-xs text-ink/80">
-                                    <input type="checkbox" name="is_published" value="1" checked class="size-4 rounded border-line text-brand-600 focus:ring-brand-500">
-                                    نمایش در صفحه چالش
-                                </label>
-
-                                <button type="submit" class="btn btn-primary btn-sm">افزودن پرسش</button>
-                            </form>
-                        </details>
+                        <button type="button" class="btn btn-gold btn-sm"
+                                data-open-modal="modal-tip"
+                                data-modal-day="{{ $isGeneral ? '' : $dayNumber }}">💡 + نکته</button>
                     </div>
                 </details>
             @endforeach
         </div>
     </section>
+
+    {{-- مودال‌های افزودن: یک فرم مشترک برای همه روزها --}}
+    <dialog id="modal-content" class="panel-modal">
+        <div class="panel-modal-box">
+            <div class="panel-modal-head">
+                <h3 class="text-sm font-semibold text-ink">افزودن کار یا پرسش <span data-modal-day-label class="font-normal text-muted"></span></h3>
+                <button type="button" class="btn btn-ghost btn-sm" data-close-modal aria-label="بستن">✕</button>
+            </div>
+
+            <form method="POST" action="{{ route('panel.days.store', $challenge) }}" data-day-type-form data-ajax-save data-modal-form class="grid gap-4 text-right">
+                @csrf
+                <input type="hidden" name="day_number" value="" data-modal-day-input>
+
+                <div>
+                    <span class="label">چه چیزی اضافه شود؟</span>
+                    <div class="flex flex-wrap gap-2">
+                        <label data-day-type-label="task" class="cursor-pointer rounded-2xl px-4 py-2 text-xs ring-1 ring-line transition">
+                            <input type="radio" name="type" value="task" class="sr-only" checked> 📝 کار
+                        </label>
+
+                        <label data-day-type-label="question" class="cursor-pointer rounded-2xl px-4 py-2 text-xs ring-1 ring-line transition">
+                            <input type="radio" name="type" value="question" class="sr-only"> ❓ پرسش و پاسخ
+                        </label>
+                    </div>
+                </div>
+
+                <div data-day-group="task" class="grid gap-4">
+                    <div>
+                        <label class="label">عنوان کار</label>
+                        <input name="title" type="text" class="input" placeholder="مثلاً ۲۰ دقیقه پیاده‌روی">
+                    </div>
+
+                    <div>
+                        <label class="label">توضیح کار (اختیاری)</label>
+                        <textarea name="description" rows="2" class="input resize-y" placeholder="جزئیات یا شرط انجام کار..."></textarea>
+                    </div>
+                </div>
+
+                <div data-day-group="question" class="hidden gap-4">
+                    <div>
+                        <label class="label">متن پرسش</label>
+                        <input name="question" type="text" class="input" placeholder="مثلاً اگر یک روز را از دست بدهم چه می‌شود؟">
+                    </div>
+
+                    <div class="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
+                        <div>
+                            <label class="label">پرسنده (اختیاری)</label>
+                            <input name="asked_by" type="text" class="input" placeholder="نام شرکت‌کننده">
+                        </div>
+
+                        <label class="flex items-center gap-2 pb-3 text-xs text-ink/80">
+                            <input type="hidden" name="is_published" value="0">
+                            <input type="checkbox" name="is_published" value="1" checked class="size-4 rounded border-line text-brand-600 focus:ring-brand-500">
+                            نمایش در صفحه چالش
+                        </label>
+                    </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <button type="submit" class="btn btn-primary">ذخیره</button>
+                    <button type="button" class="btn btn-ghost btn-sm" data-close-modal>بستن</button>
+                </div>
+            </form>
+        </div>
+    </dialog>
+
+    <dialog id="modal-bulk" class="panel-modal">
+        <div class="panel-modal-box">
+            <div class="panel-modal-head">
+                <h3 class="text-sm font-semibold text-ink">افزودن چند کار یک‌جا <span data-modal-day-label class="font-normal text-muted"></span></h3>
+                <button type="button" class="btn btn-ghost btn-sm" data-close-modal aria-label="بستن">✕</button>
+            </div>
+
+            <form method="POST" action="{{ route('panel.tasks.bulk', $challenge) }}" data-ajax-save data-modal-form class="space-y-3 text-right">
+                @csrf
+                <input type="hidden" name="day_number" value="" data-modal-day-input>
+
+                <label class="label">هر خط یک کار</label>
+                <textarea name="items" rows="5" required class="input resize-y" placeholder="۲۰ دقیقه پیاده‌روی&#10;نوشتن سه جمله شکرگزاری&#10;۱۰ دقیقه تمرین تمرکز"></textarea>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <button type="submit" class="btn btn-primary">افزودن کارها</button>
+                    <button type="button" class="btn btn-ghost btn-sm" data-close-modal>بستن</button>
+                </div>
+            </form>
+        </div>
+    </dialog>
+
+    <dialog id="modal-file" class="panel-modal">
+        <div class="panel-modal-box">
+            <div class="panel-modal-head">
+                <h3 class="text-sm font-semibold text-ink">افزودن فایل یا فایل صوتی <span data-modal-day-label class="font-normal text-muted"></span></h3>
+                <button type="button" class="btn btn-ghost btn-sm" data-close-modal aria-label="بستن">✕</button>
+            </div>
+
+            <form method="POST" action="{{ route('panel.day-files.store', $challenge) }}" data-ajax-save data-modal-form enctype="multipart/form-data" class="space-y-3 text-right">
+                @csrf
+                <input type="hidden" name="day_number" value="" data-modal-day-input required>
+
+                <div>
+                    <label class="label">عنوان فایل (اختیاری)</label>
+                    <input name="title" type="text" maxlength="190" class="input" placeholder="مثلاً صوت روز سوم">
+                </div>
+
+                <div>
+                    <label class="label">فایل یا فایل صوتی</label>
+                    <input name="file" type="file" required class="input py-2.5 text-xs file:me-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-1.5 file:text-brand-700">
+                    <p class="hint">mp3، m4a، wav، ogg برای صوت (تا ۶۰ مگابایت)؛ pdf، تصویر، zip و ... برای فایل (تا ۸ مگابایت). صوتی‌ها با پخش‌کننده خود سایت پخش می‌شوند.</p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <button type="submit" class="btn btn-primary">آپلود و افزودن</button>
+                    <button type="button" class="btn btn-ghost btn-sm" data-close-modal>بستن</button>
+                </div>
+            </form>
+        </div>
+    </dialog>
+
+    <dialog id="modal-tip" class="panel-modal">
+        <div class="panel-modal-box">
+            <div class="panel-modal-head">
+                <h3 class="text-sm font-semibold text-ink">افزودن نکته <span data-modal-day-label class="font-normal text-muted"></span></h3>
+                <button type="button" class="btn btn-ghost btn-sm" data-close-modal aria-label="بستن">✕</button>
+            </div>
+
+            <x-tip-form :challenge="$challenge" :day-choices="$dayChoices" class="text-right" />
+
+            <div class="mt-3 text-left">
+                <button type="button" class="btn btn-ghost btn-sm" data-close-modal>بستن</button>
+            </div>
+        </div>
+    </dialog>
 
     {{-- نکته‌های کلی چالش (بدون روز مشخص) --}}
     <section class="card scroll-mt-24" id="tips">

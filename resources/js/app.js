@@ -7,6 +7,7 @@ const app = {
     init() {
         this.initAjaxSave();
         this.initUploadProgress();
+        this.initModals();
         this.initCopy();
         this.initMenus();
         this.initConfirm();
@@ -518,6 +519,7 @@ const app = {
 
             // پاسخ موفق = ریدایرکت (Laravel با back() برمی‌گرداند)
             if (response.type === 'opaqueredirect') {
+                this.closeModalFor(form);
                 const message = await this.refreshDynamicSections();
                 this.showToast(message || 'ذخیره شد.', 'status');
 
@@ -584,6 +586,77 @@ const app = {
         this.init();
 
         return message;
+    },
+
+    /* مودال‌های افزودن: دکمه data-open-modal یک <dialog> را با روز از پیش
+       انتخاب‌شده باز می‌کند؛ بعد از ذخیره موفق، مودال بسته می‌شود. */
+    initModals() {
+        if (this._modalsBound) return;
+        this._modalsBound = true;
+
+        document.addEventListener('click', (event) => {
+            const opener = event.target.closest('[data-open-modal]');
+
+            if (opener) {
+                event.preventDefault();
+                this.openModal(opener);
+
+                return;
+            }
+
+            if (event.target.closest('[data-close-modal]')) {
+                event.preventDefault();
+                event.target.closest('dialog')?.close();
+            }
+        });
+
+        // کلیک روی پس‌زمینه تیره = بستن مودال
+        document.querySelectorAll('dialog.panel-modal').forEach((dialog) => {
+            if (dialog.dataset.bound) return;
+            dialog.dataset.bound = '1';
+
+            dialog.addEventListener('click', (event) => {
+                if (event.target === dialog) dialog.close();
+            });
+        });
+    },
+
+    openModal(opener) {
+        const dialog = document.getElementById(opener.getAttribute('data-open-modal'));
+        if (!dialog) return;
+
+        const day = opener.getAttribute('data-modal-day') ?? '';
+        const type = opener.getAttribute('data-modal-type');
+
+        dialog.querySelectorAll('[data-modal-day-input]').forEach((input) => {
+            input.value = day;
+        });
+
+        dialog.querySelectorAll('[data-modal-day-label]').forEach((label) => {
+            label.textContent = day ? `— روز ${toPersianDigits(day)}` : '— بدون روز مشخص';
+        });
+
+        if (type) {
+            const radio = dialog.querySelector(`input[name="type"][value="${type}"]`);
+
+            if (radio) {
+                radio.checked = true;
+                radio.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        }
+
+        if (typeof dialog.showModal === 'function') {
+            dialog.showModal();
+        } else {
+            dialog.setAttribute('open', '');
+        }
+
+        dialog.querySelector('input:not([type="hidden"]), textarea, select')?.focus();
+    },
+
+    closeModalFor(form) {
+        const dialog = form.closest('dialog');
+        if (dialog?.open) dialog.close();
     },
 
     /* فرم فایل انتخاب‌شده دارد؟ (برای تصمیم بین fetch و XHR) */
@@ -669,6 +742,7 @@ const app = {
             const xhr = await this.xhrUpload(form);
 
             if (xhr.status >= 200 && xhr.status < 300) {
+                this.closeModalFor(form);
                 const message = await this.refreshDynamicSections();
                 this.showToast(message || 'ذخیره شد.', 'status');
 

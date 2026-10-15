@@ -12,7 +12,7 @@
     "src": "node_modules/@fontsource-variable/vazirmatn/files/vazirmatn-latin-wght-normal.woff2"
   },
   "resources/css/app.css": {
-    "file": "assets/app-D7nauAGN.css",
+    "file": "assets/app-Dm8Gybc3.css",
     "name": "app",
     "names": [
       "app.css"
@@ -26,7 +26,7 @@
     ]
   },
   "resources/js/app.js": {
-    "file": "assets/app-CJpRHof9.js",
+    "file": "assets/app-DD2kK7UG.js",
     "name": "app",
     "src": "resources/js/app.js",
     "isEntry": true

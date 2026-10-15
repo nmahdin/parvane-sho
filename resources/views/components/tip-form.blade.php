@@ -39,7 +39,7 @@
             <textarea id="{{ $bodyId }}" name="body" rows="2" class="input resize-y" placeholder="توضیح کوتاه این نکته..."></textarea>
         </div>
 
-        @if (! $fixedDay && $dayChoices->isNotEmpty())
+        @if ($dayChoices->isNotEmpty())
             <div>
                 <label class="label" for="{{ $dayId }}">این نکته مربوط به کدام روز است؟</label>
                 <select id="{{ $dayId }}" name="day_number" class="input">
