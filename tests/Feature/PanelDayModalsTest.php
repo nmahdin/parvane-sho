@@ -43,9 +43,10 @@ class PanelDayModalsTest extends TestCase
 
         $html = $this->panelHtml($challenge);
 
-        $this->assertStringContainsString('id="day-1-title"', $html);
-        $this->assertStringContainsString('id="day-1-tips"', $html);
-        $this->assertStringContainsString('id="day-1-files"', $html);
+        foreach (['title', 'tasks', 'questions', 'tips', 'files'] as $group) {
+            $this->assertStringContainsString('id="day-1-'.$group.'"', $html);
+        }
+
         $this->assertStringContainsString('day-group-head', $html);
     }
 
@@ -63,6 +64,15 @@ class PanelDayModalsTest extends TestCase
         $this->assertStringContainsString('data-modal-day-input', $html);
         $this->assertStringContainsString('data-open-modal="modal-file"', $html);
         $this->assertStringContainsString('data-modal-type="question"', $html);
+
+        // دکمه و باکس افزودن از بالای فهرست روزها حذف شده است
+        $this->assertStringNotContainsString('+ افزودن کار یا پرسش</button>', $html);
+
+        // مودال وسط صفحه می‌نشیند (preflight حاشیه dialog را صفر می‌کند)
+        $manifest = json_decode(file_get_contents(public_path('build/manifest.json')), true);
+        $css = file_get_contents(public_path('build/'.$manifest['resources/css/app.css']['file']));
+        $this->assertMatchesRegularExpression('/\.panel-modal\{[^}]*position:fixed[^}]*\}/', $css);
+        $this->assertMatchesRegularExpression('/\.panel-modal\{[^}]*margin:auto[^}]*\}/', $css);
 
         // فرم فایل مودال، AJAX و multipart است
         $modal = substr($html, (int) strpos($html, '<dialog id="modal-file"'));
@@ -91,5 +101,12 @@ class PanelDayModalsTest extends TestCase
 
         $this->assertStringContainsString('.panel-modal', $css);
         $this->assertStringContainsString('.day-group-head', $css);
+
+        // مودال وسط صفحه می‌چسبد (position/margin در CSS ساخته‌شده)
+        $modalCss = substr($css, (int) strpos($css, '.panel-modal{'));
+        $modalCss = substr($modalCss, 0, (int) strpos($modalCss, '}'));
+        $this->assertStringContainsString('position:fixed', $modalCss);
+        $this->assertStringContainsString('inset:0', $modalCss);
+        $this->assertStringContainsString('margin:auto', $modalCss);
     }
 }

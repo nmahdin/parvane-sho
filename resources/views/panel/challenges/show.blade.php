@@ -92,131 +92,23 @@
     {{-- باکس روزها: برای هر روز، عنوان و توضیح و کار و پرسش و نکته --}}
     <span id="days" class="block scroll-mt-24"></span>
     <section class="card scroll-mt-24" id="tasks">
-        <div class="flex flex-wrap items-start justify-between gap-4">
-            <div>
-                <h2 class="text-base">روزهای چالش</h2>
-                <p class="mt-1 text-xs leading-6 text-muted">
-                    روزهای چالش <span class="font-semibold text-ink">خودکار از تاریخ شروع و پایان</span> ساخته می‌شوند و از همان اول فعال‌اند
-                    (روز ۱ = تاریخ شروع چالش)؛ لازم نیست اول کاری بسازی تا روز ظهور کند.
-                    روی هر روز بزن تا باز شود و برای همان روز، <span class="font-semibold text-ink">عنوان و توضیحات</span> بگذاری و
-                    <span class="font-semibold text-ink">کار</span>، <span class="font-semibold text-ink">پرسش</span> و
-                    <span class="font-semibold text-ink">نکته</span> تعریف کنی.
+        <div>
+            <h2 class="text-base">روزهای چالش</h2>
+            <p class="mt-1 text-xs leading-6 text-muted">
+                روزهای چالش <span class="font-semibold text-ink">خودکار از تاریخ شروع و پایان</span> ساخته می‌شوند و از همان اول فعال‌اند
+                (روز ۱ = تاریخ شروع چالش)؛ لازم نیست اول کاری بسازی تا روز ظهور کند.
+                روی هر روز بزن تا باز شود و برای همان روز <span class="font-semibold text-ink">عنوان و توضیحات</span> بگذاری و
+                <span class="font-semibold text-ink">کار</span>، <span class="font-semibold text-ink">پرسش</span>،
+                <span class="font-semibold text-ink">نکته</span> و <span class="font-semibold text-ink">فایل</span> همان روز را
+                از دکمه‌های داخل باکس همان روز (مودال) اضافه کنی.
+            </p>
+
+            @if ($challenge->releasesDaily())
+                <p class="mt-3 rounded-xl bg-gold/15 px-3 py-2 text-xs leading-6 text-ink ring-1 ring-gold/50">
+                    🔒 آزادسازی روزبه‌روز فعال است؛ محتوای هر روز تا تاریخ همان روز برای شرکت‌کننده‌ها پنهان می‌ماند.
+                    خودت به عنوان مدیر همه روزها را می‌بینی.
                 </p>
-
-                @if ($challenge->releasesDaily())
-                    <p class="mt-3 rounded-xl bg-gold/15 px-3 py-2 text-xs leading-6 text-ink ring-1 ring-gold/50">
-                        🔒 آزادسازی روزبه‌روز فعال است؛ محتوای هر روز تا تاریخ همان روز برای شرکت‌کننده‌ها پنهان می‌ماند.
-                        خودت به عنوان مدیر همه روزها را می‌بینی.
-                    </p>
-                @endif
-            </div>
-
-            <div class="w-full sm:w-auto">
-                <button type="button" class="btn btn-primary btn-sm" data-open-modal="modal-content" data-modal-day="" data-modal-type="task">+ افزودن کار یا پرسش</button>
-
-                <form method="POST" action="{{ route('panel.days.store', $challenge) }}" data-day-type-form data-ajax-save data-modal-form
-                      class="mt-4 grid w-full gap-4 rounded-2xl bg-cream p-4 text-right sm:max-w-2xl">
-                    @csrf
-
-                    <div class="grid gap-4 sm:grid-cols-2">
-                        <div>
-                            <label class="label" for="day-date">تاریخ روز</label>
-                            <input id="day-date" name="date" type="text" value="{{ old('date', $defaultDate) }}" dir="ltr"
-                                   data-jalali-picker autocomplete="off" class="input text-center"
-                                   data-day-preview="#day-preview"
-                                   data-day-start="{{ \App\Support\Jalali::inputValue($challenge->dayOneDate()) }}"
-                                   data-day-start-label="{{ fa_date($challenge->dayOneDate(), true) }}">
-
-                            <p class="hint" id="day-preview">روز خودکار حساب می‌شود.</p>
-                            <p class="hint">پیشنهاد: {{ $defaultDayLabel }} (روز {{ fa_num($defaultDay) }})</p>
-                        </div>
-
-                        <div>
-                            <span class="label">روزهای چالش — روی هر روز بزن تا در فیلد تاریخ بیاید</span>
-
-                            <div class="flex max-h-44 flex-wrap gap-1.5 overflow-y-auto rounded-2xl bg-paper p-2 ring-1 ring-line">
-                                @foreach ($dayChoices as $choice)
-                                    <button type="button"
-                                            data-fill-target="#day-date"
-                                            data-fill-value="{{ $choice['input'] }}"
-                                            class="rounded-xl px-2.5 py-1.5 text-[11px] ring-1 transition
-                                                {{ $choice['is_today']
-                                                    ? 'bg-jade/15 font-semibold text-jade ring-jade/40'
-                                                    : ($choice['is_past'] ? 'bg-cream text-ink/80 ring-line hover:bg-gold/15' : 'bg-paper text-ink/80 ring-line hover:bg-gold/15') }}">
-                                        روز {{ fa_num($choice['day']) }}
-                                        · {{ $choice['label'] }}
-                                        @if ($choice['is_today'])
-                                            · امروز
-                                        @elseif ($choice['is_locked'])
-                                            · 🔒
-                                        @endif
-                                        @if ($choice['count'] > 0)
-                                            · {{ fa_num($choice['count']) }} مورد
-                                        @endif
-                                    </button>
-                                @endforeach
-
-                                <button type="button" data-fill-target="#day-date" data-fill-value=""
-                                        class="rounded-xl bg-paper px-2.5 py-1.5 text-[11px] text-ink/80 ring-1 ring-line transition hover:bg-gold/15">
-                                    بدون روز مشخص
-                                </button>
-                            </div>
-
-                            <p class="hint">روزهای گذشته هم در همین فهرست‌اند؛ کافی است روی روز مورد نظر بزنی. اگر تاریخی قبل از شروع چالش بدهی، پیام راهنما می‌بینی.</p>
-                        </div>
-                    </div>
-
-                    <div>
-                        <span class="label">چه چیزی اضافه شود؟</span>
-                        <div class="flex flex-wrap gap-2">
-                            <label data-day-type-label="task" class="cursor-pointer rounded-2xl px-4 py-2 text-xs ring-1 ring-line transition">
-                                <input type="radio" name="type" value="task" class="sr-only" @checked(old('type', 'task') !== 'question')> 📝 کار
-                            </label>
-
-                            <label data-day-type-label="question" class="cursor-pointer rounded-2xl px-4 py-2 text-xs ring-1 ring-line transition">
-                                <input type="radio" name="type" value="question" class="sr-only" @checked(old('type') === 'question')> ❓ پرسش و پاسخ
-                            </label>
-                        </div>
-                    </div>
-
-                    <div data-day-group="task" class="grid gap-4">
-                        <div>
-                            <label class="label" for="day-task-title">عنوان کار</label>
-                            <input id="day-task-title" name="title" type="text" class="input" placeholder="مثلاً ۲۰ دقیقه پیاده‌روی">
-                        </div>
-
-                        <div>
-                            <label class="label" for="day-task-description">توضیح کار (اختیاری)</label>
-                            <textarea id="day-task-description" name="description" rows="2" class="input resize-y" placeholder="جزئیات یا شرط انجام کار..."></textarea>
-                        </div>
-                    </div>
-
-                    <div data-day-group="question" class="hidden gap-4">
-                        <div>
-                            <label class="label" for="day-question-text">متن پرسش</label>
-                            <input id="day-question-text" name="question" type="text" class="input" placeholder="مثلاً اگر یک روز را از دست بدهم چه می‌شود؟">
-                        </div>
-
-                        <div class="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
-                            <div>
-                                <label class="label" for="day-question-by">پرسنده (اختیاری)</label>
-                                <input id="day-question-by" name="asked_by" type="text" class="input" placeholder="نام شرکت‌کننده">
-                            </div>
-
-                            <label class="flex items-center gap-2 pb-3 text-xs text-ink/80">
-                                <input type="hidden" name="is_published" value="0">
-                                <input type="checkbox" name="is_published" value="1" checked class="size-4 rounded border-line text-brand-600 focus:ring-brand-500">
-                                نمایش در صفحه چالش
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="flex flex-wrap items-center gap-2">
-                        <button type="submit" class="btn btn-primary">ذخیره در این روز</button>
-                        <button type="button" class="btn btn-ghost btn-sm" data-close-modal>بستن</button>
-                    </div>
-                </form>
-            </div>
+            @endif
         </div>
 
         <div class="mt-6 space-y-5">
@@ -301,6 +193,27 @@
                     @endunless
 
                     {{-- کارهای این روز --}}
+                    <div class="border-t border-line bg-paper px-4 py-3 sm:px-5">
+                        <details id="day-{{ $dayNumber }}-tasks" class="day-group rounded-2xl bg-cream/70 ring-1 ring-line" @if ($tasksOfDay->isNotEmpty()) open @endif>
+                            <summary class="day-group-head">
+                                <span class="flex flex-wrap items-center gap-2">
+                                    <span>📝</span> کارهای این روز
+                                    <span class="badge bg-jade/10 text-jade ring-jade/30">{{ fa_num($tasksOfDay->count()) }}</span>
+                                </span>
+
+                                <span class="flex flex-wrap items-center gap-2">
+                                    <button type="button" class="btn btn-white btn-sm"
+                                            data-open-modal="modal-content"
+                                            data-modal-day="{{ $isGeneral ? '' : $dayNumber }}"
+                                            data-modal-type="task">+ کار</button>
+
+                                    <button type="button" class="btn btn-white btn-sm"
+                                            data-open-modal="modal-bulk"
+                                            data-modal-day="{{ $isGeneral ? '' : $dayNumber }}">+ چند کار</button>
+                                </span>
+                            </summary>
+
+                            <div class="border-t border-line">
                     @if ($tasksOfDay->isEmpty())
                         <p class="bg-paper px-5 py-3 text-xs text-muted">برای این روز هنوز کاری ثبت نشده است.</p>
                     @else
@@ -416,14 +329,29 @@
                             @endforeach
                         </ul>
                     @endif
+                            </div>
+                        </details>
+                    </div>
 
                     {{-- پرسش‌های همین روز --}}
-                    @if ($questionsOfDay->isNotEmpty())
-                        <div class="space-y-3 border-t border-line bg-paper px-5 py-4">
-                            <p class="flex items-center gap-2 text-xs font-semibold text-forest">
-                                <span>❓</span> پرسش و پاسخ این روز
-                            </p>
+                    <div class="border-t border-line bg-paper px-4 py-3 sm:px-5">
+                        <details id="day-{{ $dayNumber }}-questions" class="day-group rounded-2xl bg-cream/70 ring-1 ring-line" @if ($questionsOfDay->isNotEmpty()) open @endif>
+                            <summary class="day-group-head">
+                                <span class="flex flex-wrap items-center gap-2">
+                                    <span>❓</span> پرسش و پاسخ این روز
+                                    <span class="badge bg-jade/10 text-jade ring-jade/30">{{ fa_num($questionsOfDay->count()) }}</span>
+                                </span>
 
+                                <button type="button" class="btn btn-white btn-sm"
+                                        data-open-modal="modal-content"
+                                        data-modal-day="{{ $isGeneral ? '' : $dayNumber }}"
+                                        data-modal-type="question">+ پرسش</button>
+                            </summary>
+
+                            <div class="space-y-3 border-t border-line px-4 py-4">
+                    @if ($questionsOfDay->isEmpty())
+                        <p class="text-[11px] text-muted">برای این روز هنوز پرسشی ثبت نشده است.</p>
+                    @else
                             @foreach ($questionsOfDay as $question)
                                 <div class="rounded-2xl bg-cream p-4">
                                     <div class="flex flex-wrap items-start justify-between gap-3">
@@ -542,8 +470,10 @@
                                     </div>
                                 </div>
                             @endforeach
-                        </div>
                     @endif
+                            </div>
+                        </details>
+                    </div>
 
                     {{-- نکته‌های این روز --}}
                     <div class="border-t border-line bg-gold/5 px-4 py-3 sm:px-5">

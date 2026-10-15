@@ -198,6 +198,10 @@
 
     /* مودال افزودن (پنل) */
     .panel-modal {
+        /* preflight حاشیه پیش‌فرض dialog را صفر می‌کند؛ خودمان وسط می‌چینیم */
+        position: fixed;
+        inset: 0;
+        margin: auto;
         width: min(36rem, calc(100vw - 2rem));
         max-height: calc(100vh - 3rem);
         padding: 0;
