@@ -385,6 +385,16 @@ class Challenge extends Model
         return $this->hasMany(ChallengeAttachment::class)->orderBy('sort_order')->orderBy('id');
     }
 
+    /**
+     * فایل‌ها و فایل‌های صوتی هر روز (با `day_number` به همان روز وصل‌اند).
+     *
+     * @return HasMany<DayFile, $this>
+     */
+    public function dayFiles(): HasMany
+    {
+        return $this->hasMany(DayFile::class)->orderBy('day_number')->orderBy('sort_order')->orderBy('id');
+    }
+
     public function longDescriptionHtml(): string
     {
         return RichText::toHtml($this->long_description);
@@ -471,6 +481,7 @@ class Challenge extends Model
         $tasks = $this->tasksByDay();
         $questions = $this->questionsByDay($onlyPublishedQuestions);
         $tips = $this->tipsByDay();
+        $files = $this->dayFilesByDay();
         $settings = $this->days->keyBy('day_number');
 
         $numbers = $this->dayBoxNumbers();
@@ -485,7 +496,41 @@ class Challenge extends Model
             'tasks' => $tasks->get($day) ?? collect(),
             'questions' => $questions->get($day) ?? collect(),
             'tips' => $tips->get($day) ?? collect(),
+            'files' => $day > 0
+                ? $this->filesForDay($day)
+                : collect(),
         ]]);
+    }
+
+    /**
+     * فایل‌های هر روز (شامل فایل‌های صوتی)، گروه‌بندی‌شده بر اساس شماره روز.
+     *
+     * @return Collection<int|string, Collection<int, DayFile>>
+     */
+    public function dayFilesByDay(): Collection
+    {
+        return $this->dayFiles->groupBy(fn (DayFile $file) => (int) $file->day_number);
+    }
+
+    /**
+     * فایل‌های یک روز مشخص؛ صوتی‌ها اول می‌آیند تا پخش‌کننده‌ها بالا باشند.
+     *
+     * @return Collection<int, DayFile>
+     */
+    public function filesForDay(?int $dayNumber): Collection
+    {
+        if ($dayNumber === null || $dayNumber < 1) {
+            return collect();
+        }
+
+        return $this->dayFiles
+            ->where('day_number', $dayNumber)
+            ->sortBy([
+                fn (DayFile $file) => $file->is_audio ? 0 : 1,
+                fn (DayFile $file) => $file->sort_order,
+                fn (DayFile $file) => $file->id,
+            ])
+            ->values();
     }
 
     /**

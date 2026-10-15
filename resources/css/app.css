@@ -142,6 +142,79 @@
         @apply flex flex-wrap items-center gap-2 text-xs font-semibold;
     }
 
+    /* سایدبار پنل: یک باکس واحد ------------------------------------------ */
+    .panel-sidebar {
+        @apply overflow-hidden rounded-3xl bg-paper ring-1 ring-line;
+        box-shadow: 0 1px 2px rgb(7 87 65 / 0.06), 0 16px 32px -26px rgb(7 87 65 / 0.35);
+    }
+
+    .sidebar-link {
+        @apply flex w-full cursor-pointer items-center gap-2.5 rounded-2xl px-2 py-2 text-right text-[13px] text-ink/85 transition-colors hover:bg-cream hover:text-forest;
+    }
+
+    .sidebar-link.is-active {
+        @apply bg-brand-50 font-semibold text-brand-700 ring-1 ring-brand-100;
+    }
+
+    /* پخش‌کننده اختصاصی فایل صوتی (هماهنگ با پالت سایت) ------------------ */
+    .audio-player {
+        @apply rounded-2xl bg-paper p-3 ring-1 ring-line sm:p-3.5;
+    }
+
+    .audio-player.is-playing {
+        @apply ring-jade/40;
+        box-shadow: 0 1px 2px rgb(17 115 91 / 0.1), 0 14px 28px -22px rgb(17 115 91 / 0.4);
+    }
+
+    .audio-play {
+        @apply grid size-11 shrink-0 cursor-pointer place-items-center rounded-2xl bg-jade text-white transition-colors hover:bg-forest disabled:cursor-not-allowed disabled:opacity-60 sm:size-12;
+    }
+
+    .audio-track {
+        @apply relative h-2.5 w-full cursor-pointer appearance-none rounded-full bg-line outline-none;
+    }
+
+    /* پر شدن مسیر پخش از راست (راست‌به‌چپ) */
+    .audio-track::-webkit-slider-runnable-track {
+        height: 100%;
+        border-radius: 9999px;
+        background: linear-gradient(to left, var(--color-jade) var(--audio-progress, 0%), var(--color-line) var(--audio-progress, 0%));
+    }
+
+    .audio-track::-moz-range-track {
+        height: 100%;
+        border-radius: 9999px;
+        background: linear-gradient(to left, var(--color-jade) var(--audio-progress, 0%), var(--color-line) var(--audio-progress, 0%));
+    }
+
+    .audio-track::-webkit-slider-thumb {
+        @apply size-4 rounded-full bg-paper ring-2 ring-jade;
+        -webkit-appearance: none;
+        appearance: none;
+        margin-top: -3px;
+    }
+
+    .audio-track::-moz-range-thumb {
+        @apply size-4 rounded-full border-0 bg-paper ring-2 ring-jade;
+    }
+
+    .audio-time {
+        @apply font-medium tabular-nums text-muted;
+    }
+
+    .audio-speed {
+        @apply shrink-0 cursor-pointer rounded-xl bg-cream px-2.5 py-1.5 text-[11px] font-semibold text-muted ring-1 ring-line transition hover:bg-line/50 hover:text-forest;
+    }
+
+    /* ریل فایل‌های هر روز */
+    .rail-files {
+        @apply border-s-jade bg-jade/6;
+    }
+
+    .rail-audio {
+        @apply border-s-gold bg-gold/8;
+    }
+
     /* کارت روز به‌صورت آکاردئون ---------------------------------------- */
     .day-card {
         @apply overflow-hidden rounded-3xl border border-line bg-paper;

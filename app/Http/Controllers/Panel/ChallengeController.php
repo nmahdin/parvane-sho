@@ -73,7 +73,7 @@ class ChallengeController extends Controller
 
     public function show(Challenge $challenge): View
     {
-        $challenge->load(['tasks', 'tips', 'days', 'questions.answers.participant', 'attachments']);
+        $challenge->load(['tasks', 'tips', 'days', 'dayFiles', 'questions.answers.participant', 'attachments']);
 
         $participants = $challenge->participants()
             ->with(['completions', 'questionAnswers'])
@@ -152,6 +152,7 @@ class ChallengeController extends Controller
                 tasks: $tasks->get($dayNumber) ?? collect(),
                 questions: $questions->get($dayNumber) ?? collect(),
                 tips: $tips->get($dayNumber) ?? collect(),
+                files: $challenge->filesForDay($dayNumber),
                 title: $settings->get($dayNumber)?->title,
                 description: $settings->get($dayNumber)?->description,
             );
@@ -194,10 +195,12 @@ class ChallengeController extends Controller
         Collection $tasks,
         Collection $questions,
         Collection $tips,
+        ?Collection $files = null,
         ?string $title = null,
         ?string $description = null,
     ): array {
         $isGeneral = $dayNumber < 1;
+        $files ??= collect();
 
         return [
             'number' => $dayNumber,
@@ -211,15 +214,18 @@ class ChallengeController extends Controller
             'tasks' => $tasks,
             'questions' => $questions,
             'tips' => $tips,
+            'files' => $files,
             'counts' => [
                 'tasks' => $tasks->count(),
                 'questions' => $questions->count(),
                 'tips' => $tips->count(),
+                'files' => $files->count(),
                 'total' => $tasks->count() + $questions->count(),
             ],
             'has_content' => $tasks->isNotEmpty()
                 || $questions->isNotEmpty()
                 || $tips->isNotEmpty()
+                || $files->isNotEmpty()
                 || filled($title)
                 || filled($description),
         ];

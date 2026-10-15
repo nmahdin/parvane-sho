@@ -22,6 +22,7 @@ class ParticipantDashboardController extends Controller
             'challenge.tips',
             'challenge.questions',
             'challenge.attachments',
+            'challenge.dayFiles',
             'questionAnswers',
         ]);
 

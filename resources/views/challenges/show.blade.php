@@ -188,6 +188,8 @@
                     >
                         <x-day-tips :challenge="$challenge" :day="$dayNumber" />
 
+                        <x-day-files :challenge="$challenge" :day="$dayNumber" />
+
                         @if ($dayNumber && $challenge->dayDescription($dayNumber))
                             <div class="rail rail-about text-xs leading-7 text-ink/85">
                                 {!! \App\Support\RichText::toHtml($challenge->dayDescription($dayNumber)) !!}

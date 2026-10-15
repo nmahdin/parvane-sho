@@ -32,33 +32,49 @@
 
     <div class="mx-auto flex max-w-[90rem] gap-6 px-4 py-5 pb-28 sm:px-6 lg:py-6 lg:pb-6">
 
-        {{-- نوار کناری --}}
+        {{-- نوار کناری: یک باکس واحد — سربرگ، ناوبری و کارهای پایین --}}
         <aside class="hidden w-64 shrink-0 lg:block">
-            <div class="sticky top-6 space-y-6">
-                <a href="{{ route('panel.dashboard') }}" class="flex items-center gap-3">
-                    <img src="{{ asset('favicon.svg') }}" alt="پنل مدیریت" class="size-10 rounded-2xl bg-white p-1.5 shadow-sm ring-1 ring-line">
-                    <span>
-                        <span class="block text-sm font-semibold text-ink">{{ $site['site_name'] ?? config('panel.site_name') }}</span>
-                        <span class="block text-[11px] text-muted">پنل مدیریت چالش‌ها</span>
+            <div class="panel-sidebar sticky top-6">
+                <a href="{{ route('panel.dashboard') }}" class="flex items-center gap-3 border-b border-line px-4 py-4">
+                    <img src="{{ asset('favicon.svg') }}" alt="پنل مدیریت" class="size-10 rounded-2xl bg-white p-1.5 ring-1 ring-line">
+                    <span class="min-w-0">
+                        <span class="block truncate text-sm font-semibold text-ink">{{ $site['site_name'] ?? config('panel.site_name') }}</span>
+                        <span class="block text-[11px] text-hint">پنل مدیریت چالش‌ها</span>
                     </span>
                 </a>
 
-                <nav class="space-y-1">
-                    @foreach ($navigation as $item)
-                        <a href="{{ $item['url'] }}"
-                           class="flex items-center gap-3 rounded-2xl px-4 py-3 text-sm transition-colors {{ $item['active'] ? 'bg-paper font-medium text-brand-700 shadow-sm ring-1 ring-line' : 'text-ink/80 hover:bg-white/60 hover:text-ink' }}">
-                            <span>{{ $item['icon'] }}</span>
-                            {{ $item['label'] }}
-                        </a>
-                    @endforeach
+                <nav class="px-3 py-3" aria-label="ناوبری پنل">
+                    <p class="px-2 pb-2 text-[10px] font-semibold tracking-wide text-hint">بخش‌ها</p>
+
+                    <ul class="space-y-1">
+                        @foreach ($navigation as $item)
+                            <li>
+                                <a href="{{ $item['url'] }}"
+                                   class="sidebar-link {{ $item['active'] ? 'is-active' : '' }}"
+                                   @if ($item['active']) aria-current="page" @endif>
+                                    <span class="grid size-8 shrink-0 place-items-center rounded-xl bg-paper text-sm ring-1 ring-line">{{ $item['icon'] }}</span>
+                                    <span class="min-w-0 flex-1 truncate">{{ $item['label'] }}</span>
+                                    @if ($item['active'])
+                                        <span class="shrink-0 text-jade" aria-hidden="true">◂</span>
+                                    @endif
+                                </a>
+                            </li>
+                        @endforeach
+                    </ul>
                 </nav>
 
-                <div class="space-y-3 rounded-3xl bg-paper p-4 shadow-sm ring-1 ring-line">
-                    <a href="{{ route('home') }}" target="_blank" class="btn btn-ghost w-full justify-start text-xs">🌐 مشاهده سایت</a>
+                <div class="space-y-2 border-t border-line px-3 py-3">
+                    <a href="{{ route('home') }}" target="_blank" class="sidebar-link">
+                        <span class="grid size-8 shrink-0 place-items-center rounded-xl bg-paper text-sm ring-1 ring-line">🌐</span>
+                        <span class="min-w-0 flex-1 truncate">مشاهده سایت</span>
+                    </a>
 
                     <form method="POST" action="{{ route('panel.logout') }}">
                         @csrf
-                        <button type="submit" class="btn btn-ghost w-full justify-start text-xs">🚪 خروج از پنل</button>
+                        <button type="submit" class="sidebar-link w-full text-danger hover:bg-danger-soft hover:text-danger">
+                            <span class="grid size-8 shrink-0 place-items-center rounded-xl bg-paper text-sm ring-1 ring-line">🚪</span>
+                            <span class="min-w-0 flex-1 truncate">خروج از پنل</span>
+                        </button>
                     </form>
 
                     <p class="px-2 pt-1 text-[11px] leading-5 text-hint">

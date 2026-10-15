@@ -26,7 +26,7 @@ class ChallengeController extends Controller
     {
         abort_unless($challenge->is_published, 404);
 
-        $challenge->load(['tasks', 'participants', 'tips', 'questions', 'attachments', 'days'])
+        $challenge->load(['tasks', 'participants', 'tips', 'questions', 'attachments', 'dayFiles', 'days'])
             ->loadCount(['tasks', 'participants']);
 
         return view('challenges.show', [

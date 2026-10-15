@@ -75,6 +75,7 @@ class ChallengeExport
             'days',
             'tips',
             'questions.answers',
+            'dayFiles',
             'participants.completions',
             'participants.questionAnswers',
         ]);
@@ -91,6 +92,7 @@ class ChallengeExport
             'وضعیت روز به روز' => self::daysSheet($challenge, $participants),
             'کارها و پرسش‌ها' => self::itemsSheet($challenge, $participants),
             'نکته‌ها' => self::tipsSheet($challenge),
+            'فایل‌های روزها' => self::dayFilesSheet($challenge),
         ];
     }
 
@@ -116,6 +118,7 @@ class ChallengeExport
             ['تعداد پرسش‌ها', $challenge->questions->count()],
             ['تعداد شرکت‌کننده‌ها', $participants->count()],
             ['تعداد نکته‌ها (کلی + هر روز)', $challenge->tips->count()],
+            ['تعداد فایل‌های روزها (فایل + صوتی)', $challenge->dayFiles->count()],
             ['میانگین پیشرفت شرکت‌کننده‌ها (٪)', $average],
             ['پیشرفت کلی چالش (٪)', $challenge->progressPercent()],
             ['تاریخ خروجی', Jalali::formatDateTime(now())],
@@ -280,6 +283,36 @@ class ChallengeExport
 
         if ($challenge->tips->isEmpty()) {
             $rows[] = ['—', '—', '—', 'هنوز نکته‌ای ثبت نشده است.', '—'];
+        }
+
+        return $rows;
+    }
+
+    /**
+     * فایل‌ها و فایل‌های صوتی هر روز از چالش.
+     *
+     * @return list<list<mixed>>
+     */
+    private static function dayFilesSheet(Challenge $challenge): array
+    {
+        $rows = [['روز', 'تاریخ روز', 'نوع', 'عنوان', 'نام فایل', 'حجم', 'تعداد دانلود']];
+
+        foreach ($challenge->dayFiles as $file) {
+            $day = (int) $file->day_number;
+
+            $rows[] = [
+                'روز '.fa_num($day),
+                fa_date($challenge->dateForDay($day)),
+                $file->is_audio ? 'فایل صوتی' : 'فایل',
+                $file->title,
+                $file->original_name,
+                $file->sizeForHumans(),
+                fa_num($file->downloads),
+            ];
+        }
+
+        if ($challenge->dayFiles->isEmpty()) {
+            $rows[] = ['—', '—', '—', 'هنوز فایلی برای روزها گذاشته نشده است.', '—', '—', '—'];
         }
 
         return $rows;

@@ -87,6 +87,7 @@ class DemoChallengeSeeder extends Seeder
         ]);
 
         $this->seedAttachment($challenge);
+        $this->seedDayFiles($challenge);
 
         $this->say('چالش نمونه «'.$challenge->title.'» ساخته شد.');
 
@@ -275,6 +276,54 @@ class DemoChallengeSeeder extends Seeder
             'size' => strlen($contents),
             'mime' => 'text/plain',
             'sort_order' => 1,
+        ]);
+    }
+
+    /**
+     * یک فایل صوتی و یک فایل نمونه برای روز ۱، تا پخش‌کننده صوتی سایت و
+     * باکس فایل‌های هر روز با داده واقعی دیده شود.
+     */
+    private function seedDayFiles(Challenge $challenge): void
+    {
+        if ($challenge->dayFiles()->exists()) {
+            return;
+        }
+
+        $directory = 'challenge-days/'.$challenge->id.'/day-1';
+
+        // صوت نمونه: یک فایل WAV کوچک که روی همین ریپو ساخته شده است
+        $audioSource = base_path('storage/app/public/demo-audio/day-1-note.wav');
+        $audioPath = $directory.'/day-1-note.wav';
+
+        if (is_file($audioSource)) {
+            Storage::disk('local')->put($audioPath, (string) file_get_contents($audioSource));
+
+            $challenge->dayFiles()->create([
+                'day_number' => 1,
+                'title' => 'صوت آرام‌سازی روز اول (نمونه)',
+                'path' => $audioPath,
+                'original_name' => 'parvaneh-sho-day1.wav',
+                'size' => (int) filesize($audioSource),
+                'mime' => 'audio/wav',
+                'is_audio' => true,
+                'sort_order' => 1,
+            ]);
+        }
+
+        $contents = "برنامه روز اول\n\n۱. صوت آرام‌سازی را گوش بده.\n۲. دو کار روز را در داشبوردت تیک بزن.\n۳. یک جمله شکرگزاری بنویس.\n";
+        $filePath = $directory.'/day-1-plan.txt';
+
+        Storage::disk('local')->put($filePath, $contents);
+
+        $challenge->dayFiles()->create([
+            'day_number' => 1,
+            'title' => 'برنامه روز اول (نمونه)',
+            'path' => $filePath,
+            'original_name' => 'parvaneh-sho-day1-plan.txt',
+            'size' => strlen($contents),
+            'mime' => 'text/plain',
+            'is_audio' => false,
+            'sort_order' => 2,
         ]);
     }
 

@@ -291,7 +291,10 @@ class ProgressAndDemoTest extends TestCase
 
         // فقط یک کادر خلاصه خطاها روی صفحه می‌آید (خطاها کنار خودِ فیلدها هم می‌آیند)
         $this->assertSame(1, substr_count($content, 'bg-danger-soft px-4 py-3 text-sm text-danger'));
-        $this->assertSame(1, substr_count($content, '<ul class="space-y-1">'));
+
+        // کادر خطاها فقط یک فهرست دارد (فهرست ناوبری سایدبار جدا است)
+        $errorBox = substr($content, (int) strpos($content, 'bg-danger-soft px-4 py-3 text-sm text-danger'), 800);
+        $this->assertSame(1, substr_count($errorBox, '<ul class="space-y-1">'));
         $this->assertGreaterThanOrEqual(1, substr_count($content, 'نام مدیر را وارد کنید.'));
     }
 }

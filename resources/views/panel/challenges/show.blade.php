@@ -226,6 +226,7 @@
                 @php($tasksOfDay = $day['tasks'])
                 @php($questionsOfDay = $day['questions'])
                 @php($dayTips = $day['tips'])
+                @php($dayFiles = $day['files'] ?? collect())
 
                 <details id="day-{{ $dayNumber }}" class="group overflow-hidden rounded-3xl ring-1 ring-line" @if ($day['open']) open @endif>
                     <summary class="flex cursor-pointer flex-wrap items-center justify-between gap-3 bg-cream px-4 py-3 sm:px-5">
@@ -256,6 +257,7 @@
                                 {{ fa_num($day['counts']['tasks']) }} کار
                                 @if ($day['counts']['questions'] > 0) · {{ fa_num($day['counts']['questions']) }} پرسش @endif
                                 @if ($day['counts']['tips'] > 0) · {{ fa_num($day['counts']['tips']) }} نکته @endif
+                                @if (($day['counts']['files'] ?? 0) > 0) · {{ fa_num($day['counts']['files']) }} فایل @endif
                             </span>
                             <span class="text-hint transition group-open:rotate-180">⌄</span>
                         </span>
@@ -565,6 +567,112 @@
                             </div>
                         @endif
                     </div>
+
+                    {{-- فایل‌ها و فایل‌های صوتی همین روز --}}
+                    @unless ($isGeneral)
+                        <div class="border-t border-line bg-paper px-5 py-4">
+                            <div class="flex flex-wrap items-center justify-between gap-3">
+                                <h4 class="flex flex-wrap items-center gap-2 text-xs font-semibold text-ink">
+                                    <span>📎</span> فایل‌ها و فایل‌های صوتی این روز
+                                    <span class="font-normal text-muted">{{ fa_num($dayFiles->count()) }} فایل</span>
+                                </h4>
+
+                                <span class="text-[11px] text-hint">
+                                    صوتی‌ها در سایت با پخش‌کننده خود سایت پخش می‌شوند؛ تا ۲۵ مگابایت.
+                                </span>
+                            </div>
+
+                            <form method="POST" action="{{ route('panel.day-files.store', $challenge) }}" enctype="multipart/form-data" class="mt-4 grid gap-3 rounded-2xl bg-cream p-4 sm:grid-cols-[1.2fr_1.6fr_auto]">
+                                @csrf
+                                <input type="hidden" name="day_number" value="{{ $dayNumber }}">
+
+                                <div>
+                                    <label class="label" for="day-file-title-{{ $dayNumber }}">عنوان فایل (اختیاری)</label>
+                                    <input id="day-file-title-{{ $dayNumber }}" name="title" type="text" maxlength="190" class="input" placeholder="مثلاً صوت روز سوم">
+                                </div>
+
+                                <div>
+                                    <label class="label" for="day-file-input-{{ $dayNumber }}">فایل یا فایل صوتی</label>
+                                    <input id="day-file-input-{{ $dayNumber }}" name="file" type="file" required class="input py-2.5 text-xs file:me-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-1.5 file:text-brand-700">
+                                    <p class="hint">mp3، m4a، wav، ogg برای صوت؛ pdf، تصویر، zip و ... برای فایل.</p>
+                                </div>
+
+                                <div class="flex items-end">
+                                    <button type="submit" class="btn btn-primary btn-sm w-full sm:w-auto">افزودن به روز {{ fa_num($dayNumber) }}</button>
+                                </div>
+                            </form>
+
+                            @if ($dayFiles->isEmpty())
+                                <p class="mt-4 rounded-2xl bg-cream px-4 py-5 text-center text-[11px] text-muted">برای این روز هنوز فایلی گذاشته نشده است.</p>
+                            @else
+                                <ul class="mt-4 space-y-2">
+                                    @foreach ($dayFiles as $dayFile)
+                                        <li class="rounded-2xl bg-cream p-3 ring-1 ring-line">
+                                            <div class="flex flex-wrap items-start justify-between gap-3">
+                                                <div class="flex min-w-0 flex-1 items-start gap-3">
+                                                    <span class="grid size-9 shrink-0 place-items-center rounded-xl bg-paper text-base ring-1 ring-line">{{ $dayFile->icon() }}</span>
+
+                                                    <div class="min-w-0">
+                                                        <p class="flex flex-wrap items-center gap-2 text-sm font-medium text-ink">
+                                                            {{ $dayFile->title }}
+                                                            <span class="badge {{ $dayFile->is_audio ? 'bg-gold/15 text-gold-ink ring-gold/50' : 'bg-jade/10 text-jade ring-jade/30' }}">
+                                                                {{ $dayFile->is_audio ? '🎧 فایل صوتی' : '📎 فایل' }}
+                                                            </span>
+                                                        </p>
+
+                                                        <p class="mt-1 text-[11px] text-hint" dir="ltr">
+                                                            {{ $dayFile->original_name }} · {{ $dayFile->sizeForHumans() }}
+                                                        </p>
+
+                                                        @if ($dayFile->is_audio)
+                                                            <div class="mt-3 max-w-md">
+                                                                <x-audio-player :file="$dayFile" :day="$dayNumber" />
+                                                            </div>
+                                                        @endif
+                                                    </div>
+                                                </div>
+
+                                                <div class="flex items-center gap-1">
+                                                    <a href="{{ $dayFile->url() }}" target="_blank" class="btn btn-white btn-sm">دیدن</a>
+
+                                                    <details>
+                                                        <summary class="btn btn-ghost btn-sm list-none">ویرایش</summary>
+
+                                                        <form method="POST" action="{{ route('panel.day-files.update', [$challenge, $dayFile]) }}" class="mt-3 grid w-full max-w-md gap-3 rounded-2xl bg-paper p-4 text-right ring-1 ring-line">
+                                                            @csrf
+                                                            @method('PUT')
+
+                                                            <div class="grid gap-3 sm:grid-cols-2">
+                                                                <div>
+                                                                    <label class="label">تاریخ روز</label>
+                                                                    <input type="text" name="date" dir="ltr" data-jalali-picker class="input text-center"
+                                                                           value="{{ \App\Support\Jalali::inputValue($challenge->dateForDay($dayFile->day_number)) }}">
+                                                                    <p class="hint">با تغییر تاریخ، فایل به آن روز منتقل می‌شود.</p>
+                                                                </div>
+
+                                                                <div>
+                                                                    <label class="label">عنوان</label>
+                                                                    <input type="text" name="title" value="{{ $dayFile->title }}" required class="input">
+                                                                </div>
+                                                            </div>
+
+                                                            <button type="submit" class="btn btn-primary btn-sm">ذخیره</button>
+                                                        </form>
+                                                    </details>
+
+                                                    <form method="POST" action="{{ route('panel.day-files.destroy', [$challenge, $dayFile]) }}" data-confirm="فایل «{{ $dayFile->title }}» حذف شود؟">
+                                                        @csrf
+                                                        @method('DELETE')
+                                                        <button type="submit" class="btn btn-danger btn-sm">حذف</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    @endforeach
+                                </ul>
+                            @endif
+                        </div>
+                    @endunless
 
                     {{-- افزودن سریع به همین روز --}}
                     <div class="grid gap-3 border-t border-line bg-cream/70 px-5 py-3 lg:grid-cols-2">

@@ -9,6 +9,7 @@ const app = {
         this.initMenus();
         this.initConfirm();
         this.initJumpBar();
+        this.initAudioPlayers();
         this.initAutoGrow();
         this.initPrint();
         this.initPasswordToggles();
@@ -291,6 +292,124 @@ const app = {
                 target.open = true;
             }
         }
+    },
+
+    /* پخش‌کننده اختصاصی فایل‌های صوتی:
+       بدون پخش‌کننده پیش‌فرض مرورگر، با نوار پیشرفت لمسی، زمان، سرعت پخش و
+       قاعده «فقط یک صوت در حال پخش». */
+    initAudioPlayers() {
+        const toFaTime = (seconds) => {
+            if (!Number.isFinite(seconds) || seconds < 0) seconds = 0;
+
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            const pad = (value) => String(value).padStart(2, '0');
+
+            return toPersianDigits(`${pad(mins)}:${pad(secs)}`);
+        };
+
+        const players = Array.from(document.querySelectorAll('[data-audio-player]'));
+        if (!players.length) return;
+
+        let current = null;
+
+        players.forEach((player) => {
+            const audio = new Audio(player.dataset.audioSrc);
+            audio.preload = 'metadata';
+
+            const toggle = player.querySelector('[data-audio-toggle]');
+            const seek = player.querySelector('[data-audio-seek]');
+            const speed = player.querySelector('[data-audio-speed]');
+            const currentLabel = player.querySelector('[data-audio-current]');
+            const durationLabel = player.querySelector('[data-audio-duration]');
+            const icons = {
+                play: player.querySelector('[data-audio-icon="play"]'),
+                pause: player.querySelector('[data-audio-icon="pause"]'),
+            };
+
+            const speeds = [1, 1.25, 1.5, 0.75];
+            let speedIndex = 0;
+            let dragging = false;
+
+            const paint = () => {
+                const duration = Number.isFinite(audio.duration) ? audio.duration : 0;
+                const progress = duration > 0 ? (audio.currentTime / duration) * 100 : 0;
+
+                seek.style.setProperty('--audio-progress', `${progress.toFixed(2)}%`);
+
+                if (!dragging) {
+                    seek.value = String(Math.round(progress * 10));
+                }
+
+                currentLabel.textContent = toFaTime(audio.currentTime);
+                durationLabel.textContent = toFaTime(duration);
+            };
+
+            const setPlaying = (playing) => {
+                toggle.setAttribute('aria-pressed', playing ? 'true' : 'false');
+                toggle.setAttribute('aria-label', `${playing ? 'توقف' : 'پخش'} فایل صوتی ${player.dataset.audioTitle}`);
+                icons.play.classList.toggle('hidden', playing);
+                icons.pause.classList.toggle('hidden', !playing);
+                player.classList.toggle('is-playing', playing);
+            };
+
+            toggle.addEventListener('click', () => {
+                if (audio.paused) {
+                    if (current && current !== audio) {
+                        current.pause();
+                    }
+
+                    current = audio;
+                    audio.play().catch(() => setPlaying(false));
+                } else {
+                    audio.pause();
+                }
+            });
+
+            seek.addEventListener('pointerdown', () => { dragging = true; });
+            seek.addEventListener('pointerup', () => { dragging = false; });
+
+            seek.addEventListener('input', () => {
+                const duration = Number.isFinite(audio.duration) ? audio.duration : 0;
+                const ratio = Number(seek.value) / 1000;
+
+                seek.style.setProperty('--audio-progress', `${(ratio * 100).toFixed(2)}%`);
+                currentLabel.textContent = toFaTime(duration * ratio);
+            });
+
+            seek.addEventListener('change', () => {
+                const duration = Number.isFinite(audio.duration) ? audio.duration : 0;
+
+                if (duration > 0) {
+                    audio.currentTime = duration * (Number(seek.value) / 1000);
+                }
+
+                dragging = false;
+                paint();
+            });
+
+            speed.addEventListener('click', () => {
+                speedIndex = (speedIndex + 1) % speeds.length;
+                audio.playbackRate = speeds[speedIndex];
+                speed.textContent = toPersianDigits(speeds[speedIndex]) + '×';
+            });
+
+            audio.addEventListener('play', () => setPlaying(true));
+            audio.addEventListener('pause', () => setPlaying(false));
+            audio.addEventListener('ended', () => {
+                audio.currentTime = 0;
+                setPlaying(false);
+                paint();
+            });
+            audio.addEventListener('loadedmetadata', paint);
+            audio.addEventListener('timeupdate', paint);
+            audio.addEventListener('error', () => {
+                toggle.disabled = true;
+                durationLabel.textContent = 'پخش نشد';
+            });
+
+            paint();
+        });
     },
 
     /* بزرگ‌شدن خودکار textarea های فهرست‌ها */
