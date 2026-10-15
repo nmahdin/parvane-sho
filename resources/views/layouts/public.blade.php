@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#075741">
+    <meta name="theme-color" content="#254D3A">
 
     <title>@yield('title', $site['site_name'] ?? config('panel.site_name'))</title>
     <meta name="description" content="@yield('description', $site['site_tagline'] ?? config('panel.site_tagline'))">

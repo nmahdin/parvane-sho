@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
-    <meta name="theme-color" content="#075741">
+    <meta name="theme-color" content="#254D3A">
 
     <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
     <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="16x16 32x32 48x48">
@@ -124,7 +124,7 @@
     </div>
 
     {{-- ناوبری پایین صفحه در موبایل: دسترسی یک‌لمسی به بخش‌های اصلی --}}
-    <nav class="no-print fixed inset-x-0 bottom-0 z-40 border-t border-line bg-paper/95 shadow-[0_-4px_16px_rgba(36,71,60,0.06)] backdrop-blur lg:hidden">
+    <nav class="no-print fixed inset-x-0 bottom-0 z-40 border-t border-line bg-paper/95 shadow-[0_-4px_16px_rgba(41,59,48,0.06)] backdrop-blur lg:hidden">
         <div class="safe-bottom mx-auto flex max-w-xl items-stretch">
             @foreach ($navigation as $item)
                 <a href="{{ $item['url'] }}"

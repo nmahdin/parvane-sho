@@ -78,7 +78,7 @@ class PanelDayModalsTest extends TestCase
         $manifest = json_decode(file_get_contents(public_path('build/manifest.json')), true);
         $css = file_get_contents(public_path('build/'.$manifest['resources/css/app.css']['file']));
         $this->assertMatchesRegularExpression('/\.panel-modal\{[^}]*position:fixed[^}]*\}/', $css);
-        $this->assertMatchesRegularExpression('/\.panel-modal\{[^}]*margin:auto[^}]*\}/', $css);
+        $this->assertMatchesRegularExpression('/\.panel-modal\[open\]\{[^}]*place-items:center[^}]*\}/', $css);
 
         // فرم فایل مودال، AJAX و multipart است
         $modal = substr($html, (int) strpos($html, '<dialog id="modal-file"'));
@@ -108,13 +108,26 @@ class PanelDayModalsTest extends TestCase
         $this->assertStringContainsString('.panel-modal', $css);
         $this->assertStringContainsString('.day-group-head', $css);
 
-        // مودال وسط صفحه می‌چسبد (position/margin در CSS ساخته‌شده)
+        // مودال دقیقاً وسط صفحه می‌نشیند: dialog پوشش تمام‌صفحه می‌شود و در
+        // حالت باز با گرید (display:grid + place-items:center) هم افقی و هم
+        // عمودی مرکزچین می‌شود — بدون تکیه بر رفتار مرورگرها
         $modalCss = substr($css, (int) strpos($css, '.panel-modal{'));
         $modalCss = substr($modalCss, 0, (int) strpos($modalCss, '}'));
         $this->assertStringContainsString('position:fixed', $modalCss);
         $this->assertStringContainsString('inset:0', $modalCss);
-        $this->assertStringContainsString('margin:auto', $modalCss);
-        // ارتفاع معین تا مرکزچینی عمودی هم کار کند
-        $this->assertStringContainsString('height:fit-content', $modalCss);
+        $this->assertStringContainsString('height:100%', $modalCss);
+
+        $openCss = substr($css, (int) strpos($css, '.panel-modal[open]{'));
+        $openCss = substr($openCss, 0, (int) strpos($openCss, '}'));
+        $this->assertStringContainsString('display:grid', $openCss);
+        $this->assertStringContainsString('place-items:center', $openCss);
+
+        // پالت تازه در CSS ساخته‌شده هست: سبز جنگلی، کرم مرواریدی، سبز جوانه،
+        // مرجانی تیره (دکمه اصلی) و مرجانی گرم (نشان‌ها)
+        $this->assertStringContainsString('#254d3a', $css);
+        $this->assertStringContainsString('#f7f3e8', $css);
+        $this->assertStringContainsString('#dce8d5', $css);
+        $this->assertStringContainsString('#b94f35', $css);
+        $this->assertStringContainsString('#d96c4f', $css);
     }
 }
