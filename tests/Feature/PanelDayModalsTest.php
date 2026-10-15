@@ -48,6 +48,12 @@ class PanelDayModalsTest extends TestCase
         }
 
         $this->assertStringContainsString('day-group-head', $html);
+
+        // همه گروه‌های داخل روز به‌طور پیش‌فرض بسته‌اند (بدون open)
+        foreach (['title', 'tasks', 'questions', 'tips', 'files'] as $group) {
+            $this->assertStringNotContainsString('id="day-1-'.$group.'" class="day-group rounded-2xl bg-cream/70 ring-1 ring-line" open', $html);
+            $this->assertStringNotContainsString('id="day-1-'.$group.'" class="day-group rounded-2xl bg-paper/80 ring-1 ring-gold/40" open', $html);
+        }
     }
 
     public function test_add_forms_live_in_shared_modals_with_a_day_input(): void
@@ -108,5 +114,7 @@ class PanelDayModalsTest extends TestCase
         $this->assertStringContainsString('position:fixed', $modalCss);
         $this->assertStringContainsString('inset:0', $modalCss);
         $this->assertStringContainsString('margin:auto', $modalCss);
+        // ارتفاع معین تا مرکزچینی عمودی هم کار کند
+        $this->assertStringContainsString('height:fit-content', $modalCss);
     }
 }

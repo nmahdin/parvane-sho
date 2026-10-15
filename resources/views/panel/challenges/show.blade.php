@@ -194,7 +194,7 @@
 
                     {{-- کارهای این روز --}}
                     <div class="border-t border-line bg-paper px-4 py-3 sm:px-5">
-                        <details id="day-{{ $dayNumber }}-tasks" class="day-group rounded-2xl bg-cream/70 ring-1 ring-line" @if ($tasksOfDay->isNotEmpty()) open @endif>
+                        <details id="day-{{ $dayNumber }}-tasks" class="day-group rounded-2xl bg-cream/70 ring-1 ring-line">
                             <summary class="day-group-head">
                                 <span class="flex flex-wrap items-center gap-2">
                                     <span>📝</span> کارهای این روز
@@ -335,7 +335,7 @@
 
                     {{-- پرسش‌های همین روز --}}
                     <div class="border-t border-line bg-paper px-4 py-3 sm:px-5">
-                        <details id="day-{{ $dayNumber }}-questions" class="day-group rounded-2xl bg-cream/70 ring-1 ring-line" @if ($questionsOfDay->isNotEmpty()) open @endif>
+                        <details id="day-{{ $dayNumber }}-questions" class="day-group rounded-2xl bg-cream/70 ring-1 ring-line">
                             <summary class="day-group-head">
                                 <span class="flex flex-wrap items-center gap-2">
                                     <span>❓</span> پرسش و پاسخ این روز
@@ -477,7 +477,7 @@
 
                     {{-- نکته‌های این روز --}}
                     <div class="border-t border-line bg-gold/5 px-4 py-3 sm:px-5">
-                        <details id="day-{{ $dayNumber }}-tips" class="day-group rounded-2xl bg-paper/80 ring-1 ring-gold/40" @if ($dayTips->isNotEmpty()) open @endif>
+                        <details id="day-{{ $dayNumber }}-tips" class="day-group rounded-2xl bg-paper/80 ring-1 ring-gold/40">
                             <summary class="day-group-head">
                                 <span class="flex flex-wrap items-center gap-2">
                                     <span>💡</span> {{ $isGeneral ? 'نکته‌های کلی' : 'نکته‌های این روز' }}
@@ -506,7 +506,7 @@
                     {{-- فایل‌ها و فایل‌های صوتی همین روز --}}
                     @unless ($isGeneral)
                         <div class="border-t border-line bg-paper px-4 py-3 sm:px-5">
-                            <details id="day-{{ $dayNumber }}-files" class="day-group rounded-2xl bg-cream/70 ring-1 ring-line" @if ($dayFiles->isNotEmpty()) open @endif>
+                            <details id="day-{{ $dayNumber }}-files" class="day-group rounded-2xl bg-cream/70 ring-1 ring-line">
                                 <summary class="day-group-head">
                                     <span class="flex flex-wrap items-center gap-2">
                                         <span>📎</span> فایل‌ها و فایل‌های صوتی این روز
