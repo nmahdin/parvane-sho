@@ -6,6 +6,7 @@ import { initJalaliPickers, jalaliInputToDate, toPersianDigits } from './jalali-
 const app = {
     init() {
         this.initAjaxSave();
+        this.initUploadProgress();
         this.initCopy();
         this.initMenus();
         this.initConfirm();
@@ -501,6 +502,13 @@ const app = {
         };
 
         try {
+            // آپلود فایل با XHR می‌رود تا درصد پیشرفت نشان داده شود
+            if (this.formHasFile(form)) {
+                await this.uploadFormWithProgress(form);
+
+                return;
+            }
+
             const response = await fetch(form.getAttribute('action') || window.location.href, {
                 method: (form.getAttribute('method') || 'POST').toUpperCase(),
                 body: new FormData(form),
@@ -576,6 +584,195 @@ const app = {
         this.init();
 
         return message;
+    },
+
+    /* فرم فایل انتخاب‌شده دارد؟ (برای تصمیم بین fetch و XHR) */
+    formHasFile(form) {
+        return Array.from(form.querySelectorAll('input[type="file"]')).some(
+            (input) => input.files && input.files.length > 0
+        );
+    },
+
+    /* نوار پیشرفت آپلود بالای صفحه */
+    showUploadProgress(percent) {
+        let bar = document.querySelector('[data-upload-progress]');
+
+        if (!bar) {
+            bar = document.createElement('div');
+            bar.className = 'upload-progress';
+            bar.setAttribute('data-upload-progress', '');
+            bar.setAttribute('role', 'progressbar');
+            bar.setAttribute('aria-valuemin', '0');
+            bar.setAttribute('aria-valuemax', '100');
+            bar.setAttribute('aria-label', 'پیشرفت آپلود فایل');
+            bar.innerHTML = `
+                <p class="upload-progress-label">⬆️ در حال آپلود فایل… <span data-upload-percent>۰٪</span></p>
+                <div class="upload-progress-track"><span class="upload-progress-fill" data-upload-fill></span></div>`;
+            document.body.appendChild(bar);
+        }
+
+        const fill = bar.querySelector('[data-upload-fill]');
+        const label = bar.querySelector('[data-upload-percent]');
+
+        if (fill) fill.style.width = `${percent}%`;
+        if (label) label.textContent = `${toPersianDigits(String(percent))}٪`;
+        bar.setAttribute('aria-valuenow', String(percent));
+        bar.classList.remove('is-out');
+    },
+
+    hideUploadProgress() {
+        const bar = document.querySelector('[data-upload-progress]');
+        if (!bar) return;
+
+        bar.classList.add('is-out');
+        window.setTimeout(() => bar.remove(), 500);
+    },
+
+    /* ارسال فرم با XHR تا رویداد پیشرفت آپلود در دسترس باشد */
+    xhrUpload(form) {
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+
+            xhr.open('POST', form.getAttribute('action') || window.location.href, true);
+            xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+            xhr.upload.addEventListener('progress', (event) => {
+                if (event.lengthComputable) {
+                    this.showUploadProgress(Math.min(99, Math.round((event.loaded / event.total) * 100)));
+                }
+            });
+
+            xhr.addEventListener('load', () => {
+                this.showUploadProgress(100);
+                window.setTimeout(() => this.hideUploadProgress(), 400);
+                resolve(xhr);
+            });
+
+            xhr.addEventListener('error', () => {
+                this.hideUploadProgress();
+                reject(new Error('network'));
+            });
+
+            xhr.addEventListener('abort', () => {
+                this.hideUploadProgress();
+                reject(new Error('abort'));
+            });
+
+            xhr.send(new FormData(form));
+        });
+    },
+
+    /* فرم‌های data-ajax-save که فایل دارند: آپلود با نوار پیشرفت،
+       بعد از پایان همان جریان جای‌گذاری بخش‌ها ادامه پیدا می‌کند. */
+    async uploadFormWithProgress(form) {
+        try {
+            const xhr = await this.xhrUpload(form);
+
+            if (xhr.status >= 200 && xhr.status < 300) {
+                const message = await this.refreshDynamicSections();
+                this.showToast(message || 'ذخیره شد.', 'status');
+
+                return;
+            }
+
+            if (xhr.status === 422) {
+                let data = null;
+
+                try {
+                    data = JSON.parse(xhr.responseText);
+                } catch {
+                    data = null;
+                }
+
+                const firstError = data?.errors ? Object.values(data.errors)[0]?.[0] : null;
+                this.showToast(firstError || data?.message || 'مقادیر فرم درست نیست.', 'error');
+
+                return;
+            }
+
+            this.showToast('ذخیره انجام نشد؛ دوباره تلاش کن.', 'error');
+        } catch {
+            this.showToast('آپلود انجام نشد؛ دوباره تلاش کن.', 'error');
+        }
+    },
+
+    /* فرم‌های آپلودی که data-ajax-save ندارند (مثل ضمائم چالش):
+       ارسال با XHR + نوار پیشرفت و بعد هدایت به صفحه نتیجه. */
+    initUploadProgress() {
+        if (this._uploadBound) return;
+        this._uploadBound = true;
+
+        document.addEventListener('submit', (event) => {
+            const form = event.target.closest('form');
+            if (!form || event.defaultPrevented) return;
+            if (form.hasAttribute('data-ajax-save')) return; // مسیر ajax-save خودش نوار دارد
+            if (!this.formHasFile(form)) return;
+
+            event.preventDefault();
+            this.submitPlainFormWithProgress(form);
+        });
+    },
+
+    async submitPlainFormWithProgress(form) {
+        if (form.dataset.saving) return;
+        form.dataset.saving = '1';
+
+        const button = form.querySelector('button[type="submit"], input[type="submit"]');
+        const originalLabel = button && button.tagName === 'BUTTON' ? button.innerHTML : null;
+
+        if (button) {
+            button.disabled = true;
+
+            if (button.tagName === 'BUTTON') {
+                button.classList.add('is-loading');
+                button.insertAdjacentHTML('afterbegin', '<span class="btn-spinner"></span> ');
+            }
+        }
+
+        const finish = () => {
+            delete form.dataset.saving;
+
+            if (button) {
+                button.disabled = false;
+
+                if (button.tagName === 'BUTTON') {
+                    button.classList.remove('is-loading');
+                    button.innerHTML = originalLabel;
+                }
+            }
+        };
+
+        try {
+            const xhr = await this.xhrUpload(form);
+
+            if (xhr.status >= 200 && xhr.status < 300) {
+                // XHR ریدایرکت را خودش دنبال می‌کند؛ به همان صفحه می‌رویم
+                window.location.assign(xhr.responseURL || window.location.href);
+
+                return;
+            }
+
+            if (xhr.status === 422) {
+                let data = null;
+
+                try {
+                    data = JSON.parse(xhr.responseText);
+                } catch {
+                    data = null;
+                }
+
+                const firstError = data?.errors ? Object.values(data.errors)[0]?.[0] : null;
+                this.showToast(firstError || data?.message || 'مقادیر فرم درست نیست.', 'error');
+
+                return;
+            }
+
+            this.showToast('آپلود انجام نشد؛ دوباره تلاش کن.', 'error');
+        } catch {
+            this.showToast('آپلود انجام نشد؛ دوباره تلاش کن.', 'error');
+        } finally {
+            finish();
+        }
     },
 
     /* پیام کوتاه پایین صفحه (موفقیت/خطا) */
