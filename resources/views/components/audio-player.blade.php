@@ -69,9 +69,16 @@
                     <button type="button" class="audio-speed" data-audio-speed aria-label="تغییر سرعت پخش">۱×</button>
 
                     <a href="{{ $file->url() }}"
-                       class="audio-speed no-underline"
+                       class="audio-download"
                        download
-                       aria-label="دانلود فایل صوتی {{ $file->title }}">⬇</a>
+                       aria-label="دانلود فایل صوتی {{ $file->title }}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="size-4" aria-hidden="true">
+                            <path d="M12 3v12"/>
+                            <path d="M7 11l5 5 5-5"/>
+                            <path d="M4 20h16"/>
+                        </svg>
+                        دانلود صوت
+                    </a>
                 </span>
             </div>
         </div>

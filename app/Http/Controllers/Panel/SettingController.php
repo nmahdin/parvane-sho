@@ -22,6 +22,8 @@ class SettingController extends Controller
             'site_name' => Setting::get('site_name', config('panel.site_name')),
             'site_tagline' => Setting::get('site_tagline', config('panel.site_tagline')),
             'site_about' => Setting::get('site_about', config('panel.site_about')),
+            'maintenanceMode' => Setting::maintenanceMode(),
+            'maintenanceMessage' => Setting::get('maintenance_message'),
             'admin' => $admin,
             'isSuper' => $admin->isSuper(),
         ]);
@@ -36,6 +38,7 @@ class SettingController extends Controller
             'site_name' => ['required', 'string', 'max:120'],
             'site_tagline' => ['nullable', 'string', 'max:500'],
             'site_about' => ['nullable', 'string', 'max:2000'],
+            'maintenance_message' => ['nullable', 'string', 'max:500'],
         ], [
             'site_name.required' => 'نام سایت را وارد کنید.',
         ]);
@@ -43,8 +46,28 @@ class SettingController extends Controller
         Setting::put('site_name', $validated['site_name']);
         Setting::put('site_tagline', $validated['site_tagline'] ?? '');
         Setting::put('site_about', $validated['site_about'] ?? '');
+        Setting::put('maintenance_message', trim((string) ($validated['maintenance_message'] ?? '')));
 
         return back()->with('status', 'تنظیمات سایت ذخیره شد.');
+    }
+
+    /**
+     * روشن/خاموش کردن سریع حالت تعمیر سایت (فقط مدیر اصلی).
+     */
+    public function toggleMaintenance(Request $request): RedirectResponse
+    {
+        abort_unless($this->currentAdmin()->isSuper(), 403);
+
+        $enabled = $request->input('maintenance_mode') === '1';
+
+        Setting::put('maintenance_mode', $enabled ? '1' : '0');
+
+        return back()->with(
+            'status',
+            $enabled
+                ? 'حالت تعمیر روشن شد؛ صفحه‌های عمومی سایت پیام تعمیر را نشان می‌دهند. پنل و داشبورد شرکت‌کننده‌ها باز است.'
+                : 'حالت تعمیر خاموش شد؛ سایت دوباره برای همه باز است.'
+        );
     }
 
     /**

@@ -18,6 +18,24 @@ class Setting extends Model
         static::updateOrCreate(['key' => $key], ['value' => $value]);
     }
 
+    public const DEFAULT_MAINTENANCE_MESSAGE = 'سایت در حال به‌روزرسانی است؛ به‌زودی برمی‌گردیم.';
+
+    /**
+     * حالت تعمیر سایت فعال است؟
+     */
+    public static function maintenanceMode(): bool
+    {
+        return static::get('maintenance_mode', '0') === '1';
+    }
+
+    /**
+     * پیام صفحه «در حال تعمیر».
+     */
+    public static function maintenanceMessage(): string
+    {
+        return trim((string) static::get('maintenance_message')) ?: self::DEFAULT_MAINTENANCE_MESSAGE;
+    }
+
     /**
      * Site-wide settings with sensible defaults.
      *

@@ -121,6 +121,7 @@ Route::prefix('panel')->name('panel.')->group(function () {
         Route::get('settings', [SettingController::class, 'edit'])->name('settings.edit');
         Route::put('settings', [SettingController::class, 'update'])->name('settings.update');
         Route::put('settings/password', [SettingController::class, 'updatePassword'])->name('settings.password');
+        Route::patch('settings/maintenance', [SettingController::class, 'toggleMaintenance'])->name('settings.maintenance');
 
         // مدیران — فقط مدیر اصلی
         Route::middleware('panel.super')->group(function () {
