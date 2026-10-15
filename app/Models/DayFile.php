@@ -47,7 +47,7 @@ class DayFile extends Model
      */
     public const MAX_KILOBYTES = 8192;
 
-    public const MAX_AUDIO_KILOBYTES = 25600;
+    public const MAX_AUDIO_KILOBYTES = 61440;
 
     protected function casts(): array
     {

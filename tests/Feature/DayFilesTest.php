@@ -227,6 +227,42 @@ class DayFilesTest extends TestCase
         $this->assertStringContainsString('alt="عکس اردو"', $html);
     }
 
+    public function test_audio_files_can_be_up_to_sixty_megabytes(): void
+    {
+        $this->loginAsAdmin();
+        $challenge = $this->makeChallenge(['starts_on' => now()->subDay(), 'ends_on' => now()->addDays(6)]);
+
+        // ۶۰ مگابایت دقیقاً مجاز است (مرز بالا)
+        $this->post(route('panel.day-files.store', $challenge), [
+            'day_number' => 1,
+            'title' => 'صوت شصت مگابایتی',
+            'file' => UploadedFile::fake()->create('big.mp3', 60 * 1024, 'audio/mpeg'),
+        ])->assertRedirect();
+
+        $file = $challenge->dayFiles()->firstOrFail();
+        $this->assertSame(60 * 1024 * 1024, $file->size);
+        $this->assertTrue($file->is_audio);
+
+        // بیشتر از ۶۰ مگابایت رد می‌شود و پیام فارسی حد تازه را می‌گوید
+        $challenge->dayFiles()->delete();
+
+        $response = $this->post(route('panel.day-files.store', $challenge), [
+            'day_number' => 1,
+            'title' => 'صوت خیلی بزرگ',
+            'file' => UploadedFile::fake()->create('huge.mp3', (60 * 1024) + 1, 'audio/mpeg'),
+        ]);
+
+        $response->assertSessionHasErrors('file');
+        $this->assertSame(0, $challenge->dayFiles()->count());
+
+        $errors = session('errors')->first('file');
+        $this->assertStringContainsString('۶۰ مگابایت', $errors);
+
+        // راهنمای فرم آپلود هم حد تازه را نشان می‌دهد
+        $html = $this->get(route('panel.challenges.show', $challenge))->assertOk()->getContent();
+        $this->assertStringContainsString('تا ۶۰ مگابایت', $html);
+    }
+
     public function test_the_is_image_helper_detects_pictures(): void
     {
         $challenge = $this->makeChallenge(['starts_on' => now()->subDay(), 'ends_on' => now()->addDays(6)]);
