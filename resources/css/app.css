@@ -245,6 +245,15 @@
         @apply shrink-0 cursor-pointer rounded-xl bg-cream px-2.5 py-1.5 text-[11px] font-semibold text-muted ring-1 ring-line transition hover:bg-line/50 hover:text-forest;
     }
 
+    /* عکس روز: کامل و به اندازه عرض باکس روز */
+    .day-image {
+        @apply block h-auto w-full max-h-[30rem] rounded-2xl bg-paper object-contain ring-1 ring-line;
+    }
+
+    .day-image-download {
+        @apply inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-lg bg-jade/10 px-3 py-1.5 text-[11px] font-semibold text-jade no-underline ring-1 ring-jade/30 transition hover:bg-jade/20 hover:text-forest;
+    }
+
     /* دکمه دانلود فایل صوتی: بزرگ‌تر و واضح‌تر از بقیه کنترل‌ها */
     .audio-download {
         @apply inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-xl bg-jade/10 px-4 py-2.5 text-xs font-semibold text-jade no-underline ring-1 ring-jade/30 transition hover:bg-jade/20 hover:text-forest;

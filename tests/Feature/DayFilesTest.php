@@ -156,6 +156,105 @@ class DayFilesTest extends TestCase
         $this->assertStringContainsString('⬇ دانلود', $box);
     }
 
+    public function test_image_day_files_are_shown_as_a_full_image_on_the_challenge_page(): void
+    {
+        $challenge = $this->makeChallenge(['starts_on' => now()->subDay(), 'ends_on' => now()->addDays(6)]);
+
+        $image = $challenge->dayFiles()->create([
+            'day_number' => 1,
+            'title' => 'عکس اردوی روز اول',
+            'path' => 'day-files/camp.png',
+            'original_name' => 'camp.png',
+            'size' => 40960,
+            'mime' => 'image/png',
+            'is_audio' => false,
+        ]);
+
+        $document = $challenge->dayFiles()->create([
+            'day_number' => 1,
+            'title' => 'جدول تمرین',
+            'path' => 'day-files/plan.txt',
+            'original_name' => 'plan.txt',
+            'size' => 32,
+            'mime' => 'text/plain',
+            'is_audio' => false,
+        ]);
+
+        Storage::disk('local')->put('day-files/camp.png', 'PNG....');
+        Storage::disk('local')->put('day-files/plan.txt', 'برنامه');
+
+        $box = $this->dayBoxHtml(
+            $this->get(route('challenges.show', $challenge))->assertOk()->getContent(),
+            1
+        );
+
+        // عکس کامل و به اندازه عرض باکس روز نمایش داده می‌شود
+        $this->assertStringContainsString('تصاویر این روز', $box);
+        $this->assertStringContainsString('class="day-image"', $box, 'عکس باید با کلاس تمام‌عرض day-image رندر شود.');
+        $this->assertStringContainsString('src="'.e($image->url()).'"', $box);
+        $this->assertStringContainsString('alt="عکس اردوی روز اول"', $box);
+        $this->assertStringContainsString('loading="lazy"', $box);
+
+        // فایل غیرعکسی همان ردیف دانلود می‌ماند و عکس به <img> تبدیل شده نه لینک دانلود تنها
+        $this->assertStringContainsString('جدول تمرین', $box);
+        $this->assertMatchesRegularExpression('/<a [^>]*class="day-image-download"/', $box);
+    }
+
+    public function test_image_day_files_are_shown_as_a_full_image_on_the_participant_dashboard(): void
+    {
+        $challenge = $this->makeChallenge(['starts_on' => now()->subDay(), 'ends_on' => now()->addDays(6)]);
+        $participant = $challenge->participants()->create([
+            'name' => 'زهرا محمدی',
+            'pledged_at' => now(),
+        ]);
+
+        $challenge->dayFiles()->create([
+            'day_number' => 1,
+            'title' => 'عکس اردو',
+            'path' => 'day-files/camp.jpg',
+            'original_name' => 'camp.jpg',
+            'size' => 40960,
+            'mime' => 'image/jpeg',
+            'is_audio' => false,
+        ]);
+
+        Storage::disk('local')->put('day-files/camp.jpg', 'JPEG....');
+
+        $html = $this->get(route('participant.show', $participant))->assertOk()->getContent();
+
+        $this->assertStringContainsString('تصاویر این روز', $html);
+        $this->assertStringContainsString('class="day-image"', $html);
+        $this->assertStringContainsString('alt="عکس اردو"', $html);
+    }
+
+    public function test_the_is_image_helper_detects_pictures(): void
+    {
+        $challenge = $this->makeChallenge(['starts_on' => now()->subDay(), 'ends_on' => now()->addDays(6)]);
+
+        $image = $challenge->dayFiles()->create([
+            'day_number' => 1,
+            'title' => 'عکس',
+            'path' => 'day-files/a.webp',
+            'original_name' => 'a.webp',
+            'size' => 10,
+            'mime' => 'image/webp',
+            'is_audio' => false,
+        ]);
+
+        $text = $challenge->dayFiles()->create([
+            'day_number' => 1,
+            'title' => 'متن',
+            'path' => 'day-files/a.txt',
+            'original_name' => 'a.txt',
+            'size' => 10,
+            'mime' => 'text/plain',
+            'is_audio' => false,
+        ]);
+
+        $this->assertTrue($image->isImage());
+        $this->assertFalse($text->isImage());
+    }
+
     public function test_the_participant_dashboard_shows_the_day_files_too(): void
     {
         $challenge = $this->makeChallenge(['starts_on' => now()->subDay(), 'ends_on' => now()->addDays(6)]);

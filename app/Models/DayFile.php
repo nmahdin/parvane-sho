@@ -36,6 +36,13 @@ class DayFile extends Model
     public const AUDIO_EXTENSIONS = ['mp3', 'm4a', 'aac', 'ogg', 'oga', 'wav', 'flac', 'opus'];
 
     /**
+     * پسوندهایی که به‌عنوان تصویر شناخته می‌شوند.
+     *
+     * @var list<string>
+     */
+    public const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg', 'bmp'];
+
+    /**
      * بیشترین حجم مجاز هر فایل (کیلوبایت) — صوتی‌ها کمی بزرگ‌ترند.
      */
     public const MAX_KILOBYTES = 8192;
@@ -70,6 +77,21 @@ class DayFile extends Model
 
         return str_contains((string) $mime, 'audio')
             || in_array($extension, self::AUDIO_EXTENSIONS, true);
+    }
+
+    /**
+     * این فایل تصویر است؟ (برای نمایش کامل عکس در سایت)
+     */
+    public function isImage(): bool
+    {
+        if ($this->is_audio) {
+            return false;
+        }
+
+        $extension = strtolower(pathinfo((string) $this->original_name, PATHINFO_EXTENSION));
+
+        return str_starts_with((string) $this->mime, 'image/')
+            || in_array($extension, self::IMAGE_EXTENSIONS, true);
     }
 
     /**
