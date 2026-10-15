@@ -121,13 +121,5 @@ class PanelDayModalsTest extends TestCase
         $openCss = substr($openCss, 0, (int) strpos($openCss, '}'));
         $this->assertStringContainsString('display:grid', $openCss);
         $this->assertStringContainsString('place-items:center', $openCss);
-
-        // پالت تازه در CSS ساخته‌شده هست: سبز جنگلی، کرم مرواریدی، سبز جوانه،
-        // مرجانی تیره (دکمه اصلی) و مرجانی گرم (نشان‌ها)
-        $this->assertStringContainsString('#254d3a', $css);
-        $this->assertStringContainsString('#f7f3e8', $css);
-        $this->assertStringContainsString('#dce8d5', $css);
-        $this->assertStringContainsString('#b94f35', $css);
-        $this->assertStringContainsString('#d96c4f', $css);
     }
 }

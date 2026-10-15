@@ -2,26 +2,26 @@
   <title>پروانه شو</title>
 
   <!-- شاخک‌ها -->
-  <path d="M30.5 19.5 C27 13.5 22.5 9.5 17.5 8" stroke="#254D3A" stroke-width="1.8" stroke-linecap="round" fill="none"/>
-  <path d="M33.5 19.5 C37 13.5 41.5 9.5 46.5 8" stroke="#254D3A" stroke-width="1.8" stroke-linecap="round" fill="none"/>
-  <circle cx="17" cy="7.6" r="2" fill="#254D3A"/>
-  <circle cx="47" cy="7.6" r="2" fill="#254D3A"/>
+  <path d="M30.5 19.5 C27 13.5 22.5 9.5 17.5 8" stroke="#075741" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+  <path d="M33.5 19.5 C37 13.5 41.5 9.5 46.5 8" stroke="#075741" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+  <circle cx="17" cy="7.6" r="2" fill="#075741"/>
+  <circle cx="47" cy="7.6" r="2" fill="#075741"/>
 
   <!-- بال‌های بالا (یشمی) -->
-  <ellipse cx="19" cy="22" rx="14" ry="10.5" fill="#35604A" transform="rotate(-26 19 22)"/>
-  <ellipse cx="45" cy="22" rx="14" ry="10.5" fill="#35604A" transform="rotate(26 45 22)"/>
+  <ellipse cx="19" cy="22" rx="14" ry="10.5" fill="#11735b" transform="rotate(-26 19 22)"/>
+  <ellipse cx="45" cy="22" rx="14" ry="10.5" fill="#11735b" transform="rotate(26 45 22)"/>
 
   <!-- نقطه‌های طلایی -->
-  <circle cx="16.5" cy="19" r="2.4" fill="#D96C4F"/>
-  <circle cx="47.5" cy="19" r="2.4" fill="#D96C4F"/>
+  <circle cx="16.5" cy="19" r="2.4" fill="#cead60"/>
+  <circle cx="47.5" cy="19" r="2.4" fill="#cead60"/>
 
   <!-- بال‌های پایین (برگی) -->
-  <ellipse cx="21" cy="42" rx="10.5" ry="8" fill="#6F9A63" transform="rotate(22 21 42)"/>
-  <ellipse cx="43" cy="42" rx="10.5" ry="8" fill="#6F9A63" transform="rotate(-22 43 42)"/>
+  <ellipse cx="21" cy="42" rx="10.5" ry="8" fill="#508d42" transform="rotate(22 21 42)"/>
+  <ellipse cx="43" cy="42" rx="10.5" ry="8" fill="#508d42" transform="rotate(-22 43 42)"/>
 
   <!-- بدن -->
-  <rect x="29.6" y="21" width="4.8" height="27" rx="2.4" fill="#254D3A"/>
+  <rect x="29.6" y="21" width="4.8" height="27" rx="2.4" fill="#075741"/>
 
   <!-- سر -->
-  <circle cx="32" cy="21" r="4.2" fill="#254D3A"/>
+  <circle cx="32" cy="21" r="4.2" fill="#075741"/>
 </svg>

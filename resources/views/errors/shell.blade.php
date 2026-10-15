@@ -8,7 +8,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="noindex, nofollow">
-    <meta name="theme-color" content="#254D3A">
+    <meta name="theme-color" content="#075741">
 
     <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
     <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="16x16 32x32 48x48">
