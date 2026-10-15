@@ -10,7 +10,7 @@
     $dayChoices ??= collect();
 @endphp
 
-<form method="POST" action="{{ route('panel.tips.store', $challenge) }}" {{ $attributes->merge(['class' => 'mt-4 grid gap-4 rounded-2xl bg-cream p-4 text-right sm:grid-cols-[6rem_1fr]']) }}>
+<form method="POST" action="{{ route('panel.tips.store', $challenge) }}" data-ajax-save {{ $attributes->merge(['class' => 'mt-4 grid gap-4 rounded-2xl bg-cream p-4 text-right sm:grid-cols-[6rem_1fr]']) }}>
     @csrf
 
     @if ($fixedDay)

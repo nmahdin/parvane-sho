@@ -5,6 +5,7 @@ import { initJalaliPickers, jalaliInputToDate, toPersianDigits } from './jalali-
  */
 const app = {
     init() {
+        this.initAjaxSave();
         this.initCopy();
         this.initMenus();
         this.initConfirm();
@@ -30,6 +31,8 @@ const app = {
         const output = document.querySelector('[data-day-range-output]');
 
         if (!startInput || !endInput || !output) return;
+        if (startInput.dataset.bound) return;
+        startInput.dataset.bound = '1';
 
         const dayLength = 24 * 60 * 60 * 1000;
 
@@ -65,6 +68,9 @@ const app = {
     /* انتخاب نماد چالش: data-emoji="#input" data-emoji-value="🦋" */
     initEmojiPickers() {
         document.querySelectorAll('[data-emoji]').forEach((button) => {
+            if (button.dataset.bound) return;
+            button.dataset.bound = '1';
+
             button.addEventListener('click', () => {
                 const input = document.querySelector(button.getAttribute('data-emoji'));
                 if (!input) return;
@@ -77,6 +83,9 @@ const app = {
     /* پر کردن یک input با مقدار ثابت: data-fill-target="#input" data-fill-value="۱۴۰۵/۰۷/۲۱" */
     initValueFillers() {
         document.querySelectorAll('[data-fill-target]').forEach((button) => {
+            if (button.dataset.bound) return;
+            button.dataset.bound = '1';
+
             button.addEventListener('click', () => {
                 const input = document.querySelector(button.getAttribute('data-fill-target'));
                 if (!input) return;
@@ -91,6 +100,9 @@ const app = {
     /* فرم «افزودن به روز»: انتخاب نوع محتوا (کار یا پرسش) و نمایش فیلدهای مربوط به آن */
     initDayTypeForms() {
         document.querySelectorAll('form[data-day-type-form]').forEach((form) => {
+            if (form.dataset.bound) return;
+            form.dataset.bound = '1';
+
             const radios = Array.from(form.querySelectorAll('input[name="type"]'));
             const groups = Array.from(form.querySelectorAll('[data-day-group]'));
             const labels = Array.from(form.querySelectorAll('[data-day-type-label]'));
@@ -125,6 +137,9 @@ const app = {
     /* نمایش زنده «روز چندم» زیر فیلد تاریخ: data-day-preview="#target" data-day-start="۱۴۰۵/۰۷/۱۸" */
     initDayPreviews() {
         document.querySelectorAll('input[data-day-preview]').forEach((input) => {
+            if (input.dataset.bound) return;
+            input.dataset.bound = '1';
+
             const target = document.querySelector(input.getAttribute('data-day-preview'));
             const start = jalaliInputToDate(input.getAttribute('data-day-start'));
             const startLabel = input.getAttribute('data-day-start-label') ?? '';
@@ -163,6 +178,9 @@ const app = {
     /* نمایش/پنهان کردن رمز عبور: data-password-toggle="#selector" */
     initPasswordToggles() {
         document.querySelectorAll('[data-password-toggle]').forEach((toggle) => {
+            if (toggle.dataset.bound) return;
+            toggle.dataset.bound = '1';
+
             toggle.addEventListener('click', () => {
                 const input = document.querySelector(toggle.getAttribute('data-password-toggle'));
                 if (!input) return;
@@ -176,6 +194,9 @@ const app = {
 
     /* چاپ صفحه: data-print */
     initPrint() {
+        if (this._printBound) return;
+        this._printBound = true;
+
         document.addEventListener('click', (event) => {
             const trigger = event.target.closest('[data-print]');
             if (!trigger) return;
@@ -187,6 +208,9 @@ const app = {
 
     /* کپی کردن متن در کلیپ‌بورد: data-copy="متن" یا data-copy-target="#selector" */
     initCopy() {
+        if (this._copyBound) return;
+        this._copyBound = true;
+
         document.addEventListener('click', async (event) => {
             const trigger = event.target.closest('[data-copy], [data-copy-target]');
             if (!trigger) return;
@@ -228,6 +252,9 @@ const app = {
     initMenus() {
         const toggles = document.querySelectorAll('[data-menu-toggle]');
         toggles.forEach((toggle) => {
+            if (toggle.dataset.bound) return;
+            toggle.dataset.bound = '1';
+
             toggle.addEventListener('click', () => {
                 const target = document.querySelector(toggle.getAttribute('data-menu-toggle'));
                 target?.classList.toggle('hidden');
@@ -237,6 +264,9 @@ const app = {
 
     /* تأیید قبل از حذف: data-confirm="متن پرسش" */
     initConfirm() {
+        if (this._confirmBound) return;
+        this._confirmBound = true;
+
         document.addEventListener('submit', (event) => {
             const form = event.target.closest('form[data-confirm]');
             if (!form) return;
@@ -261,6 +291,9 @@ const app = {
 
         // چیپ روزها
         document.querySelectorAll('[data-jump-day]').forEach((chip) => {
+            if (chip.dataset.bound) return;
+            chip.dataset.bound = '1';
+
             chip.addEventListener('click', (event) => {
                 const target = document.getElementById(chip.dataset.jumpDay);
                 if (!target) return;
@@ -273,6 +306,9 @@ const app = {
 
         // چیپ‌هایی که دو نسخه دارند (مثل فایل‌ها: موبایل/دسکتاپ)
         document.querySelectorAll('[data-jump-any]').forEach((chip) => {
+            if (chip.dataset.bound) return;
+            chip.dataset.bound = '1';
+
             chip.addEventListener('click', (event) => {
                 const candidates = Array.from(document.querySelectorAll(`[data-jump-anchor="${chip.dataset.jumpAny}"]`));
                 const visible = candidates.find((el) => el.offsetParent !== null) || candidates[0];
@@ -284,8 +320,9 @@ const app = {
             });
         });
 
-        // اگر آدرس با #day-N باز شود، همان روز باز بماند
-        if (window.location.hash) {
+        // اگر آدرس با #day-N باز شود، همان روز باز بماند (فقط یک بار)
+        if (window.location.hash && !this._hashHandled) {
+            this._hashHandled = true;
             const target = document.querySelector(window.location.hash);
 
             if (target && target.tagName === 'DETAILS') {
@@ -314,6 +351,9 @@ const app = {
         let current = null;
 
         players.forEach((player) => {
+            if (player.dataset.bound) return;
+            player.dataset.bound = '1';
+
             const audio = new Audio(player.dataset.audioSrc);
             audio.preload = 'metadata';
 
@@ -412,9 +452,152 @@ const app = {
         });
     },
 
+    /* ذخیره بدون رفرش صفحه: فرم‌های data-ajax-save با fetch ثبت می‌شوند،
+       دکمه ذخیره حالت لودینگ می‌گیرد و بعد از ذخیره، فقط بخش‌های مربوطه
+       (خلاصه، باکس روزها، نکته‌ها) در همان صفحه جای‌گذاری می‌شوند. */
+    initAjaxSave() {
+        if (this._ajaxBound) return;
+        this._ajaxBound = true;
+
+        document.addEventListener('submit', (event) => {
+            const form = event.target.closest('form[data-ajax-save]');
+            if (!form || event.defaultPrevented) return;
+
+            event.preventDefault();
+            this.submitFormAjax(form);
+        });
+    },
+
+    async submitFormAjax(form) {
+        if (form.dataset.saving) return;
+        form.dataset.saving = '1';
+
+        const button = form.querySelector('button[type="submit"], input[type="submit"]');
+        const originalLabel = button && button.tagName === 'BUTTON' ? button.innerHTML : null;
+
+        if (button) {
+            button.disabled = true;
+
+            if (button.tagName === 'BUTTON') {
+                button.classList.add('is-loading');
+                button.insertAdjacentHTML('afterbegin', '<span class="btn-spinner"></span> ');
+            }
+        }
+
+        form.setAttribute('aria-busy', 'true');
+
+        const finish = () => {
+            delete form.dataset.saving;
+            form.removeAttribute('aria-busy');
+
+            if (button) {
+                button.disabled = false;
+
+                if (button.tagName === 'BUTTON') {
+                    button.classList.remove('is-loading');
+                    button.innerHTML = originalLabel;
+                }
+            }
+        };
+
+        try {
+            const response = await fetch(form.getAttribute('action') || window.location.href, {
+                method: (form.getAttribute('method') || 'POST').toUpperCase(),
+                body: new FormData(form),
+                headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                redirect: 'manual',
+            });
+
+            // پاسخ موفق = ریدایرکت (Laravel با back() برمی‌گرداند)
+            if (response.type === 'opaqueredirect') {
+                const message = await this.refreshDynamicSections();
+                this.showToast(message || 'ذخیره شد.', 'status');
+
+                return;
+            }
+
+            if (response.status === 422) {
+                const data = await response.json().catch(() => null);
+                const firstError = data?.errors ? Object.values(data.errors)[0]?.[0] : null;
+
+                this.showToast(firstError || data?.message || 'مقادیر فرم درست نیست.', 'error');
+
+                return;
+            }
+
+            this.showToast('ذخیره انجام نشد؛ دوباره تلاش کن.', 'error');
+        } catch {
+            this.showToast('اتصال برقرار نشد؛ دوباره تلاش کن.', 'error');
+        } finally {
+            finish();
+        }
+    },
+
+    /* بخش‌های صفحه را با نسخه تازه جای‌گذاری می‌کند (بدون رفرش کل صفحه)
+       و متن پیام موفقیت را از همان نسخه برمی‌گرداند. */
+    async refreshDynamicSections() {
+        const openIds = new Set(
+            Array.from(document.querySelectorAll('details[open][id]')).map((details) => details.id)
+        );
+
+        const response = await fetch(window.location.href, {
+            headers: { 'X-Panel-Refresh': '1' },
+        });
+
+        const parsed = new DOMParser().parseFromString(await response.text(), 'text/html');
+
+        const flash = parsed.querySelector('[data-flash]');
+        const message = flash
+            ? (flash.querySelector('ul li, span:last-child')?.textContent.trim() || null)
+            : null;
+
+        ['challenge-stats', 'tasks', 'tips'].forEach((id) => {
+            const fresh = parsed.getElementById(id);
+            const current = document.getElementById(id);
+
+            if (fresh && current) {
+                current.replaceWith(fresh);
+            }
+        });
+
+        const freshSubtitle = parsed.getElementById('page-subtitle');
+        const subtitle = document.getElementById('page-subtitle');
+
+        if (freshSubtitle && subtitle) {
+            subtitle.textContent = freshSubtitle.textContent;
+        }
+
+        // باکس‌هایی که کاربر باز کرده بود، باز بمانند
+        document.querySelectorAll('details[id]').forEach((details) => {
+            details.open = openIds.has(details.id);
+        });
+
+        // اسکریپت‌ها را برای محتوای تازه فعال کن (با گارد، دوباره‌بار امن است)
+        this.init();
+
+        return message;
+    },
+
+    /* پیام کوتاه پایین صفحه (موفقیت/خطا) */
+    showToast(message, type = 'status') {
+        document.querySelectorAll('.toast').forEach((toast) => toast.remove());
+
+        const toast = document.createElement('div');
+        toast.className = `toast ${type === 'error' ? 'toast-error' : 'toast-success'}`;
+        toast.setAttribute('role', 'status');
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        window.setTimeout(() => toast.classList.add('is-out'), 3600);
+        window.setTimeout(() => toast.remove(), 4100);
+    },
+
     /* بزرگ‌شدن خودکار textarea های فهرست‌ها */
     initAutoGrow() {
         document.querySelectorAll('textarea[data-autogrow]').forEach((area) => {
+            if (area.dataset.bound) return;
+            area.dataset.bound = '1';
+
             const resize = () => {
                 area.style.height = 'auto';
                 area.style.height = `${Math.min(area.scrollHeight, 480)}px`;

@@ -89,7 +89,7 @@
             <header class="sticky top-0 z-30 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-paper/95 px-4 py-3 shadow-sm ring-1 ring-line backdrop-blur sm:gap-4 sm:px-5 lg:static lg:rounded-3xl">
                 <div class="min-w-0">
                     <h1 class="truncate text-lg">@yield('page-title', 'داشبورد')</h1>
-                    <p class="mt-0.5 truncate text-xs text-muted">@yield('page-subtitle', 'مدیریت چالش‌ها، شرکت‌کننده‌ها و لینک‌های اختصاصی')</p>
+                    <p id="page-subtitle" class="mt-0.5 truncate text-xs text-muted">@yield('page-subtitle', 'مدیریت چالش‌ها، شرکت‌کننده‌ها و لینک‌های اختصاصی')</p>
                 </div>
 
                 <div class="flex items-center gap-2">

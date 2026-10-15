@@ -14,7 +14,7 @@
 
 @section('content')
     {{-- خلاصه چالش --}}
-    <section class="card">
+    <section class="card" id="challenge-stats">
         <div class="flex flex-wrap items-start justify-between gap-6">
             <div class="flex items-start gap-4">
                 <span class="grid size-14 shrink-0 place-items-center rounded-3xl bg-gradient-to-tl {{ $style['gradient'] }} text-2xl text-white">{{ $challenge->emoji }}</span>
@@ -114,7 +114,7 @@
             <details class="w-full sm:w-auto">
                 <summary class="btn btn-primary btn-sm list-none">+ افزودن سریع به یک روز دیگر</summary>
 
-                <form method="POST" action="{{ route('panel.days.store', $challenge) }}" data-day-type-form
+                <form method="POST" action="{{ route('panel.days.store', $challenge) }}" data-day-type-form data-ajax-save
                       class="mt-4 grid w-full gap-4 rounded-2xl bg-cream p-4 text-right sm:max-w-2xl">
                     @csrf
 
@@ -278,7 +278,7 @@
                                     </span>
                                 </summary>
 
-                                <form method="POST" action="{{ route('panel.days.update', [$challenge, $dayNumber]) }}" class="space-y-3 border-t border-line px-4 py-4 text-right">
+                                <form method="POST" action="{{ route('panel.days.update', [$challenge, $dayNumber]) }}" data-ajax-save class="space-y-3 border-t border-line px-4 py-4 text-right">
                                     @csrf
                                     @method('PUT')
 
@@ -362,13 +362,13 @@
                                         </div>
 
                                         <div class="flex items-center gap-1">
-                                            <form method="POST" action="{{ route('panel.tasks.move', [$challenge, $task, 'up']) }}">
+                                            <form method="POST" action="{{ route('panel.tasks.move', [$challenge, $task, 'up']) }}" data-ajax-save>
                                                 @csrf
                                                 @method('PATCH')
                                                 <button type="submit" class="btn btn-ghost btn-sm" aria-label="بالا">↑</button>
                                             </form>
 
-                                            <form method="POST" action="{{ route('panel.tasks.move', [$challenge, $task, 'down']) }}">
+                                            <form method="POST" action="{{ route('panel.tasks.move', [$challenge, $task, 'down']) }}" data-ajax-save>
                                                 @csrf
                                                 @method('PATCH')
                                                 <button type="submit" class="btn btn-ghost btn-sm" aria-label="پایین">↓</button>
@@ -377,7 +377,7 @@
                                             <details>
                                                 <summary class="btn btn-ghost btn-sm list-none">ویرایش</summary>
 
-                                                <form method="POST" action="{{ route('panel.tasks.update', [$challenge, $task]) }}" class="mt-3 grid w-full max-w-xl gap-3 rounded-2xl bg-cream p-4 text-right sm:grid-cols-2">
+                                                <form method="POST" action="{{ route('panel.tasks.update', [$challenge, $task]) }}" data-ajax-save class="mt-3 grid w-full max-w-xl gap-3 rounded-2xl bg-cream p-4 text-right sm:grid-cols-2">
                                                     @csrf
                                                     @method('PUT')
 
@@ -404,7 +404,7 @@
                                                 </form>
                                             </details>
 
-                                            <form method="POST" action="{{ route('panel.tasks.destroy', [$challenge, $task]) }}" data-confirm="این کار حذف شود؟ تیک‌های مربوط به آن هم پاک می‌شود.">
+                                            <form method="POST" action="{{ route('panel.tasks.destroy', [$challenge, $task]) }}" data-ajax-save data-confirm="این کار حذف شود؟ تیک‌های مربوط به آن هم پاک می‌شود.">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="btn btn-danger btn-sm">حذف</button>
@@ -478,19 +478,19 @@
                                         </div>
 
                                         <div class="flex items-center gap-1">
-                                            <form method="POST" action="{{ route('panel.questions.move', [$challenge, $question, 'up']) }}">
+                                            <form method="POST" action="{{ route('panel.questions.move', [$challenge, $question, 'up']) }}" data-ajax-save>
                                                 @csrf
                                                 @method('PATCH')
                                                 <button type="submit" class="btn btn-ghost btn-sm" aria-label="بالا">↑</button>
                                             </form>
 
-                                            <form method="POST" action="{{ route('panel.questions.move', [$challenge, $question, 'down']) }}">
+                                            <form method="POST" action="{{ route('panel.questions.move', [$challenge, $question, 'down']) }}" data-ajax-save>
                                                 @csrf
                                                 @method('PATCH')
                                                 <button type="submit" class="btn btn-ghost btn-sm" aria-label="پایین">↓</button>
                                             </form>
 
-                                            <form method="POST" action="{{ route('panel.questions.publish', [$challenge, $question]) }}">
+                                            <form method="POST" action="{{ route('panel.questions.publish', [$challenge, $question]) }}" data-ajax-save>
                                                 @csrf
                                                 @method('PATCH')
                                                 <button type="submit" class="btn btn-white btn-sm">{{ $question->is_published ? 'پنهان کن' : 'نمایش بده' }}</button>
@@ -499,7 +499,7 @@
                                             <details>
                                                 <summary class="btn btn-ghost btn-sm list-none">ویرایش</summary>
 
-                                                <form method="POST" action="{{ route('panel.questions.update', [$challenge, $question]) }}" class="mt-3 grid w-full max-w-lg gap-3 rounded-2xl bg-paper p-4 text-right ring-1 ring-line">
+                                                <form method="POST" action="{{ route('panel.questions.update', [$challenge, $question]) }}" data-ajax-save class="mt-3 grid w-full max-w-lg gap-3 rounded-2xl bg-paper p-4 text-right ring-1 ring-line">
                                                     @csrf
                                                     @method('PUT')
 
@@ -532,7 +532,7 @@
                                                 </form>
                                             </details>
 
-                                            <form method="POST" action="{{ route('panel.questions.destroy', [$challenge, $question]) }}" data-confirm="این پرسش حذف شود؟">
+                                            <form method="POST" action="{{ route('panel.questions.destroy', [$challenge, $question]) }}" data-ajax-save data-confirm="این پرسش حذف شود؟">
                                                 @csrf
                                                 @method('DELETE')
                                                 <button type="submit" class="btn btn-danger btn-sm">حذف</button>
@@ -582,7 +582,7 @@
                                 </span>
                             </div>
 
-                            <form method="POST" action="{{ route('panel.day-files.store', $challenge) }}" enctype="multipart/form-data" class="mt-4 grid gap-3 rounded-2xl bg-cream p-4 sm:grid-cols-[1.2fr_1.6fr_auto]">
+                            <form method="POST" action="{{ route('panel.day-files.store', $challenge) }}" data-ajax-save enctype="multipart/form-data" class="mt-4 grid gap-3 rounded-2xl bg-cream p-4 sm:grid-cols-[1.2fr_1.6fr_auto]">
                                 @csrf
                                 <input type="hidden" name="day_number" value="{{ $dayNumber }}">
 
@@ -638,7 +638,7 @@
                                                     <details>
                                                         <summary class="btn btn-ghost btn-sm list-none">ویرایش</summary>
 
-                                                        <form method="POST" action="{{ route('panel.day-files.update', [$challenge, $dayFile]) }}" class="mt-3 grid w-full max-w-md gap-3 rounded-2xl bg-paper p-4 text-right ring-1 ring-line">
+                                                        <form method="POST" action="{{ route('panel.day-files.update', [$challenge, $dayFile]) }}" data-ajax-save class="mt-3 grid w-full max-w-md gap-3 rounded-2xl bg-paper p-4 text-right ring-1 ring-line">
                                                             @csrf
                                                             @method('PUT')
 
@@ -660,7 +660,7 @@
                                                         </form>
                                                     </details>
 
-                                                    <form method="POST" action="{{ route('panel.day-files.destroy', [$challenge, $dayFile]) }}" data-confirm="فایل «{{ $dayFile->title }}» حذف شود؟">
+                                                    <form method="POST" action="{{ route('panel.day-files.destroy', [$challenge, $dayFile]) }}" data-ajax-save data-confirm="فایل «{{ $dayFile->title }}» حذف شود؟">
                                                         @csrf
                                                         @method('DELETE')
                                                         <button type="submit" class="btn btn-danger btn-sm">حذف</button>
@@ -679,7 +679,7 @@
                         <details>
                             <summary class="cursor-pointer text-xs font-medium text-brand-700">+ افزودن چند کار به این روز</summary>
 
-                            <form method="POST" action="{{ route('panel.tasks.bulk', $challenge) }}" class="mt-4 space-y-3 text-right">
+                            <form method="POST" action="{{ route('panel.tasks.bulk', $challenge) }}" data-ajax-save class="mt-4 space-y-3 text-right">
                                 @csrf
 
                                 @if (! $isGeneral)
@@ -696,7 +696,7 @@
                         <details>
                             <summary class="cursor-pointer text-xs font-medium text-brand-700">+ افزودن پرسش به این روز</summary>
 
-                            <form method="POST" action="{{ route('panel.questions.store', $challenge) }}" class="mt-4 space-y-3 text-right">
+                            <form method="POST" action="{{ route('panel.questions.store', $challenge) }}" data-ajax-save class="mt-4 space-y-3 text-right">
                                 @csrf
 
                                 @if (! $isGeneral)

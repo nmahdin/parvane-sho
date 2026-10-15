@@ -1,14 +1,14 @@
 @props(['showErrors' => true])
 
 @if (session('status'))
-    <div class="animate-rise flex items-start gap-3 rounded-2xl bg-leaf/10 px-4 py-3 text-sm text-forest ring-1 ring-leaf/30">
+    <div data-flash="status" class="animate-rise flex items-start gap-3 rounded-2xl bg-leaf/10 px-4 py-3 text-sm text-forest ring-1 ring-leaf/30">
         <span class="mt-0.5">✅</span>
         <span>{{ session('status') }}</span>
     </div>
 @endif
 
 @if (session('error'))
-    <div class="animate-rise flex items-start gap-3 rounded-2xl bg-gold/15 px-4 py-3 text-sm text-ink ring-1 ring-gold/50">
+    <div data-flash="error" class="animate-rise flex items-start gap-3 rounded-2xl bg-gold/15 px-4 py-3 text-sm text-ink ring-1 ring-gold/50">
         <span class="mt-0.5">🔒</span>
         <span>{{ session('error') }}</span>
     </div>

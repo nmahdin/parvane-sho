@@ -18,12 +18,12 @@
         </div>
 
         <div class="flex items-center gap-1">
-            <form method="POST" action="{{ route('panel.tips.move', [$challenge, $tip, 'up']) }}">
+            <form method="POST" action="{{ route('panel.tips.move', [$challenge, $tip, 'up']) }}" data-ajax-save>
                 @csrf
                 @method('PATCH')
                 <button type="submit" class="btn btn-ghost btn-sm" aria-label="بالا">↑</button>
             </form>
-            <form method="POST" action="{{ route('panel.tips.move', [$challenge, $tip, 'down']) }}">
+            <form method="POST" action="{{ route('panel.tips.move', [$challenge, $tip, 'down']) }}" data-ajax-save>
                 @csrf
                 @method('PATCH')
                 <button type="submit" class="btn btn-ghost btn-sm" aria-label="پایین">↓</button>
@@ -31,7 +31,7 @@
 
             <details>
                 <summary class="btn btn-ghost btn-sm list-none">ویرایش</summary>
-                <form method="POST" action="{{ route('panel.tips.update', [$challenge, $tip]) }}" class="mt-3 grid w-full max-w-lg gap-3 rounded-2xl bg-paper p-4 text-right ring-1 ring-line sm:grid-cols-[5rem_1fr]">
+                <form method="POST" action="{{ route('panel.tips.update', [$challenge, $tip]) }}" data-ajax-save class="mt-3 grid w-full max-w-lg gap-3 rounded-2xl bg-paper p-4 text-right ring-1 ring-line sm:grid-cols-[5rem_1fr]">
                     @csrf
                     @method('PUT')
 
@@ -77,7 +77,7 @@
                 </form>
             </details>
 
-            <form method="POST" action="{{ route('panel.tips.destroy', [$challenge, $tip]) }}" data-confirm="این نکته حذف شود؟">
+            <form method="POST" action="{{ route('panel.tips.destroy', [$challenge, $tip]) }}" data-ajax-save data-confirm="این نکته حذف شود؟">
                 @csrf
                 @method('DELETE')
                 <button type="submit" class="btn btn-danger btn-sm">حذف</button>
