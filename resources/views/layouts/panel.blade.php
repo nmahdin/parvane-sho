@@ -26,6 +26,7 @@
         ];
 
         if ($currentAdmin?->isSuper()) {
+            $navigation[] = ['label' => 'داشبورد مدیر کل', 'short' => 'مدیر کل', 'icon' => '🗂️', 'url' => route('panel.super.dashboard'), 'active' => request()->routeIs('panel.super.*')];
             $navigation[] = ['label' => 'مدیران', 'short' => 'مدیران', 'icon' => '🧑‍💼', 'url' => route('panel.admins.index'), 'active' => request()->routeIs('panel.admins.*')];
         }
     @endphp

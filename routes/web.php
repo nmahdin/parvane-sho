@@ -17,6 +17,7 @@ use App\Http\Controllers\Panel\DashboardController;
 use App\Http\Controllers\Panel\DayFileController as PanelDayFileController;
 use App\Http\Controllers\Panel\ParticipantController as PanelParticipantController;
 use App\Http\Controllers\Panel\SettingController;
+use App\Http\Controllers\Panel\SuperDashboardController;
 use App\Http\Controllers\ParticipantDashboardController;
 use Illuminate\Support\Facades\Route;
 
@@ -125,6 +126,11 @@ Route::prefix('panel')->name('panel.')->group(function () {
 
         // مدیران — فقط مدیر اصلی
         Route::middleware('panel.super')->group(function () {
+            // داشبورد مدیر کل: مدیریت فایل‌ها، ارتباط‌ها و حجم مصرفی
+            Route::get('super', [SuperDashboardController::class, 'index'])->name('super.dashboard');
+            Route::delete('super/files/{type}/{file}', [SuperDashboardController::class, 'destroyFile'])->name('super.files.destroy');
+            Route::post('super/files/cleanup', [SuperDashboardController::class, 'cleanupFiles'])->name('super.files.cleanup');
+
             Route::get('admins', [PanelAdminController::class, 'index'])->name('admins.index');
             Route::post('admins', [PanelAdminController::class, 'store'])->name('admins.store');
             Route::put('admins/{admin}', [PanelAdminController::class, 'update'])->name('admins.update');
