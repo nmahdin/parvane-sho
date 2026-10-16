@@ -156,6 +156,39 @@
                         </span>
                     </summary>
 
+                    {{-- افزودن به همین روز: چهار دکمهٔ ثابت؛ هر کدام مودال خودش را
+                         باز می‌کند. روز از خود دکمه می‌آید و مودال‌ها فیلد انتخاب روز ندارند؛
+                         بعد از هر ذخیره فرم خالی می‌شود و مودال باز می‌ماند. --}}
+                    <div class="flex flex-wrap items-center gap-2 border-t border-line bg-cream/70 px-4 py-3 sm:px-5">
+                        <button type="button" class="btn btn-primary btn-sm"
+                                data-open-modal="modal-content"
+                                data-modal-day="{{ $isGeneral ? '' : $dayNumber }}"
+                                data-modal-type="task"
+                                data-modal-title="افزودن کار (چالش عملی)">📝 افزودن کار (چالش عملی)</button>
+
+                        <button type="button" class="btn btn-white btn-sm"
+                                data-open-modal="modal-content"
+                                data-modal-day="{{ $isGeneral ? '' : $dayNumber }}"
+                                data-modal-type="question"
+                                data-modal-title="افزودن پرسش">❓ افزودن پرسش</button>
+
+                        <button type="button" class="btn btn-gold btn-sm"
+                                data-open-modal="modal-tip"
+                                data-modal-day="{{ $isGeneral ? '' : $dayNumber }}"
+                                data-modal-title="افزودن نکته">💡 افزودن نکته</button>
+
+                        @unless ($isGeneral)
+                            <button type="button" class="btn btn-white btn-sm"
+                                    data-open-modal="modal-file"
+                                    data-modal-day="{{ $dayNumber }}"
+                                    data-modal-title="افزودن فایل">📎 افزودن فایل</button>
+                        @endunless
+
+                        <button type="button" class="btn btn-ghost btn-sm ms-auto"
+                                data-open-modal="modal-bulk"
+                                data-modal-day="{{ $isGeneral ? '' : $dayNumber }}">📃 چند کار یک‌جا</button>
+                    </div>
+
                     @unless ($isGeneral)
                         {{-- عنوان و توضیحات همین روز --}}
                         <div class="border-t border-line bg-paper px-4 py-3 sm:px-5">
@@ -593,32 +626,6 @@
                         </div>
                     @endunless
 
-                    {{-- افزودن سریع به همین روز — فرم‌ها در مودال‌های پایین صفحه‌اند --}}
-                    <div class="flex flex-wrap items-center gap-2 border-t border-line bg-cream/70 px-4 py-3 sm:px-5">
-                        <button type="button" class="btn btn-white btn-sm"
-                                data-open-modal="modal-content"
-                                data-modal-day="{{ $isGeneral ? '' : $dayNumber }}"
-                                data-modal-type="task">📝 + کار</button>
-
-                        <button type="button" class="btn btn-white btn-sm"
-                                data-open-modal="modal-bulk"
-                                data-modal-day="{{ $isGeneral ? '' : $dayNumber }}">📃 + چند کار یک‌جا</button>
-
-                        <button type="button" class="btn btn-white btn-sm"
-                                data-open-modal="modal-content"
-                                data-modal-day="{{ $isGeneral ? '' : $dayNumber }}"
-                                data-modal-type="question">❓ + پرسش</button>
-
-                        @unless ($isGeneral)
-                            <button type="button" class="btn btn-white btn-sm"
-                                    data-open-modal="modal-file"
-                                    data-modal-day="{{ $dayNumber }}">📎 + فایل</button>
-                        @endunless
-
-                        <button type="button" class="btn btn-gold btn-sm"
-                                data-open-modal="modal-tip"
-                                data-modal-day="{{ $isGeneral ? '' : $dayNumber }}">💡 + نکته</button>
-                    </div>
                 </details>
             @endforeach
         </div>
@@ -628,15 +635,15 @@
     <dialog id="modal-content" class="panel-modal">
         <div class="panel-modal-box">
             <div class="panel-modal-head">
-                <h3 class="text-sm font-semibold text-ink">افزودن کار یا پرسش <span data-modal-day-label class="font-normal text-muted"></span></h3>
+                <h3 class="text-sm font-semibold text-ink"><span data-modal-heading>افزودن کار یا پرسش</span> <span data-modal-day-label class="font-normal text-muted"></span></h3>
                 <button type="button" class="btn btn-ghost btn-sm" data-close-modal aria-label="بستن">✕</button>
             </div>
 
-            <form method="POST" action="{{ route('panel.days.store', $challenge) }}" data-day-type-form data-ajax-save data-modal-form class="grid gap-4 text-right">
+            <form method="POST" action="{{ route('panel.days.store', $challenge) }}" data-day-type-form data-ajax-save data-modal-form data-stay-open class="grid gap-4 text-right">
                 @csrf
                 <input type="hidden" name="day_number" value="" data-modal-day-input>
 
-                <div>
+                <div data-day-type-switch>
                     <span class="label">چه چیزی اضافه شود؟</span>
                     <div class="flex flex-wrap gap-2">
                         <label data-day-type-label="task" class="cursor-pointer rounded-2xl px-4 py-2 text-xs ring-1 ring-line transition">
@@ -696,7 +703,7 @@
                 <button type="button" class="btn btn-ghost btn-sm" data-close-modal aria-label="بستن">✕</button>
             </div>
 
-            <form method="POST" action="{{ route('panel.tasks.bulk', $challenge) }}" data-ajax-save data-modal-form class="space-y-3 text-right">
+            <form method="POST" action="{{ route('panel.tasks.bulk', $challenge) }}" data-ajax-save data-modal-form data-stay-open class="space-y-3 text-right">
                 @csrf
                 <input type="hidden" name="day_number" value="" data-modal-day-input>
 
@@ -718,7 +725,7 @@
                 <button type="button" class="btn btn-ghost btn-sm" data-close-modal aria-label="بستن">✕</button>
             </div>
 
-            <form method="POST" action="{{ route('panel.day-files.store', $challenge) }}" data-ajax-save data-modal-form enctype="multipart/form-data" class="space-y-3 text-right">
+            <form method="POST" action="{{ route('panel.day-files.store', $challenge) }}" data-ajax-save data-modal-form data-stay-open enctype="multipart/form-data" class="space-y-3 text-right">
                 @csrf
                 <input type="hidden" name="day_number" value="" data-modal-day-input required>
 
@@ -748,7 +755,7 @@
                 <button type="button" class="btn btn-ghost btn-sm" data-close-modal aria-label="بستن">✕</button>
             </div>
 
-            <x-tip-form :challenge="$challenge" :day-choices="$dayChoices" class="text-right" />
+            <x-tip-form :challenge="$challenge" modal data-modal-form data-stay-open class="text-right" />
 
             <div class="mt-3 text-left">
                 <button type="button" class="btn btn-ghost btn-sm" data-close-modal>بستن</button>

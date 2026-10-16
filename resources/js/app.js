@@ -519,9 +519,18 @@ const app = {
 
             // پاسخ موفق = ریدایرکت (Laravel با back() برمی‌گرداند)
             if (response.type === 'opaqueredirect') {
-                this.closeModalFor(form);
+                const stayOpen = form.hasAttribute('data-stay-open');
+
+                if (!stayOpen) this.closeModalFor(form);
+
                 const message = await this.refreshDynamicSections();
-                this.showToast(message || 'ذخیره شد.', 'status');
+
+                if (stayOpen) {
+                    this.resetModalForm(form);
+                    this.showToast(`${message || 'ذخیره شد.'} — فرم خالی شد؛ مورد بعدی را اضافه کن.`, 'status');
+                } else {
+                    this.showToast(message || 'ذخیره شد.', 'status');
+                }
 
                 return;
             }
@@ -636,6 +645,21 @@ const app = {
             label.textContent = day ? `— روز ${toPersianDigits(day)}` : '— بدون روز مشخص';
         });
 
+        // عنوان مودال از دکمه می‌آید (مثلاً «افزودن پرسش» به‌جای «افزودن کار یا پرسش»)
+        const title = opener.getAttribute('data-modal-title');
+
+        dialog.querySelectorAll('[data-modal-heading]').forEach((heading) => {
+            heading.dataset.defaultHeading ??= heading.textContent.trim();
+            heading.textContent = title || heading.dataset.defaultHeading;
+        });
+
+        // سوییچ «کار یا پرسش» فقط وقتی دیده می‌شود که دکمه نوع را تعیین نکرده باشد
+        const switcher = dialog.querySelector('[data-day-type-switch]');
+
+        if (switcher) {
+            switcher.classList.toggle('hidden', Boolean(type));
+        }
+
         if (type) {
             const radio = dialog.querySelector(`input[name="type"][value="${type}"]`);
 
@@ -657,6 +681,29 @@ const app = {
     closeModalFor(form) {
         const dialog = form.closest('dialog');
         if (dialog?.open) dialog.close();
+    },
+
+    /* بعد از ذخیره موفق در مودال‌های data-stay-open: فرم خالی می‌شود تا
+       مورد بعدی را بشود افزود، اما روز (و نوع محتوا) همان روز می‌ماند. */
+    resetModalForm(form) {
+        const day = form.querySelector('[data-modal-day-input]')?.value ?? '';
+        const type = form.querySelector('input[name="type"]:checked')?.value ?? null;
+
+        form.reset();
+
+        const dayInput = form.querySelector('[data-modal-day-input]');
+        if (dayInput) dayInput.value = day;
+
+        if (type) {
+            const radio = form.querySelector(`input[name="type"][value="${type}"]`);
+
+            if (radio) {
+                radio.checked = true;
+                radio.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        }
+
+        form.querySelector('input:not([type="hidden"]), textarea')?.focus();
     },
 
     /* فرم فایل انتخاب‌شده دارد؟ (برای تصمیم بین fetch و XHR) */
@@ -742,9 +789,18 @@ const app = {
             const xhr = await this.xhrUpload(form);
 
             if (xhr.status >= 200 && xhr.status < 300) {
-                this.closeModalFor(form);
+                const stayOpen = form.hasAttribute('data-stay-open');
+
+                if (!stayOpen) this.closeModalFor(form);
+
                 const message = await this.refreshDynamicSections();
-                this.showToast(message || 'ذخیره شد.', 'status');
+
+                if (stayOpen) {
+                    this.resetModalForm(form);
+                    this.showToast(`${message || 'ذخیره شد.'} — فرم خالی شد؛ مورد بعدی را اضافه کن.`, 'status');
+                } else {
+                    this.showToast(message || 'ذخیره شد.', 'status');
+                }
 
                 return;
             }

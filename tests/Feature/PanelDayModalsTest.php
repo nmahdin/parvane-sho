@@ -89,6 +89,35 @@ class PanelDayModalsTest extends TestCase
         $this->assertStringContainsString('type="file"', $modal);
     }
 
+    public function test_each_day_has_four_add_buttons_and_modals_stay_open(): void
+    {
+        $challenge = $this->makeChallenge();
+
+        $html = $this->panelHtml($challenge);
+
+        // چهار دکمه ثابت بالای باکس هر روز؛ هر کدام مودال خودش را باز می‌کند
+        $this->assertStringContainsString('📝 افزودن کار (چالش عملی)</button>', $html);
+        $this->assertStringContainsString('❓ افزودن پرسش</button>', $html);
+        $this->assertStringContainsString('💡 افزودن نکته</button>', $html);
+        $this->assertStringContainsString('📎 افزودن فایل</button>', $html);
+
+        // عنوان مودال از دکمه می‌آید و سوییچ «کار یا پرسش» فقط بدون نوع دیده می‌شود
+        $this->assertStringContainsString('data-modal-heading', $html);
+        $this->assertStringContainsString('data-day-type-switch', $html);
+        $this->assertStringContainsString('data-modal-title="افزودن پرسش"', $html);
+
+        // بعد از ذخیره، فرم خالی می‌شود و مودال بسته نمی‌شود:
+        // هر چهار فرم مودال data-stay-open دارند (با فاصلهٔ اول تا attribute-bag
+        // کامپوننت نکته که data-stay-open="data-stay-open" رندر می‌شود شمرده نشود)
+        $this->assertSame(4, substr_count($html, ' data-stay-open'));
+
+        // مودال نکته فیلد انتخاب روز ندارد؛ روز از دکمهٔ همان روز می‌آید
+        $tipModal = substr($html, (int) strpos($html, '<dialog id="modal-tip"'));
+        $tipModal = substr($tipModal, 0, (int) strpos($tipModal, '</dialog>'));
+        $this->assertStringNotContainsString('<select', $tipModal);
+        $this->assertStringContainsString('data-modal-day-input', $tipModal);
+    }
+
     public function test_the_modal_handler_is_in_the_built_js(): void
     {
         $manifest = json_decode(file_get_contents(public_path('build/manifest.json')), true);
@@ -98,6 +127,10 @@ class PanelDayModalsTest extends TestCase
         $this->assertStringContainsString('data-open-modal', $js);
         $this->assertStringContainsString('showModal', $js);
         $this->assertStringContainsString('closeModalFor', $js);
+        // مودال بعد از ذخیره باز می‌ماند و فرم خالی می‌شود
+        $this->assertStringContainsString('data-stay-open', $js);
+        $this->assertStringContainsString('resetModalForm', $js);
+        $this->assertStringContainsString('data-modal-heading', $js);
     }
 
     public function test_the_modal_styles_are_in_the_built_css(): void
@@ -121,5 +154,10 @@ class PanelDayModalsTest extends TestCase
         $openCss = substr($openCss, 0, (int) strpos($openCss, '}'));
         $this->assertStringContainsString('display:grid', $openCss);
         $this->assertStringContainsString('place-items:center', $openCss);
+
+        // فاصله سرِ کارت روز تا اولین بخش محتوا (نکته‌ها) در صفحه چالش
+        $dayBodyCss = substr($css, (int) strpos($css, '.day-body{'));
+        $dayBodyCss = substr($dayBodyCss, 0, (int) strpos($dayBodyCss, '}'));
+        $this->assertStringContainsString('padding-top', $dayBodyCss);
     }
 }

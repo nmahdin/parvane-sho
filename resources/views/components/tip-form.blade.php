@@ -1,4 +1,4 @@
-@props(['challenge', 'day' => null, 'dayChoices' => null])
+@props(['challenge', 'day' => null, 'dayChoices' => null, 'modal' => false])
 
 @php
     $fixedDay = $day !== null && (int) $day > 0 ? (int) $day : null;
@@ -15,6 +15,9 @@
 
     @if ($fixedDay)
         <input type="hidden" name="day_number" value="{{ $fixedDay }}">
+    @elseif ($modal)
+        {{-- داخل مودال، روز از دکمهٔ همان روز می‌آید؛ فیلد انتخاب روز ندارد --}}
+        <input type="hidden" name="day_number" value="" data-modal-day-input>
     @endif
 
     <div>
@@ -39,7 +42,7 @@
             <textarea id="{{ $bodyId }}" name="body" rows="2" class="input resize-y" placeholder="توضیح کوتاه این نکته..."></textarea>
         </div>
 
-        @if ($dayChoices->isNotEmpty())
+        @if (! $modal && $dayChoices->isNotEmpty())
             <div>
                 <label class="label" for="{{ $dayId }}">این نکته مربوط به کدام روز است؟</label>
                 <select id="{{ $dayId }}" name="day_number" class="input">
