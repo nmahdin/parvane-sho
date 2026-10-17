@@ -1,0 +1,170 @@
+@extends('layouts.panel')
+
+@section('title', 'تنظیمات')
+@section('page-title', 'تنظیمات')
+@section('page-subtitle', 'حساب من، رمز عبور و تنظیمات سایت')
+
+@section('content')
+    <div class="grid gap-6 lg:grid-cols-2">
+        <section class="card space-y-5">
+            <div>
+                <h2 class="text-base">حساب من</h2>
+                <p class="mt-1 text-xs leading-6 text-muted">
+                    شما با این نام کاربری وارد می‌شوید و رمز عبورت را همین‌جا می‌توانی عوض کنی.
+                </p>
+            </div>
+
+            <div class="flex items-center gap-3 rounded-2xl bg-cream px-4 py-3">
+                <span class="grid size-10 shrink-0 place-items-center rounded-2xl bg-paper text-sm font-bold text-ink/80 ring-1 ring-line">
+                    {{ mb_substr($admin->name, 0, 1) }}
+                </span>
+
+                <div class="min-w-0">
+                    <p class="truncate text-sm font-semibold text-ink">{{ $admin->name }}</p>
+                    <p class="mt-0.5 flex flex-wrap items-center gap-2 text-[11px] text-muted">
+                        <span dir="ltr">{{ $admin->username }}</span>
+                        <span class="badge {{ $admin->roleClasses() }}">{{ $admin->roleLabel() }}</span>
+                    </p>
+                </div>
+            </div>
+
+            <form method="POST" action="{{ route('panel.settings.password') }}" class="space-y-4">
+                @csrf
+                @method('PUT')
+
+                <div>
+                    <label class="label" for="current_password">رمز فعلی</label>
+                    <input id="current_password" name="current_password" type="password" required dir="ltr" class="input text-center" autocomplete="current-password">
+                    @error('current_password')
+                        <p class="mt-2 text-xs text-danger">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label class="label" for="new_password">رمز جدید</label>
+                    <input id="new_password" name="password" type="password" required dir="ltr" class="input text-center" autocomplete="new-password">
+                    <p class="hint">حداقل ۶ کاراکتر.</p>
+                    @error('password')
+                        <p class="mt-2 text-xs text-danger">{{ $message }}</p>
+                    @enderror
+                </div>
+
+                <div>
+                    <label class="label" for="password_confirmation">تکرار رمز جدید</label>
+                    <input id="password_confirmation" name="password_confirmation" type="password" required dir="ltr" class="input text-center" autocomplete="new-password">
+                </div>
+
+                <button type="submit" class="btn btn-primary">تغییر رمز من</button>
+            </form>
+        </section>
+        @if ($isSuper)
+            <section class="card space-y-5">
+                <div>
+                    <h2 class="text-base">تنظیمات سایت</h2>
+                    <p class="mt-1 text-xs text-muted">این متن‌ها در صفحه اصلی و پابرگ سایت نمایش داده می‌شوند.</p>
+                </div>
+
+                <form method="POST" action="{{ route('panel.settings.update') }}" class="space-y-4">
+                    @csrf
+                    @method('PUT')
+
+                    <div>
+                        <label class="label" for="site_name">نام سایت</label>
+                        <input id="site_name" name="site_name" type="text" required value="{{ old('site_name', $site_name) }}" class="input">
+                    </div>
+
+                    <div>
+                        <label class="label" for="site_tagline">شعار / توضیح کوتاه</label>
+                        <textarea id="site_tagline" name="site_tagline" rows="3" class="input resize-y">{{ old('site_tagline', $site_tagline) }}</textarea>
+                    </div>
+
+                    <div>
+                        <label class="label" for="site_about">درباره سایت</label>
+                        <textarea id="site_about" name="site_about" rows="5" class="input resize-y">{{ old('site_about', $site_about) }}</textarea>
+                    </div>
+
+                    <div>
+                        <label class="label" for="maintenance_message">پیام صفحه «در حال تعمیر»</label>
+                        <textarea id="maintenance_message" name="maintenance_message" rows="3" class="input resize-y" placeholder="{{ \App\Models\Setting::DEFAULT_MAINTENANCE_MESSAGE }}">{{ old('maintenance_message', $maintenanceMessage) }}</textarea>
+                        <p class="hint">خالی بگذاری، پیام پیش‌فرض نشان داده می‌شود.</p>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">ذخیره تنظیمات</button>
+                </form>
+            </section>
+
+            {{-- حالت تعمیر سایت --}}
+            <section class="card space-y-4 {{ $maintenanceMode ? 'ring-2 ring-gold' : '' }}">
+                <div class="flex flex-wrap items-start justify-between gap-4">
+                    <div>
+                        <h2 class="flex flex-wrap items-center gap-2 text-base">
+                            🛠️ حالت تعمیر سایت
+
+                            <span class="badge {{ $maintenanceMode ? 'bg-gold/20 text-gold-ink ring-gold/50' : 'bg-leaf/10 text-forest ring-leaf/30' }}">
+                                {{ $maintenanceMode ? 'روشن — سایت در حال تعمیر است' : 'خاموش — سایت باز است' }}
+                            </span>
+                        </h2>
+
+                        <p class="mt-2 max-w-2xl text-xs leading-6 text-muted">
+                            وقتی روشن باشد، بازدیدکننده‌های سایت صفحه «در حال تعمیر» با پیام بالا را می‌بینند (وضعیت ۵۰۳).
+                            <span class="font-semibold text-ink">پنل مدیریت و داشبورد اختصاصی شرکت‌کننده‌ها باز می‌ماند</span>
+                            تا کار چالش‌ها نخوابد.
+                        </p>
+                    </div>
+
+                    <form method="POST" action="{{ route('panel.settings.maintenance') }}" class="shrink-0">
+                        @csrf
+                        @method('PATCH')
+                        <input type="hidden" name="maintenance_mode" value="{{ $maintenanceMode ? '0' : '1' }}">
+
+                        <button type="submit" class="btn {{ $maintenanceMode ? 'btn-primary' : 'btn-gold' }}">
+                            {{ $maintenanceMode ? 'خاموش کردن حالت تعمیر' : 'روشن کردن حالت تعمیر' }}
+                        </button>
+                    </form>
+                </div>
+
+                @if ($maintenanceMode)
+                    <p class="rounded-2xl bg-gold/15 px-4 py-3 text-xs leading-6 text-ink ring-1 ring-gold/50">
+                        همین حالا <a href="{{ route('home') }}" target="_blank" class="font-semibold text-gold-ink underline">صفحه اصلی سایت</a>
+                        برای بازدیدکننده‌ها صفحه تعمیر را نشان می‌دهد.
+                    </p>
+                @endif
+            </section>
+        @endif
+
+        <div class="space-y-6">
+            <section class="card space-y-4">
+                <div>
+                    <h2 class="text-base">مدیران چالش‌ها</h2>
+                    <p class="mt-1 text-xs leading-6 text-muted">
+                        چند مدیر می‌توانند در این پنل کار کنند؛ هر مدیر با نام کاربری و رمز خودش وارد می‌شود و
+                        فقط چالش‌ها و شرکت‌کننده‌های خودش را می‌بیند. مدیر اصلی همه چالش‌ها و همه مدیران را می‌بیند.
+                    </p>
+                </div>
+
+                @if ($isSuper)
+                    <a href="{{ route('panel.admins.index') }}" class="btn btn-primary btn-sm">مدیریت مدیران</a>
+                    <p class="text-[11px] leading-6 text-hint">
+                        از آن صفحه می‌توانی مدیر جدید بسازی، رمزش را عوض کنی یا حسابش را غیرفعال کنی.
+                    </p>
+                @else
+                    <div class="rounded-2xl bg-cream px-4 py-3 text-xs leading-6 text-ink/80 ring-1 ring-line">
+                        برای ساخت مدیر جدید یا تغییر دسترسی‌ها با مدیر اصلی سایت تماس بگیر.
+                    </div>
+                @endif
+            </section>
+
+            <section class="card">
+                <h2 class="text-base">لینک شرکت‌کننده‌ها</h2>
+                <p class="mt-2 text-xs leading-7 text-ink/80">
+                    شرکت‌کننده‌ها نیازی به رمز ندارند. برای هر نفر در صفحه «مدیریت چالش» یک لینک اختصاصی ساخته می‌شود
+                    (مثل <code class="rounded bg-line/60 px-1.5 py-0.5 text-[10px]" dir="ltr">/p/xxxxxxxxxxxxxxxx</code>) که
+                    با باز کردن آن، داشبورد همان نفر نمایش داده می‌شود و می‌تواند کارهایش را تیک بزند.
+                </p>
+                <p class="mt-3 text-xs leading-7 text-ink/80">
+                    اگر لینکی جایی عمومی شده باشد، از همان صفحه روی «لینک جدید» بزن؛ لینک قبلی از کار می‌افتد.
+                </p>
+            </section>
+        </div>
+    </div>
+@endsection
