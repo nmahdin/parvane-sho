@@ -31,6 +31,19 @@ class SafeMigrationTest extends TestCase
         ]);
     }
 
+    public function test_plays_column_lives_in_its_own_migration_file(): void
+    {
+        // ستون تازه باید مهاجرت مستقل خودش را داشته باشد (نه داخل فایل جدول visits)
+        $this->assertFileExists(database_path('migrations/2026_10_17_000002_add_plays_to_day_files_table.php'));
+
+        $visitsMigration = file_get_contents(database_path('migrations/2026_10_17_000001_create_visits_table.php'));
+        $this->assertStringNotContainsString('day_files', $visitsMigration);
+
+        // بعد از اجرای مهاجرت‌ها، هر دو تغییر روی دیتابیس نشسته‌اند
+        $this->assertTrue(\Illuminate\Support\Facades\Schema::hasTable('visits'));
+        $this->assertTrue(\Illuminate\Support\Facades\Schema::hasColumn('day_files', 'plays'));
+    }
+
     public function test_plain_migrate_keeps_existing_rows(): void
     {
         $challenge = $this->makeChallenge();

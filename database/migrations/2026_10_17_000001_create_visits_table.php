@@ -8,6 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // اگر قبلاً (مثلاً با نسخهٔ قدیمی همین مهاجرت) ساخته شده، دوباره نساز
+        if (Schema::hasTable('visits')) {
+            return;
+        }
+
         Schema::create('visits', function (Blueprint $table) {
             $table->id();
             $table->foreignId('challenge_id')->nullable()->constrained()->cascadeOnDelete();
@@ -21,19 +26,10 @@ return new class extends Migration
             $table->index(['type', 'visited_at']);
             $table->index('visited_at');
         });
-
-        Schema::table('day_files', function (Blueprint $table) {
-            // پخش‌های فایل صوتی (جدا از شمار دانلودها)
-            $table->unsignedInteger('plays')->default(0)->after('downloads');
-        });
     }
 
     public function down(): void
     {
-        Schema::table('day_files', function (Blueprint $table) {
-            $table->dropColumn('plays');
-        });
-
         Schema::dropIfExists('visits');
     }
 };
