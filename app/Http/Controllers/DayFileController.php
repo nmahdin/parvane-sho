@@ -27,15 +27,11 @@ class DayFileController extends Controller
         abort_unless($challenge->isDayUnlocked((int) $dayFile->day_number), 404);
         abort_unless(Storage::disk('local')->exists($dayFile->path), 404);
 
-        // صوتی‌ها: هر پخش یک Range از بایت ۰ (یا بدون Range) می‌فرستد؛
-        // Range های وسط فایل (seek) شمرده نمی‌شوند. بقیه فایل‌ها دانلودند.
-        if ($dayFile->is_audio) {
-            $range = (string) $request->headers->get('Range', '');
-
-            if ($range === '' || str_starts_with($range, 'bytes=0-')) {
-                $dayFile->increment('plays');
-            }
-        } else {
+        // دانلود فقط برای فایل‌های غیرصوتی شمرده می‌شود. پخش صوت را
+        // پخش‌کنندهٔ سایت با beacon دقیق می‌شمارد (فقط وقتی کاربر واقعاً
+        // دکمهٔ پخش را می‌زند) — چون preload مرورگر هم بایت‌های اول را
+        // می‌گیرد و شمار سمت سرور، بازدید صفحه را به‌جای پخش حساب می‌کرد.
+        if (! $dayFile->is_audio) {
             $dayFile->increment('downloads');
         }
 
@@ -53,5 +49,21 @@ class DayFileController extends Controller
         );
 
         return $response;
+    }
+
+    /**
+     * شمار پخش واقعی: پخش‌کنندهٔ صوت وقتی کاربر دکمهٔ پخش را می‌زند
+     * (یک‌بار در هر بار باز شدن صفحه) این beacon را می‌فرستد.
+     */
+    public function play(Request $request, Challenge $challenge, DayFile $dayFile): \Illuminate\Http\Response
+    {
+        abort_unless((int) $dayFile->challenge_id === (int) $challenge->id, 404);
+        abort_unless($challenge->is_published, 404);
+        abort_unless($dayFile->is_audio, 404);
+        abort_unless($challenge->isDayUnlocked((int) $dayFile->day_number), 404);
+
+        $dayFile->increment('plays');
+
+        return response()->noContent();
     }
 }

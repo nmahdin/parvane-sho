@@ -35,6 +35,7 @@ Route::get('/challenges/{challenge}', [ChallengeController::class, 'show'])->nam
 Route::get('/challenges/{challenge}/files/{attachment}', [ChallengeFileController::class, 'show'])->name('challenge.files.show');
 Route::get('/challenges/{challenge}/day-files/{dayFile}', [PublicDayFileController::class, 'show'])->name('challenge.day-files.show');
 Route::post('/challenges/{challenge}/day-views', [ChallengeController::class, 'dayView'])->middleware('throttle:60,1')->name('challenge.day-views.store');
+Route::post('/challenges/{challenge}/day-files/{dayFile}/plays', [PublicDayFileController::class, 'play'])->middleware('throttle:120,1')->name('challenge.day-files.plays');
 
 /*
 | ورود شرکت‌کننده‌ها با کد اختصاصی (لینک کوتاه) — بدون نیاز به ورود

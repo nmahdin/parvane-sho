@@ -40,62 +40,47 @@
         <x-stat-card label="دانلود ضمیمه‌ها" :value="fa_num($fileTotals['attachments'])" hint="فایل‌های ضمیمهٔ چالش" icon="📎" tone="emerald" />
     </div>
 
-    {{-- نمودار روزانه ۳۰ روز اخیر --}}
+    {{-- نمودارها (chart.js — داده از $chartsJson) --}}
     <section class="card">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
-                <h2 class="text-base">بازدید روزانه — ۳۰ روز اخیر</h2>
-                <p class="mt-1 text-xs text-muted">صفحه چالش + باز شدن کارت روزها + ورود به داشبورد شرکت‌کننده{{ $isSuper && ! $selected ? ' + صفحه اصلی' : '' }}.</p>
+                <h2 class="text-base">نمودار بازدید — ۳۰ روز اخیر</h2>
+                <p class="mt-1 text-xs text-muted">خط روند هر نوع بازدید در ۳۰ روز گذشته{{ $isSuper && ! $selected ? ' (شامل صفحه اصلی)' : '' }}.</p>
             </div>
         </div>
 
-        <div class="mt-4 space-y-1.5">
-            @foreach (array_reverse($daily, true) as $date => $row)
-                @php
-                    [$jy, $jm, $jd] = \App\Support\Jalali::fromGregorian(
-                        (int) substr($date, 0, 4),
-                        (int) substr($date, 5, 2),
-                        (int) substr($date, 8, 2),
-                    );
-                @endphp
-
-                <div class="flex items-center gap-3 text-xs">
-                    <span class="w-24 shrink-0 text-muted">{{ fa_num($jd) }} {{ \App\Support\Jalali::MONTHS[$jm] }}</span>
-
-                    <div class="h-3 flex-1 overflow-hidden rounded-full bg-cream ring-1 ring-line/60">
-                        <div class="h-3 rounded-full bg-jade/80" style="width: {{ max($row['total'] > 0 ? 3 : 0, round($row['total'] / $dailyMax * 100)) }}%"></div>
-                    </div>
-
-                    <span class="w-10 shrink-0 text-left font-semibold text-ink">{{ fa_num($row['total']) }}</span>
-
-                    <span class="hidden w-56 shrink-0 text-[11px] text-hint sm:block">
-                        چالش {{ fa_num($row['challenge']) }} · روز {{ fa_num($row['day']) }} · داشبورد {{ fa_num($row['dashboard']) }}@if ($isSuper && ! $selected) · خانه {{ fa_num($row['home']) }} @endif
-                    </span>
-                </div>
-            @endforeach
+        <div class="mt-4" style="height: 19rem">
+            <canvas id="chart-daily" role="img" aria-label="نمودار خطی بازدید روزانه ۳۰ روز اخیر"></canvas>
         </div>
-    </section>
 
-    {{-- جمع ماهانه --}}
-    <section class="card">
-        <h2 class="text-base">جمع ماهانه (شمسی)</h2>
-        <p class="mt-1 text-xs text-muted">شش ماه اخیر — جمع همهٔ بازدیدها.</p>
-
-        <div class="mt-4 space-y-2">
-            @forelse ($monthly as $month)
-                <div class="flex items-center gap-3 text-xs">
-                    <span class="w-28 shrink-0 text-muted">{{ $month['label'] }}</span>
-
-                    <div class="h-3.5 flex-1 overflow-hidden rounded-full bg-cream ring-1 ring-line/60">
-                        <div class="h-3.5 rounded-full bg-gold/70" style="width: {{ max(3, round($month['total'] / $monthlyMax * 100)) }}%"></div>
-                    </div>
-
-                    <span class="w-14 shrink-0 text-left font-semibold text-ink">{{ fa_num($month['total']) }}</span>
+        <div class="mt-6 grid gap-6 lg:grid-cols-2">
+            <div>
+                <h3 class="text-sm font-semibold text-ink">جمع ماهانه (شمسی)</h3>
+                <p class="mt-0.5 text-[11px] text-hint">شش ماه اخیر.</p>
+                <div class="mt-3" style="height: 13rem">
+                    <canvas id="chart-monthly" role="img" aria-label="نمودار ستونی جمع ماهانه"></canvas>
                 </div>
-            @empty
-                <p class="rounded-2xl bg-cream px-4 py-6 text-center text-xs text-muted">هنوز بازدیدی ثبت نشده است.</p>
-            @endforelse
+            </div>
+
+            <div>
+                <h3 class="text-sm font-semibold text-ink">سهم هر نوع بازدید (۳۰ روز اخیر)</h3>
+                <p class="mt-0.5 text-[11px] text-hint">صفحه چالش، باز شدن کارت روز، داشبورد و صفحه اصلی.</p>
+                <div class="mt-3" style="height: 13rem">
+                    <canvas id="chart-types" role="img" aria-label="نمودار دونات سهم انواع بازدید"></canvas>
+                </div>
+            </div>
         </div>
+
+        @if (! $selected && $perChallenge->isNotEmpty())
+            <div class="mt-6">
+                <h3 class="text-sm font-semibold text-ink">پربازدیدترین چالش‌ها (۳۰ روز اخیر)</h3>
+                <div class="mt-3" style="height: 15rem">
+                    <canvas id="chart-challenges" role="img" aria-label="نمودار ستونی بازدید چالش‌ها"></canvas>
+                </div>
+            </div>
+        @endif
+
+        <script id="analytics-data" type="application/json">{!! $chartsJson !!}</script>
     </section>
 
     {{-- تفکیک روزبه‌روز برای چالش انتخاب‌شده --}}

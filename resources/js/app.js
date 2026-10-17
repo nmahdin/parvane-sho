@@ -9,6 +9,7 @@ const app = {
         this.initUploadProgress();
         this.initModals();
         this.initDayViewTracking();
+        this.initAnalyticsCharts();
         this.initCopy();
         this.initMenus();
         this.initConfirm();
@@ -360,6 +361,25 @@ const app = {
             const audio = new Audio(player.dataset.audioSrc);
             audio.preload = 'metadata';
 
+            // آمار دقیق پخش: فقط وقتی کاربر واقعاً دکمهٔ پخش را بزند
+            // (یک‌بار در هر بار باز شدن صفحه)؛ preload مرورگر شمرده نمی‌شود.
+            // در پنل (پیش‌نمایش مدیر) شمرده نمی‌شود.
+            if (player.dataset.audioPlayUrl && !window.location.pathname.startsWith('/panel')) {
+                audio.addEventListener('play', () => {
+                    if (player.dataset.playSent) return;
+                    player.dataset.playSent = '1';
+
+                    const body = new FormData();
+                    body.append('_token', document.querySelector('meta[name="csrf-token"]')?.content || '');
+
+                    fetch(player.dataset.audioPlayUrl, {
+                        method: 'POST',
+                        body,
+                        keepalive: true,
+                    }).catch(() => {});
+                });
+            }
+
             const toggle = player.querySelector('[data-audio-toggle]');
             const seek = player.querySelector('[data-audio-seek]');
             const speed = player.querySelector('[data-audio-speed]');
@@ -596,6 +616,106 @@ const app = {
         this.init();
 
         return message;
+    },
+
+    /* نمودارهای صفحهٔ «آمار بازدید» با chart.js — فقط همان‌جا بارگذاری می‌شود */
+    initAnalyticsCharts() {
+        const dataTag = document.getElementById('analytics-data');
+        if (!dataTag) return;
+
+        import('chart.js/auto').then(({ default: Chart }) => {
+            const data = JSON.parse(dataTag.textContent);
+            const fa = (value) => toPersianDigits(value);
+
+            Chart.defaults.font.family = "'Vazirmatn Variable', ui-sans-serif, system-ui, sans-serif";
+            Chart.defaults.color = '#566f64';
+            Chart.defaults.plugins.tooltip.callbacks = {
+                label: (item) => `${item.dataset.label || item.label}: ${fa(item.parsed.y ?? item.parsed)}`,
+            };
+
+            const grid = { color: 'rgba(202, 220, 193, 0.5)' };
+
+            // خطی: بازدید روزانه ۳۰ روز اخیر با تفکیک نوع
+            new Chart(document.getElementById('chart-daily'), {
+                type: 'line',
+                data: {
+                    labels: data.daily.labels,
+                    datasets: [
+                        { label: 'صفحه چالش', data: data.daily.challenge, borderColor: '#11735b', backgroundColor: 'rgba(17, 115, 91, 0.12)', fill: true, tension: 0.35, pointRadius: 2 },
+                        { label: 'کارت روز', data: data.daily.day, borderColor: '#cead60', backgroundColor: 'rgba(206, 173, 96, 0.12)', fill: true, tension: 0.35, pointRadius: 2 },
+                        { label: 'داشبورد شرکت‌کننده', data: data.daily.dashboard, borderColor: '#508d42', backgroundColor: 'rgba(80, 141, 66, 0.12)', fill: true, tension: 0.35, pointRadius: 2 },
+                        { label: 'صفحه اصلی', data: data.daily.home, borderColor: '#075741', backgroundColor: 'rgba(7, 87, 65, 0.10)', fill: true, tension: 0.35, pointRadius: 2 },
+                    ],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { precision: 0, callback: (v) => fa(v) }, grid },
+                        x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkipPadding: 12 } },
+                    },
+                },
+            });
+
+            // ستونی: جمع ماهانه شمسی
+            new Chart(document.getElementById('chart-monthly'), {
+                type: 'bar',
+                data: {
+                    labels: data.monthly.labels,
+                    datasets: [{ label: 'بازدید ماه', data: data.monthly.totals, backgroundColor: 'rgba(206, 173, 96, 0.75)', borderColor: '#cead60', borderWidth: 1, borderRadius: 8 }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, ticks: { precision: 0, callback: (v) => fa(v) }, grid },
+                        x: { grid: { display: false } },
+                    },
+                },
+            });
+
+            // دونات: سهم هر نوع بازدید در ۳۰ روز اخیر
+            new Chart(document.getElementById('chart-types'), {
+                type: 'doughnut',
+                data: {
+                    labels: data.types.labels,
+                    datasets: [{ data: data.types.totals, backgroundColor: ['#11735b', '#cead60', '#508d42', '#075741'], borderColor: '#fffefa', borderWidth: 2 }],
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '62%',
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: (item) => `${item.label}: ${fa(item.parsed)}`,
+                            },
+                        },
+                    },
+                },
+            });
+
+            // ستونی افقی: چالش‌ها در ۳۰ روز اخیر (فقط وقتی بومش هست)
+            const challengesEl = document.getElementById('chart-challenges');
+
+            if (challengesEl) new Chart(challengesEl, {
+                type: 'bar',
+                data: {
+                    labels: data.challenges.labels,
+                    datasets: [{ label: 'بازدید ۳۰ روز', data: data.challenges.totals, backgroundColor: 'rgba(17, 115, 91, 0.75)', borderColor: '#11735b', borderWidth: 1, borderRadius: 8 }],
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: { beginAtZero: true, ticks: { precision: 0, callback: (v) => fa(v) }, grid },
+                        y: { grid: { display: false } },
+                    },
+                },
+            });
+        }).catch(() => {});
     },
 
     /* آمار بازدید: وقتی کارت روز باز می‌شود، یک beacon کوچک «دیده‌شدن روز»

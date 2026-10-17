@@ -11,6 +11,12 @@
     "file": "assets/vazirmatn-latin-wght-normal-BFexNX-K.woff2",
     "src": "node_modules/@fontsource-variable/vazirmatn/files/vazirmatn-latin-wght-normal.woff2"
   },
+  "node_modules/chart.js/auto/auto.js": {
+    "file": "assets/auto-DdbZw65b.js",
+    "name": "auto",
+    "src": "node_modules/chart.js/auto/auto.js",
+    "isDynamicEntry": true
+  },
   "resources/css/app.css": {
     "file": "assets/app-DPMAmBy_.css",
     "name": "app",
@@ -26,9 +32,12 @@
     ]
   },
   "resources/js/app.js": {
-    "file": "assets/app-CwBLasZa.js",
+    "file": "assets/app-CwR-64Od.js",
     "name": "app",
     "src": "resources/js/app.js",
-    "isEntry": true
+    "isEntry": true,
+    "dynamicImports": [
+      "node_modules/chart.js/auto/auto.js"
+    ]
   }
 }

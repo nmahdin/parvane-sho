@@ -177,7 +177,49 @@ class AnalyticsController extends Controller
             }
         }
 
+        // دادهٔ نمودارها (chart.js) — برچسب‌ها شمسی و با رقم فارسی
+        $dailyLabels = [];
+        $series = ['challenge' => [], 'day' => [], 'dashboard' => [], 'home' => []];
+        $typeTotals = ['challenge' => 0, 'day' => 0, 'dashboard' => 0, 'home' => 0];
+
+        foreach ($daily as $date => $row) {
+            [$jy, $jm, $jd] = Jalali::fromGregorian(
+                (int) substr($date, 0, 4),
+                (int) substr($date, 5, 2),
+                (int) substr($date, 8, 2),
+            );
+
+            $dailyLabels[] = Jalali::toPersianDigits($jd).' '.Jalali::MONTHS[$jm];
+
+            foreach ($series as $key => $values) {
+                $series[$key][] = $row[$key];
+                $typeTotals[$key] += $row[$key];
+            }
+        }
+
+        $topChallenges = $perChallenge
+            ->sortByDesc('month')
+            ->take(8)
+            ->values();
+
+        $charts = [
+            'daily' => ['labels' => $dailyLabels] + $series,
+            'monthly' => [
+                'labels' => array_column($monthly, 'label'),
+                'totals' => array_column($monthly, 'total'),
+            ],
+            'types' => [
+                'labels' => ['صفحه چالش', 'کارت روز', 'داشبورد شرکت‌کننده', 'صفحه اصلی'],
+                'totals' => [$typeTotals['challenge'], $typeTotals['day'], $typeTotals['dashboard'], $typeTotals['home']],
+            ],
+            'challenges' => [
+                'labels' => $topChallenges->pluck('title')->all(),
+                'totals' => $topChallenges->pluck('month')->all(),
+            ],
+        ];
+
         return view('panel.analytics', [
+            'chartsJson' => json_encode($charts, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT),
             'challenges' => $challenges,
             'selected' => $selected,
             'totals' => $totals,

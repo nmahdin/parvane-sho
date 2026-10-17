@@ -17,6 +17,7 @@
      id="{{ $playerId }}"
      data-audio-player
      data-audio-src="{{ $file->url() }}"
+     data-audio-play-url="{{ route('challenge.day-files.plays', [$file->challenge, $file]) }}"
      data-audio-title="{{ $file->title }}">
     <div class="flex items-center gap-3">
         <button type="button"

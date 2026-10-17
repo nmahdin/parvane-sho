@@ -118,21 +118,36 @@ class AnalyticsTest extends TestCase
         ]);
     }
 
-    public function test_audio_plays_count_plays_and_seeks_do_not_double_count(): void
+    public function test_audio_plays_are_counted_only_by_real_play_presses(): void
     {
         $challenge = $this->makeChallenge();
         $file = $this->makeDayFile($challenge, audio: true);
 
-        // پخش اول (بدون Range) و پخش دوم (Range از بایت ۰)
+        // باز شدن خود فایل (حتی Range بایت ۰ برای preload مرورگر) پخش حساب نمی‌شود
         $this->get(route('challenge.day-files.show', [$challenge, $file]))->assertOk();
-        $this->get(route('challenge.day-files.show', [$challenge, $file]), ['HTTP_RANGE' => 'bytes=0-'])->assertStatus(206);
-
-        // seek وسط فایل پخش جدید نیست
-        $this->get(route('challenge.day-files.show', [$challenge, $file]), ['HTTP_RANGE' => 'bytes=1-4'])
+        $this->get(route('challenge.day-files.show', [$challenge, $file]), ['HTTP_RANGE' => 'bytes=0-9'])
             ->assertStatus(206);
+        $this->assertSame(0, $file->fresh()->plays);
+
+        // پخش‌کنندهٔ صفحه این آدرس را دارد تا با زدن دکمهٔ پخش beacon بفرستد
+        $html = $this->get(route('challenges.show', $challenge))->assertOk()->getContent();
+        $this->assertStringContainsString('data-audio-play-url', $html);
+
+        // هر بار فشار دادن دکمهٔ پخش = یک پخش
+        $this->post(route('challenge.day-files.plays', [$challenge, $file]))->assertNoContent();
+        $this->post(route('challenge.day-files.plays', [$challenge, $file]))->assertNoContent();
 
         $this->assertSame(2, $file->fresh()->plays);
         $this->assertSame(0, $file->fresh()->downloads);
+
+        // فایل غیرصوتی beacon پخش ندارد
+        $plain = $this->makeDayFile($challenge, audio: false);
+        $this->post(route('challenge.day-files.plays', [$challenge, $plain]))->assertNotFound();
+
+        // چالش پنهان هم ۴۰۴ می‌شود
+        $hidden = $this->makeChallenge(['title' => 'چالش پنهان صوتی', 'slug' => 'hidden-audio', 'is_published' => false]);
+        $hiddenFile = $this->makeDayFile($hidden, audio: true);
+        $this->post(route('challenge.day-files.plays', [$hidden, $hiddenFile]))->assertNotFound();
     }
 
     public function test_plain_files_count_downloads_not_plays(): void
@@ -160,9 +175,15 @@ class AnalyticsTest extends TestCase
         $html = $this->get(route('panel.analytics'))->assertOk()->getContent();
 
         $this->assertStringContainsString('آمار بازدید', $html);
-        $this->assertStringContainsString('بازدید روزانه — ۳۰ روز اخیر', $html);
+        $this->assertStringContainsString('نمودار بازدید — ۳۰ روز اخیر', $html);
         $this->assertStringContainsString('جمع ماهانه (شمسی)', $html);
         $this->assertStringContainsString('چالش آمار', $html);
+
+        // نمودارها: بوم‌ها + دادهٔ JSON برای chart.js
+        $this->assertStringContainsString('id="analytics-data"', $html);
+        $this->assertStringContainsString('id="chart-daily"', $html);
+        $this->assertStringContainsString('id="chart-monthly"', $html);
+        $this->assertStringContainsString('id="chart-types"', $html);
 
         // دو بازدید امروز (چالش + روز) با رقم فارسی
         $this->assertStringContainsString('بازدید امروز', $html);
