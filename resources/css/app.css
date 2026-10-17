@@ -152,8 +152,30 @@
     }
 
     .toast {
-        @apply fixed bottom-20 left-1/2 z-50 max-w-[90vw] -translate-x-1/2 rounded-2xl px-5 py-3 text-sm font-medium shadow-lg ring-1 lg:bottom-8;
+        /* بالای صفحه تا وقتی مودال باز است هم کامل دیده شود */
+        @apply fixed top-16 left-1/2 z-50 max-w-[90vw] -translate-x-1/2 rounded-2xl px-5 py-3 text-sm font-medium shadow-lg ring-1;
         animation: toast-in 0.22s ease-out;
+    }
+
+    /* وقتی توست/نوار آپلود popover هستند، استایل پیش‌فرض مرورگر
+       (inset:0 و margin:auto و ...) خنثی می‌شود تا سر جای خودشان بمانند */
+    .toast[popover] {
+        inset: auto;
+        margin: 0;
+        border: 0;
+        overflow: visible;
+        height: auto;
+        width: auto;
+        max-width: 90vw;
+    }
+
+    .upload-progress[popover] {
+        inset: auto;
+        margin: 0;
+        border: 0;
+        overflow: visible;
+        height: auto;
+        width: min(22rem, calc(100vw - 2rem));
     }
 
     .toast-success {
@@ -316,7 +338,7 @@
     @keyframes toast-in {
         from {
             opacity: 0;
-            transform: translate(-50%, 10px);
+            transform: translate(-50%, -10px);
         }
 
         to {

@@ -133,6 +133,12 @@ class PanelAjaxSaveTest extends TestCase
         $this->assertStringContainsString('toast-success', $css);
         $this->assertStringContainsString('toast-error', $css);
 
+        // توست و نوار آپلود با popover در لایهٔ بالای مرورگر می‌نشینند تا
+        // وقتی مودال باز است، زیر پس‌زمینهٔ تار پنهان نشوند
+        $this->assertStringContainsString('.toast[popover]', $css);
+        $this->assertStringContainsString('.upload-progress[popover]', $css);
+        $this->assertStringContainsString('showPopover', $js);
+
         // هندلر ذخیره بدون رفرش
         $this->assertStringContainsString('data-ajax-save', $js);
         $this->assertStringContainsString('X-Requested-With', $js);

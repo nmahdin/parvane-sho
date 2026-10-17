@@ -882,7 +882,21 @@ const app = {
             bar.innerHTML = `
                 <p class="upload-progress-label">⬆️ در حال آپلود فایل… <span data-upload-percent>۰٪</span></p>
                 <div class="upload-progress-track"><span class="upload-progress-fill" data-upload-fill></span></div>`;
+
+            // مثل توست، در لایهٔ بالا تا زیر مودال آپلود تار نشود
+            if (typeof bar.showPopover === 'function') {
+                bar.setAttribute('popover', 'manual');
+            }
+
             document.body.appendChild(bar);
+
+            if (typeof bar.showPopover === 'function') {
+                try {
+                    bar.showPopover();
+                } catch {
+                    // مرورگر قدیمی: رفتار قبلی
+                }
+            }
         }
 
         const fill = bar.querySelector('[data-upload-fill]');
@@ -1067,7 +1081,23 @@ const app = {
         toast.className = `toast ${type === 'error' ? 'toast-error' : 'toast-success'}`;
         toast.setAttribute('role', 'status');
         toast.textContent = message;
+
+        // مودال با showModal در «لایهٔ بالا» (top layer) مرورگر است و هر
+        // z-index معمولی زیرش تار می‌شود؛ popover هم در همان لایهٔ بالا
+        // می‌نشیند و چون بعد از مودال باز می‌شود، رویش دیده می‌شود.
+        if (typeof toast.showPopover === 'function') {
+            toast.setAttribute('popover', 'manual');
+        }
+
         document.body.appendChild(toast);
+
+        if (typeof toast.showPopover === 'function') {
+            try {
+                toast.showPopover();
+            } catch {
+                // مرورگر قدیمی: همان رفتار قبلی با z-index
+            }
+        }
 
         window.setTimeout(() => toast.classList.add('is-out'), 3600);
         window.setTimeout(() => toast.remove(), 4100);
