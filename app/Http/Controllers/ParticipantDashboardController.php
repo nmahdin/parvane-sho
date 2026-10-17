@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\ChallengeQuestion;
 use App\Models\ChallengeTask;
 use App\Models\Participant;
+use App\Models\Visit;
 use Illuminate\Contracts\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -14,8 +15,10 @@ use Illuminate\Http\Request;
  */
 class ParticipantDashboardController extends Controller
 {
-    public function show(Participant $participant): View
+    public function show(Request $request, Participant $participant): View
     {
+        Visit::record($request, Visit::TYPE_DASHBOARD, $participant->challenge, null, $participant);
+
         $participant->load([
             'challenge.tasks',
             'challenge.days',

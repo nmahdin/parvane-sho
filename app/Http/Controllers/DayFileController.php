@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Challenge;
 use App\Models\DayFile;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -19,14 +20,24 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
  */
 class DayFileController extends Controller
 {
-    public function show(Challenge $challenge, DayFile $dayFile): BinaryFileResponse
+    public function show(Request $request, Challenge $challenge, DayFile $dayFile): BinaryFileResponse
     {
         abort_unless((int) $dayFile->challenge_id === (int) $challenge->id, 404);
         abort_unless($challenge->is_published, 404);
         abort_unless($challenge->isDayUnlocked((int) $dayFile->day_number), 404);
         abort_unless(Storage::disk('local')->exists($dayFile->path), 404);
 
-        $dayFile->increment('downloads');
+        // صوتی‌ها: هر پخش یک Range از بایت ۰ (یا بدون Range) می‌فرستد؛
+        // Range های وسط فایل (seek) شمرده نمی‌شوند. بقیه فایل‌ها دانلودند.
+        if ($dayFile->is_audio) {
+            $range = (string) $request->headers->get('Range', '');
+
+            if ($range === '' || str_starts_with($range, 'bytes=0-')) {
+                $dayFile->increment('plays');
+            }
+        } else {
+            $dayFile->increment('downloads');
+        }
 
         $response = response()->file(Storage::disk('local')->path($dayFile->path), [
             'Content-Type' => $dayFile->mime ?: 'application/octet-stream',

@@ -8,6 +8,7 @@ const app = {
         this.initAjaxSave();
         this.initUploadProgress();
         this.initModals();
+        this.initDayViewTracking();
         this.initCopy();
         this.initMenus();
         this.initConfirm();
@@ -595,6 +596,39 @@ const app = {
         this.init();
 
         return message;
+    },
+
+    /* آمار بازدید: وقتی کارت روز باز می‌شود، یک beacon کوچک «دیده‌شدن روز»
+       می‌فرستد (یک‌بار در هر نشست مرورگر، برای هر روز و هر چالش). */
+    initDayViewTracking() {
+        document.querySelectorAll('details.day-card[data-day-view-url]').forEach((card) => {
+            const day = parseInt(card.getAttribute('data-day-view-number') || '0', 10);
+            if (!day) return;
+
+            const send = () => {
+                const key = `dayview:${card.getAttribute('data-day-view-url')}:${day}`;
+
+                if (sessionStorage.getItem(key)) return;
+                sessionStorage.setItem(key, '1');
+
+                const body = new FormData();
+                body.append('_token', document.querySelector('meta[name="csrf-token"]')?.content || '');
+                body.append('day_number', String(day));
+
+                fetch(card.getAttribute('data-day-view-url'), {
+                    method: 'POST',
+                    body,
+                    keepalive: true,
+                }).catch(() => {});
+            };
+
+            // کارت روز جاری از قبل باز است — همان باز شدن اول هم یک بازدید است
+            if (card.open) send();
+
+            card.addEventListener('toggle', () => {
+                if (card.open) send();
+            });
+        });
     },
 
     /* مودال‌های افزودن: دکمه data-open-modal یک <dialog> را با روز از پیش

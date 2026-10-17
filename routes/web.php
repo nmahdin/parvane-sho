@@ -15,6 +15,7 @@ use App\Http\Controllers\Panel\ChallengeTaskController;
 use App\Http\Controllers\Panel\ChallengeTipController;
 use App\Http\Controllers\Panel\DashboardController;
 use App\Http\Controllers\Panel\DayFileController as PanelDayFileController;
+use App\Http\Controllers\Panel\AnalyticsController as PanelAnalyticsController;
 use App\Http\Controllers\Panel\ParticipantController as PanelParticipantController;
 use App\Http\Controllers\Panel\SettingController;
 use App\Http\Controllers\Panel\SuperDashboardController;
@@ -33,6 +34,7 @@ Route::get('/challenges', [ChallengeController::class, 'index'])->name('challeng
 Route::get('/challenges/{challenge}', [ChallengeController::class, 'show'])->name('challenges.show');
 Route::get('/challenges/{challenge}/files/{attachment}', [ChallengeFileController::class, 'show'])->name('challenge.files.show');
 Route::get('/challenges/{challenge}/day-files/{dayFile}', [PublicDayFileController::class, 'show'])->name('challenge.day-files.show');
+Route::post('/challenges/{challenge}/day-views', [ChallengeController::class, 'dayView'])->middleware('throttle:60,1')->name('challenge.day-views.store');
 
 /*
 | ورود شرکت‌کننده‌ها با کد اختصاصی (لینک کوتاه) — بدون نیاز به ورود
@@ -64,6 +66,9 @@ Route::prefix('panel')->name('panel.')->group(function () {
     Route::middleware('panel.auth')->group(function () {
         Route::post('logout', [AuthController::class, 'logout'])->name('logout');
         Route::get('/', [DashboardController::class, 'index'])->name('dashboard');
+
+        // آمار بازدید سایت (روزانه/ماهانه/هر چالش)
+        Route::get('analytics', [PanelAnalyticsController::class, 'index'])->name('analytics');
 
         // چالش‌ها
         Route::get('challenges', [PanelChallengeController::class, 'index'])->name('challenges.index');

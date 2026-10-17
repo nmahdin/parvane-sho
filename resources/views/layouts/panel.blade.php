@@ -21,6 +21,7 @@
         $navigation = [
             ['label' => 'داشبورد', 'short' => 'داشبورد', 'icon' => '📊', 'url' => route('panel.dashboard'), 'active' => request()->routeIs('panel.dashboard')],
             ['label' => 'چالش‌ها', 'short' => 'چالش‌ها', 'icon' => '🦋', 'url' => route('panel.challenges.index'), 'active' => request()->routeIs('panel.challenges.*') || request()->routeIs('panel.tasks.*')],
+            ['label' => 'آمار بازدید', 'short' => 'آمار', 'icon' => '📈', 'url' => route('panel.analytics'), 'active' => request()->routeIs('panel.analytics')],
             ['label' => 'شرکت‌کننده‌ها', 'short' => 'شرکت‌کننده', 'icon' => '👥', 'url' => route('panel.participants.index'), 'active' => request()->routeIs('panel.participants.*')],
             ['label' => 'تنظیمات', 'short' => 'تنظیمات', 'icon' => '⚙️', 'url' => route('panel.settings.edit'), 'active' => request()->routeIs('panel.settings.*')],
         ];

@@ -209,7 +209,7 @@
                                     </span>
                                 </td>
                                 <td data-label="حجم">{{ $humanBytes($file->size) }}</td>
-                                <td data-label="دانلودها">{{ fa_num($file->downloads) }}</td>
+                                <td data-label="دانلودها">{{ $file->is_audio ? fa_num($file->plays).' پخش' : fa_num($file->downloads).' دانلود' }}</td>
                                 <td data-label="چالش / روز">
                                     @if ($file->challenge)
                                         <a href="{{ route('panel.challenges.show', $file->challenge) }}" class="text-jade underline">

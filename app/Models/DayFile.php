@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\Storage;
     'mime',
     'is_audio',
     'downloads',
+    'plays',
     'sort_order',
 ])]
 class DayFile extends Model
@@ -56,6 +57,7 @@ class DayFile extends Model
             'size' => 'integer',
             'is_audio' => 'boolean',
             'downloads' => 'integer',
+            'plays' => 'integer',
             'sort_order' => 'integer',
         ];
     }

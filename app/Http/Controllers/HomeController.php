@@ -5,13 +5,17 @@ namespace App\Http\Controllers;
 use App\Models\Challenge;
 use App\Models\Participant;
 use App\Models\TaskCompletion;
+use App\Models\Visit;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 
 class HomeController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
+        Visit::record($request, Visit::TYPE_HOME);
+
         $challenges = Challenge::query()
             ->where('is_published', true)
             ->with(['tasks', 'questions', 'participants.questionAnswers'])

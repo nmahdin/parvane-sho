@@ -19,7 +19,10 @@
     $dateLabel = $number > 0 ? $challenge->dayDateLabel($number) : null;
 @endphp
 
-<details id="day-{{ $day }}" @if ($open) open @endif class="day-card {{ $today ? 'is-today' : '' }}">
+<details id="day-{{ $day }}" @if ($open) open @endif class="day-card {{ $today ? 'is-today' : '' }}"
+         data-day-view-url="{{ route('challenge.day-views.store', $challenge) }}"
+         data-day-view-number="{{ $number }}"
+         data-day-view-open="{{ $open ? '1' : '' }}">
     <summary>
         <span class="day-num {{ $today ? 'bg-jade text-white' : 'bg-gold/20 text-forest ring-1 ring-gold/40' }}"
               aria-hidden="true">{{ $number > 0 ? fa_num($number) : '★' }}</span>

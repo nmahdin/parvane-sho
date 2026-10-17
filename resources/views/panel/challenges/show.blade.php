@@ -574,6 +574,14 @@
                                                             {{ $dayFile->original_name }} · {{ $dayFile->sizeForHumans() }}
                                                         </p>
 
+                                                        <p class="mt-1 text-[11px] text-muted">
+                                                            @if ($dayFile->is_audio)
+                                                                🎧 {{ fa_num($dayFile->plays) }} پخش
+                                                            @else
+                                                                ⬇️ {{ fa_num($dayFile->downloads) }} دانلود
+                                                            @endif
+                                                        </p>
+
                                                         @if ($dayFile->is_audio)
                                                             <div class="mt-3 max-w-md">
                                                                 <x-audio-player :file="$dayFile" :day="$dayNumber" />
