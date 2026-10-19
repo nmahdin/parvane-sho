@@ -538,6 +538,8 @@ const app = {
                 return;
             }
 
+            const dayNumber = this.dayNumberOf(form);
+
             const response = await fetch(form.getAttribute('action') || window.location.href, {
                 method: (form.getAttribute('method') || 'POST').toUpperCase(),
                 body: new FormData(form),
@@ -551,7 +553,7 @@ const app = {
 
                 if (!stayOpen) this.closeModalFor(form);
 
-                const message = await this.refreshDynamicSections();
+                const message = await this.refreshDynamicSections(dayNumber);
 
                 if (stayOpen) {
                     this.resetModalForm(form);
@@ -580,23 +582,44 @@ const app = {
         }
     },
 
+    /* شمارهٔ روزی که فرم به آن مربوط است (ورودی day_number یا کارت روزِ دربردارنده) */
+    dayNumberOf(form) {
+        const input = form.querySelector('input[name="day_number"]');
+        if (input?.value) return input.value;
+
+        let element = form.closest('details');
+
+        while (element) {
+            const match = element.id?.match(/^day-(\d+)$/);
+            if (match) return match[1];
+            element = element.parentElement?.closest('details') || null;
+        }
+
+        return null;
+    },
+
     /* بخش‌های صفحه را با نسخه تازه جای‌گذاری می‌کند (بدون رفرش کل صفحه)
-       و متن پیام موفقیت را از همان نسخه برمی‌گرداند. */
-    async refreshDynamicSections() {
+       و متن پیام موفقیت را از همان نسخه برمی‌گرداند.
+       اگر dayNumber داده شود، فقط کارت همان روز جای‌گذاری می‌شود — نه همهٔ روزها. */
+    async refreshDynamicSections(dayNumber = null) {
+        const dayId = dayNumber ? `day-${dayNumber}` : null;
         const openIds = new Set(
             Array.from(document.querySelectorAll('details[open][id]')).map((details) => details.id)
         );
 
+        const targeted = Boolean(dayId && document.getElementById(dayId));
+        const overlayHosts = targeted
+            ? [document.getElementById(dayId)]
+            : ['challenge-stats', 'tasks', 'tips'].map((id) => document.getElementById(id)).filter(Boolean);
+
         const overlays = [];
 
-        ['challenge-stats', 'tasks', 'tips'].forEach((id) => {
-            const section = document.getElementById(id);
-            if (!section) return;
-            section.style.position = 'relative';
+        overlayHosts.forEach((host) => {
+            host.style.position = 'relative';
             const overlay = document.createElement('div');
             overlay.className = 'section-loading';
             overlay.textContent = 'در حال بارگذاری…';
-            section.appendChild(overlay);
+            host.appendChild(overlay);
             overlays.push(overlay);
         });
 
@@ -617,15 +640,6 @@ const app = {
             ? (flash.querySelector('ul li, span:last-child')?.textContent.trim() || null)
             : null;
 
-        ['challenge-stats', 'tasks', 'tips'].forEach((id) => {
-            const fresh = parsed.getElementById(id);
-            const current = document.getElementById(id);
-
-            if (fresh && current) {
-                current.replaceWith(fresh);
-            }
-        });
-
         const freshSubtitle = parsed.getElementById('page-subtitle');
         const subtitle = document.getElementById('page-subtitle');
 
@@ -633,13 +647,51 @@ const app = {
             subtitle.textContent = freshSubtitle.textContent;
         }
 
+        const freshDay = dayId ? parsed.getElementById(dayId) : null;
+        const currentDay = dayId ? document.getElementById(dayId) : null;
+
+        if (targeted && freshDay && currentDay) {
+            // فقط همان روز: وضعیت باز/بستهٔ خود روز و گروه‌های داخلش حفظ می‌شود
+            const wasOpen = currentDay.open;
+            const dayOpenStates = new Map(
+                Array.from(currentDay.querySelectorAll('details[id]')).map((details) => [details.id, details.open])
+            );
+
+            currentDay.replaceWith(freshDay);
+
+            const replaced = document.getElementById(dayId);
+
+            Array.from(replaced.querySelectorAll('details[id]')).forEach((details) => {
+                if (dayOpenStates.has(details.id)) details.open = dayOpenStates.get(details.id);
+            });
+
+            replaced.open = wasOpen || openIds.has(dayId);
+
+            // آمار بالای صفحه هم تازه شود (شمارنده‌ها)
+            const freshStats = parsed.getElementById('challenge-stats');
+            const currentStats = document.getElementById('challenge-stats');
+
+            if (freshStats && currentStats) {
+                currentStats.replaceWith(freshStats);
+            }
+        } else {
+            ['challenge-stats', 'tasks', 'tips'].forEach((id) => {
+                const fresh = parsed.getElementById(id);
+                const current = document.getElementById(id);
+
+                if (fresh && current) {
+                    current.replaceWith(fresh);
+                }
+            });
+
+            // باکس‌هایی که کاربر باز کرده بود، باز بمانند
+            document.querySelectorAll('details[id]').forEach((details) => {
+                details.open = openIds.has(details.id);
+            });
+        }
+
         this.initCardEntrance();
         this.initDayCardAnimation();
-
-        // باکس‌هایی که کاربر باز کرده بود، باز بمانند
-        document.querySelectorAll('details[id]').forEach((details) => {
-            details.open = openIds.has(details.id);
-        });
 
         // اسکریپت‌ها را برای محتوای تازه فعال کن (با گارد، دوباره‌بار امن است)
         this.init();
@@ -1534,6 +1586,8 @@ const app = {
     /* فرم‌های data-ajax-save که فایل دارند: آپلود با نوار پیشرفت،
        بعد از پایان همان جریان جای‌گذاری بخش‌ها ادامه پیدا می‌کند. */
     async uploadFormWithProgress(form) {
+        const dayNumber = this.dayNumberOf(form);
+
         try {
             const xhr = await this.xhrUpload(form);
 
@@ -1542,7 +1596,7 @@ const app = {
 
                 if (!stayOpen) this.closeModalFor(form);
 
-                const message = await this.refreshDynamicSections();
+                const message = await this.refreshDynamicSections(dayNumber);
 
                 if (stayOpen) {
                     this.resetModalForm(form);
@@ -1680,8 +1734,8 @@ const app = {
             }
         }
 
-        window.setTimeout(() => toast.classList.add('is-out'), 3600);
-        window.setTimeout(() => toast.remove(), 4100);
+        window.setTimeout(() => toast.classList.add('is-out'), 5000);
+        window.setTimeout(() => toast.remove(), 5500);
     },
 
     /* بزرگ‌شدن خودکار textarea های فهرست‌ها */

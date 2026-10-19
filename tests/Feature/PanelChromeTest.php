@@ -90,4 +90,70 @@ class PanelChromeTest extends TestCase
         $this->assertStringContainsString("input[type=checkbox]", $css);
         $this->assertStringContainsString('appearance:none', $css);
     }
+
+    public function test_settings_page_no_longer_shows_admins_and_participant_links_sections(): void
+    {
+        $this->loginAsAdmin();
+
+        $this->get(route('panel.settings.edit'))
+            ->assertOk()
+            ->assertDontSee('مدیران چالش‌ها')
+            ->assertDontSee('لینک شرکت‌کننده‌ها');
+    }
+
+    public function test_challenge_form_offers_raised_palette_icon_tiles(): void
+    {
+        $challenge = Challenge::create([
+            'title' => 'چالش نماد',
+            'slug' => 'icon-challenge',
+            'is_published' => true,
+        ]);
+
+        $this->loginAsAdmin();
+
+        $html = $this->get(route('panel.challenges.edit', $challenge))->assertOk()->getContent();
+
+        $this->assertStringContainsString('emoji-tile emoji-tile-jade', $html);
+        $this->assertStringContainsString('emoji-tile emoji-tile-gold', $html);
+        $this->assertStringContainsString('emoji-tile emoji-tile-forest', $html);
+    }
+
+    public function test_day_modals_have_equal_size_cancel_and_submit_buttons(): void
+    {
+        $challenge = Challenge::create([
+            'title' => 'چالش پاورقی',
+            'slug' => 'footer-challenge',
+            'is_published' => true,
+        ]);
+
+        $this->loginAsAdmin();
+
+        $html = $this->get(route('panel.challenges.show', $challenge))->assertOk()->getContent();
+
+        // انصراف راست (اول در DOM راست‌به‌چپ)، ثبت چپ، هر دو هم‌اندازه
+        $this->assertGreaterThan(1, substr_count($html, 'btn btn-ghost flex-1 justify-center'));
+        $this->assertLessThan(
+            strpos($html, '>ذخیره</button>'),
+            strpos($html, '>انصراف</button>')
+        );
+    }
+
+    public function test_built_assets_ship_toast_position_duration_and_single_day_refresh(): void
+    {
+        $this->loginAsAdmin();
+
+        $css = file_get_contents(public_path('build/'.collect(json_decode(file_get_contents(public_path('build/manifest.json')), true))
+            ->first(fn ($entry) => str_contains($entry['file'] ?? '', 'app') && str_ends_with($entry['file'], '.css'))['file']));
+
+        // توست: گوشه بالا-چپ با فاصله از حاشیه (top-5 left-5)
+        $this->assertStringContainsString('top:calc(var(--spacing) * 5);left:calc(var(--spacing) * 5)', $css);
+        $this->assertStringContainsString('emoji-tile', $css);
+
+        $js = file_get_contents(public_path('build/'.collect(json_decode(file_get_contents(public_path('build/manifest.json')), true))
+            ->first(fn ($entry) => str_contains($entry['file'] ?? '', 'app') && str_ends_with($entry['file'], '.js'))['file']));
+
+        $this->assertStringContainsString('dayNumberOf', $js);
+        $this->assertStringContainsString('refreshDynamicSections', $js);
+        $this->assertStringContainsString('5500', $js);
+    }
 }

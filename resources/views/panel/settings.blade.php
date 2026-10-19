@@ -274,39 +274,5 @@
             </section>
         @endif
 
-        <div class="space-y-6">
-            <section class="card space-y-4">
-                <div>
-                    <h2 class="text-base">مدیران چالش‌ها</h2>
-                    <p class="mt-1 text-xs leading-6 text-muted">
-                        چند مدیر می‌توانند در این پنل کار کنند؛ هر مدیر با نام کاربری و رمز خودش وارد می‌شود و
-                        فقط چالش‌ها و شرکت‌کننده‌های خودش را می‌بیند. مدیر اصلی همه چالش‌ها و همه مدیران را می‌بیند.
-                    </p>
-                </div>
-
-                @if ($isSuper)
-                    <a href="{{ route('panel.admins.index') }}" class="btn btn-primary btn-sm">مدیریت مدیران</a>
-                    <p class="text-[11px] leading-6 text-hint">
-                        از آن صفحه می‌توانی مدیر جدید بسازی، رمزش را عوض کنی یا حسابش را غیرفعال کنی.
-                    </p>
-                @else
-                    <div class="rounded-2xl bg-cream px-4 py-3 text-xs leading-6 text-ink/80">
-                        برای ساخت مدیر جدید یا تغییر دسترسی‌ها با مدیر اصلی سایت تماس بگیر.
-                    </div>
-                @endif
-            </section>
-
-            <section class="card">
-                <h2 class="text-base">لینک شرکت‌کننده‌ها</h2>
-                <p class="mt-2 text-xs leading-7 text-ink/80">
-                    شرکت‌کننده‌ها نیازی به رمز ندارند. برای هر نفر در صفحه «مدیریت چالش» یک لینک اختصاصی ساخته می‌شود
-                    (مثل <code class="rounded bg-line/60 px-1.5 py-0.5 text-[10px]" dir="ltr">/p/xxxxxxxxxxxxxxxx</code>) که
-                    با باز کردن آن، داشبورد همان نفر نمایش داده می‌شود و می‌تواند کارهایش را تیک بزند.
-                </p>
-                <p class="mt-3 text-xs leading-7 text-ink/80">
-                    اگر لینکی جایی عمومی شده باشد، از همان صفحه روی «لینک جدید» بزن؛ لینک قبلی از کار می‌افتد.
-                </p>
-            </section>
-        </div>
     </div>
 @endsection

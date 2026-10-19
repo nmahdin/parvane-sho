@@ -696,9 +696,9 @@
                     </div>
                 </div>
 
-                <div class="flex flex-wrap items-center gap-2">
-                    <button type="submit" class="btn btn-primary">ذخیره</button>
-                    <button type="button" class="btn btn-ghost btn-sm" data-close-modal>بستن</button>
+                <div class="flex items-center gap-2">
+                    <button type="button" class="btn btn-ghost flex-1 justify-center" data-close-modal>انصراف</button>
+                    <button type="submit" class="btn btn-primary flex-1 justify-center">ذخیره</button>
                 </div>
             </form>
         </div>
@@ -718,9 +718,9 @@
                 <label class="label">هر خط یک کار</label>
                 <textarea name="items" rows="5" required class="input resize-y" placeholder="۲۰ دقیقه پیاده‌روی&#10;نوشتن سه جمله شکرگزاری&#10;۱۰ دقیقه تمرین تمرکز"></textarea>
 
-                <div class="flex flex-wrap items-center gap-2">
-                    <button type="submit" class="btn btn-primary">افزودن کارها</button>
-                    <button type="button" class="btn btn-ghost btn-sm" data-close-modal>بستن</button>
+                <div class="flex items-center gap-2">
+                    <button type="button" class="btn btn-ghost flex-1 justify-center" data-close-modal>انصراف</button>
+                    <button type="submit" class="btn btn-primary flex-1 justify-center">افزودن کارها</button>
                 </div>
             </form>
         </div>
@@ -748,9 +748,9 @@
                     <p class="hint">mp3، m4a، wav، ogg برای صوت (تا ۶۰ مگابایت)؛ pdf، تصویر، zip و ... برای فایل (تا ۸ مگابایت). صوتی‌ها با پخش‌کننده خود سایت پخش می‌شوند.</p>
                 </div>
 
-                <div class="flex flex-wrap items-center gap-2">
-                    <button type="submit" class="btn btn-primary">آپلود و افزودن</button>
-                    <button type="button" class="btn btn-ghost btn-sm" data-close-modal>بستن</button>
+                <div class="flex items-center gap-2">
+                    <button type="button" class="btn btn-ghost flex-1 justify-center" data-close-modal>انصراف</button>
+                    <button type="submit" class="btn btn-primary flex-1 justify-center">آپلود و افزودن</button>
                 </div>
             </form>
         </div>
@@ -764,10 +764,6 @@
             </div>
 
             <x-tip-form :challenge="$challenge" modal data-modal-form data-stay-open class="text-right" />
-
-            <div class="mt-3 text-left">
-                <button type="button" class="btn btn-ghost btn-sm" data-close-modal>بستن</button>
-            </div>
         </div>
     </dialog>
 

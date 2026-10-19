@@ -55,6 +55,16 @@
             </div>
         @endif
 
-        <button type="submit" class="btn btn-primary btn-sm">{{ $fixedDay ? 'افزودن نکته به روز '.fa_num($fixedDay) : 'افزودن نکته' }}</button>
+        @if (! $modal)
+            <button type="submit" class="btn btn-primary btn-sm">{{ $fixedDay ? 'افزودن نکته به روز '.fa_num($fixedDay) : 'افزودن نکته' }}</button>
+        @endif
     </div>
+
+    @if ($modal)
+        {{-- پاورقی مودال: انصراف راست، ثبت چپ، هم‌اندازه --}}
+        <div class="flex items-center gap-2 sm:col-span-2">
+            <button type="button" class="btn btn-ghost flex-1 justify-center" data-close-modal>انصراف</button>
+            <button type="submit" class="btn btn-primary flex-1 justify-center">افزودن نکته</button>
+        </div>
+    @endif
 </form>

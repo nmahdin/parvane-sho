@@ -95,6 +95,16 @@
                                 </button>
                             @endforeach
                         </div>
+
+                        {{-- نمادهای برجسته با رنگ‌بندی اصلی سایت --}}
+                        <p class="mt-4 text-[11px] text-hint">نمادهای برجسته با رنگ سایت</p>
+                        <div class="mt-1.5 flex flex-wrap gap-2">
+                            @foreach ([['✨', 'jade'], ['🕊️', 'leaf'], ['🌿', 'leaf'], ['⭐', 'gold'], ['🌸', 'gold'], ['💚', 'jade'], ['🔆', 'gold'], ['🌲', 'forest'], ['🤲', 'forest'], ['💠', 'jade']] as [$tileEmoji, $tileTone])
+                                <button type="button" data-emoji="#emoji" data-emoji-value="{{ $tileEmoji }}" class="emoji-tile emoji-tile-{{ $tileTone }}">
+                                    {{ $tileEmoji }}
+                                </button>
+                            @endforeach
+                        </div>
                     </div>
 
                     <div>

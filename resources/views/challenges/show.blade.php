@@ -45,10 +45,6 @@
                     <div class="max-w-2xl">
                         <span class="grid size-12 place-items-center rounded-2xl bg-white/15 text-xl backdrop-blur">{{ $challenge->emoji }}</span>
                         <h1 class="mt-4 text-2xl text-white sm:text-3xl">{{ $challenge->title }}</h1>
-
-                        @if ($challenge->tagline)
-                            <p class="mt-3 text-sm leading-7 text-white/85">{{ $challenge->tagline }}</p>
-                        @endif
                     </div>
 
                     <span class="badge bg-white/15 text-white ring-white/25">{{ $challenge->statusLabel() }}</span>
