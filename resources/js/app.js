@@ -5,6 +5,7 @@ import { initJalaliPickers, jalaliInputToDate, toPersianDigits } from './jalali-
  */
 const app = {
     init() {
+        this.initFlashToasts();
         this.initAjaxSave();
         this.initUploadProgress();
         this.initModals();
@@ -580,6 +581,23 @@ const app = {
         } finally {
             finish();
         }
+    },
+
+    /* پیام‌های فلش سرور (ذخیره شد، خوش‌آمدگویی، خطا) به‌جای بنر بالای
+       صفحه، به‌صورت توست نشان داده می‌شوند */
+    initFlashToasts() {
+        document.querySelectorAll('[data-flash]').forEach((flash) => {
+            if (flash.dataset.toastShown) return;
+            flash.dataset.toastShown = '1';
+
+            const message = flash.querySelector('ul li, span:last-child')?.textContent.trim();
+
+            if (message) {
+                this.showToast(message, flash.dataset.flash === 'status' ? 'status' : 'error');
+            }
+
+            flash.remove();
+        });
     },
 
     /* شمارهٔ روزی که فرم به آن مربوط است (ورودی day_number یا کارت روزِ دربردارنده) */

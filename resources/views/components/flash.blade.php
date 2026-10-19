@@ -15,7 +15,7 @@
 @endif
 
 @if ($showErrors && $errors->any())
-    <div class="animate-rise flex items-start gap-3 rounded-2xl bg-danger-soft px-4 py-3 text-sm text-danger ring-1 ring-danger/20">
+    <div data-flash="errors" class="animate-rise flex items-start gap-3 rounded-2xl bg-danger-soft px-4 py-3 text-sm text-danger ring-1 ring-danger/20">
         <span class="mt-0.5">⚠️</span>
         <ul class="space-y-1">
             @foreach ($errors->all() as $error)

@@ -289,6 +289,12 @@
         width: min(22rem, calc(100vw - 2rem));
     }
 
+    /* پیام‌های فلش (ذخیره، خوش‌آمد، خطا) با JS به توست تبدیل می‌شوند؛
+       بنر بالای صفحه فقط برای حالت بدون جاوااسکریپت است */
+    .has-js [data-flash] {
+        display: none;
+    }
+
     .toast-success {
         @apply bg-forest text-white ring-forest;
     }
