@@ -542,7 +542,7 @@
                                 @else
                                     <div class="space-y-3">
                                         @foreach ($dayTips as $tip)
-                                            <x-tip-item :challenge="$challenge" :tip="$tip" :day-choices="$dayChoices" with-day-picker />
+                                            <x-tip-item :challenge="$challenge" :tip="$tip" />
                                         @endforeach
                                     </div>
                                 @endif
@@ -775,7 +775,7 @@
         @else
             <div class="mt-5 space-y-3">
                 @foreach ($challenge->generalTips() as $tip)
-                    <x-tip-item :challenge="$challenge" :tip="$tip" :day-choices="$dayChoices" with-day-picker />
+                    <x-tip-item :challenge="$challenge" :tip="$tip" />
                 @endforeach
             </div>
         @endif

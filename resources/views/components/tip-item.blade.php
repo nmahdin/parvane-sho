@@ -1,8 +1,7 @@
-@props(['challenge', 'tip', 'withDayPicker' => false, 'dayChoices' => null])
+@props(['challenge', 'tip'])
 
 @php
     $emojiId = 'tip-emoji-'.$tip->getKey();
-    $dayChoices ??= collect();
 @endphp
 
 <div {{ $attributes->merge(['class' => 'rounded-3xl bg-gradient-to-tl from-gold/40 to-paper p-4 surface']) }}>
@@ -62,21 +61,6 @@
                         <label class="label" for="tip-body-{{ $tip->getKey() }}">متن</label>
                         <textarea id="tip-body-{{ $tip->getKey() }}" name="body" rows="2" class="input resize-y">{{ $tip->body }}</textarea>
                     </div>
-
-                    @if ($withDayPicker)
-                        <div class="sm:col-span-2">
-                            <label class="label" for="tip-day-{{ $tip->getKey() }}">این نکته مربوط به کدام روز است؟</label>
-                            <select id="tip-day-{{ $tip->getKey() }}" name="day_number" class="input">
-                                <option value="" @selected($tip->day_number === null)>بدون روز مشخص (نکته کلی چالش)</option>
-                                @foreach ($dayChoices as $choice)
-                                    <option value="{{ $choice['day'] }}" @selected((int) $tip->day_number === (int) $choice['day'])>
-                                        روز {{ fa_num($choice['day']) }}@if ($choice['label']) · {{ $choice['label'] }} @endif
-                                    </option>
-                                @endforeach
-                            </select>
-                            <p class="hint">با انتخاب یک روز، نکته فقط در کارت همان روز نشان داده می‌شود.</p>
-                        </div>
-                    @endif
 
                     <div class="sm:col-span-2">
                         <button type="submit" class="btn btn-primary btn-sm">ذخیره</button>
