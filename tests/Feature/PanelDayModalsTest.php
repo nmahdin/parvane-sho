@@ -146,6 +146,9 @@ class PanelDayModalsTest extends TestCase
         $this->assertStringContainsString('initCardEntrance', $js);
         $this->assertStringContainsString('animationDelay', $js);
         $this->assertStringContainsString('.card, .day-card, .day-group, .surface', $js);
+        // انیمیشن نرم باز/بسته شدن کارت روزها
+        $this->assertStringContainsString('initDayCardAnimation', $js);
+        $this->assertStringContainsString('details.day-card', $js);
     }
 
     public function test_the_modal_styles_are_in_the_built_css(): void

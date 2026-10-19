@@ -11,6 +11,7 @@ const app = {
         this.initDayViewTracking();
         this.initAnalyticsCharts();
         this.initCardEntrance();
+        this.initDayCardAnimation();
         this.initCopy();
         this.initMenus();
         this.initConfirm();
@@ -609,6 +610,7 @@ const app = {
         }
 
         this.initCardEntrance();
+        this.initDayCardAnimation();
 
         // باکس‌هایی که کاربر باز کرده بود، باز بمانند
         document.querySelectorAll('details[id]').forEach((details) => {
@@ -733,6 +735,55 @@ const app = {
 
     /* آمار بازدید: وقتی کارت روز باز می‌شود، یک beacon کوچک «دیده‌شدن روز»
        می‌فرستد (یک‌بار در هر نشست مرورگر، برای هر روز و هر چالش). */
+    /* باز و بسته شدن نرم کارت روزها در سایت: ارتفاع با انیمیشن جمع/باز
+       می‌شود و محتوای روز کمی محو/نمایان می‌شود. */
+    initDayCardAnimation() {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+        document.querySelectorAll('details.day-card').forEach((card) => {
+            if (card.dataset.animBound) return;
+            card.dataset.animBound = '1';
+
+            const summary = card.querySelector(':scope > summary');
+            const body = card.querySelector(':scope > .day-body');
+            if (!summary || !body) return;
+
+            summary.addEventListener('click', (event) => {
+                event.preventDefault();
+                if (card._dayAnim) card._dayAnim.cancel();
+
+                const closedHeight = summary.offsetHeight;
+                const openHeight = card.scrollHeight;
+                const timing = { easing: 'cubic-bezier(0.22, 0.8, 0.36, 1)' };
+
+                if (card.open) {
+                    card._dayAnim = card.animate(
+                        [{ height: `${openHeight}px` }, { height: `${closedHeight}px` }],
+                        { ...timing, duration: 300 }
+                    );
+                    body.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 180, easing: 'ease-in' });
+                    card._dayAnim.onfinish = () => {
+                        card.open = false;
+                        card._dayAnim = null;
+                    };
+                } else {
+                    card.open = true;
+                    card._dayAnim = card.animate(
+                        [{ height: `${closedHeight}px` }, { height: `${openHeight}px` }],
+                        { ...timing, duration: 340 }
+                    );
+                    body.animate(
+                        [{ opacity: 0, transform: 'translateY(-6px)' }, { opacity: 1, transform: 'none' }],
+                        { duration: 300, easing: 'ease-out' }
+                    );
+                    card._dayAnim.onfinish = () => {
+                        card._dayAnim = null;
+                    };
+                }
+            });
+        });
+    },
+
     initDayViewTracking() {
         document.querySelectorAll('details.day-card[data-day-view-url]').forEach((card) => {
             const day = parseInt(card.getAttribute('data-day-view-number') || '0', 10);
