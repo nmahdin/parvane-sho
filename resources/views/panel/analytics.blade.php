@@ -165,7 +165,8 @@
         </section>
     @endif
 
-    {{-- جدول چالش‌ها --}}
+    {{-- جدول چالش‌ها — فقط وقتی هیچ فیلتری فعال نیست --}}
+    @if (! $selected && ! $type && ! $custom)
     <section class="card">
         <h2 class="text-base">{{ $isSuper ? 'تفکیک همهٔ چالش‌ها' : 'تفکیک چالش‌های من' }}</h2>
         <p class="mt-1 text-xs text-muted">برای دیدن آمار روزبه‌روز یک چالش، روی «نمایش آمار» بزن.</p>
@@ -210,4 +211,5 @@
             </table>
         </div>
     </section>
+    @endif
 @endsection

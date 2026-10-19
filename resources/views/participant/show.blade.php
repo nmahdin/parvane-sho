@@ -289,7 +289,7 @@
                                                         <span class="badge shrink-0 bg-leaf/10 text-forest ring-leaf/30">✓ پاسخ دادی</span>
                                                     @endif
 
-                                                    <span class="mt-0.5 text-hint transition group-open:rotate-180">⌄</span>
+                                                    <span class="icon-btn mt-0.5 transition-transform group-open:rotate-180" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="size-4"><path d="M6 9l6 6 6-6"/></svg></span>
                                                 </summary>
 
                                                 <div class="space-y-4 border-t border-line px-3 py-3">

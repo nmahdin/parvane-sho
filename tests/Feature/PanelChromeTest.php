@@ -85,5 +85,8 @@ class PanelChromeTest extends TestCase
         $this->assertStringContainsString('csel-native', $css);
         // تولتیپ دقیق نمودارها
         $this->assertStringContainsString('مجموع روز', $js);
+        // چک‌باکس و رادیوی اختصاصی
+        $this->assertStringContainsString("input[type=checkbox]", $css);
+        $this->assertStringContainsString('appearance:none', $css);
     }
 }

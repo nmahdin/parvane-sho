@@ -243,6 +243,11 @@ class AnalyticsTest extends TestCase
         $html = $this->get(route('panel.analytics', ['type' => 'day']))->assertOk()->getContent();
         $this->assertStringContainsString('value="day" selected', $html);
 
+        // جدول تفکیک چالش‌ها وقتی فیلتر فعال است نشان داده نمی‌شود
+        $this->assertStringNotContainsString('تفکیک همهٔ چالش‌ها', $html);
+        $plain = $this->get(route('panel.analytics'))->assertOk()->getContent();
+        $this->assertStringContainsString('تفکیک همهٔ چالش‌ها', $plain);
+
         // بازهٔ دلخواه شمسی (امروز تا امروز)
         $today = \App\Support\Jalali::inputValue(now());
         $html = $this->get(route('panel.analytics', ['from' => $today, 'to' => $today]))

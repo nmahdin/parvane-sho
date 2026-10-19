@@ -277,7 +277,7 @@
                     <summary class="flex cursor-pointer items-center gap-3 px-6 py-5">
                         <span class="grid size-7 shrink-0 place-items-center rounded-xl bg-brand-50 text-xs font-bold text-brand-700">؟</span>
                         <span class="min-w-0 flex-1 text-sm font-medium text-ink">{{ $question }}</span>
-                        <span class="text-hint transition group-open:rotate-180">⌄</span>
+                        <span class="icon-btn transition-transform group-open:rotate-180" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="size-4"><path d="M6 9l6 6 6-6"/></svg></span>
                     </summary>
 
                     <div class="border-t border-line bg-cream/70 px-6 py-4 text-xs leading-7 text-ink/80">
