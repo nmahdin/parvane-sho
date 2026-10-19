@@ -181,9 +181,9 @@ class AnalyticsTest extends TestCase
 
         // نمودارها: بوم‌ها + دادهٔ JSON برای chart.js
         $this->assertStringContainsString('id="analytics-data"', $html);
-        $this->assertStringContainsString('id="chart-daily"', $html);
-        $this->assertStringContainsString('id="chart-monthly"', $html);
-        $this->assertStringContainsString('id="chart-types"', $html);
+        $this->assertStringContainsString('id="xchart-daily"', $html);
+        $this->assertStringContainsString('id="xchart-monthly"', $html);
+        $this->assertStringContainsString('id="xchart-types"', $html);
 
         // دو بازدید امروز (چالش + روز) با رقم فارسی
         $this->assertStringContainsString('بازدید امروز', $html);

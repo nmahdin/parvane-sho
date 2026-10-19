@@ -5,7 +5,7 @@
 @section('page-subtitle', 'ساخت، ویرایش و انتشار چالش‌ها')
 
 @section('page-actions')
-    <a href="{{ route('panel.challenges.create') }}" class="btn btn-primary btn-sm">+ چالش جدید</a>
+    <a href="{{ route('panel.challenges.create') }}" class="btn btn-primary rounded-full px-7 py-3 text-[15px] shadow-lg shadow-jade/25">+ چالش جدید</a>
 @endsection
 
 @section('content')
@@ -14,7 +14,7 @@
             <div class="py-8 text-center">
                 <img src="{{ asset('favicon.svg') }}" alt="" class="mx-auto size-14" loading="lazy" decoding="async">
                 <p class="mt-3 text-sm text-ink/80">هنوز چالشی ساخته نشده است.</p>
-                <a href="{{ route('panel.challenges.create') }}" class="btn btn-primary mt-5">ساخت اولین چالش</a>
+                <a href="{{ route('panel.challenges.create') }}" class="btn btn-primary mt-5 rounded-full px-7 py-3 text-[15px] shadow-lg shadow-jade/25">ساخت اولین چالش</a>
             </div>
         @else
             <div class="table-wrap">

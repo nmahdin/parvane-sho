@@ -77,6 +77,7 @@ class PanelChromeTest extends TestCase
         $this->assertStringContainsString('sidebar-pill', $js);
         $this->assertStringContainsString('document.fonts', $js);
         $this->assertStringContainsString('initPageReadyChip', $js);
+        $this->assertStringContainsString('closeModalAnimated', $js);
         $this->assertStringContainsString('initActionMenus', $js);
         $this->assertStringContainsString('animationPlayState', $js);
         // انتخابگر اختصاصی به‌جای منوی پیش‌فرض مرورگر
@@ -84,7 +85,7 @@ class PanelChromeTest extends TestCase
         $this->assertStringContainsString('csel-list', $css);
         $this->assertStringContainsString('csel-native', $css);
         // تولتیپ دقیق نمودارها
-        $this->assertStringContainsString('مجموع روز', $js);
+        $this->assertStringContainsString('xdonut-legend', $js);
         // چک‌باکس و رادیوی اختصاصی
         $this->assertStringContainsString("input[type=checkbox]", $css);
         $this->assertStringContainsString('appearance:none', $css);

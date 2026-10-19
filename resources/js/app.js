@@ -9,7 +9,7 @@ const app = {
         this.initUploadProgress();
         this.initModals();
         this.initDayViewTracking();
-        this.initAnalyticsCharts();
+        this.initCustomCharts();
         this.initCardEntrance();
         this.initDayCardAnimation();
         this.initPageLoader();
@@ -659,135 +659,232 @@ const app = {
         });
     },
 
-    /* نمودارهای صفحهٔ «آمار بازدید» با chart.js — فقط همان‌جا بارگذاری می‌شود */
-    initAnalyticsCharts() {
+    /* نمودارهای اختصاصی صفحهٔ «آمار بازدید» — SVG/CSS ساخت خودمان،
+       بدون کتابخانهٔ خارجی؛ هاور روی هر نقطه پنل اطلاعاتی نشان می‌دهد. */
+    initCustomCharts() {
         const dataTag = document.getElementById('analytics-data');
         if (!dataTag) return;
 
-        const chartReady = () => document.querySelectorAll('.chart-box').forEach((box) => box.classList.add('is-ready'));
+        let data;
+        try {
+            data = JSON.parse(dataTag.textContent);
+        } catch {
+            return;
+        }
 
-        import('chart.js/auto').then(({ default: Chart }) => {
-            const data = JSON.parse(dataTag.textContent);
-            const fa = (value) => toPersianDigits(value);
+        const fa = (value) => toPersianDigits(value);
+        const COLORS = ['#659287', '#D9B96E', '#A8B89A', '#4E7268'];
 
-            Chart.defaults.font.family = "'Vazirmatn Variable', ui-sans-serif, system-ui, sans-serif";
-            Chart.defaults.color = '#566f64';
-            Chart.defaults.plugins.tooltip.callbacks = {
-                title: (items) => (items[0]?.label ? String(items[0].label) : ''),
-                label: (item) => ` ${item.dataset.label || item.label}: ${fa(item.parsed.y ?? item.parsed)}`,
-            };
-            Chart.defaults.plugins.tooltip.backgroundColor = '#2F3E38';
-            Chart.defaults.plugins.tooltip.padding = 12;
-            Chart.defaults.plugins.tooltip.cornerRadius = 12;
-            Chart.defaults.plugins.tooltip.displayColors = true;
-            Chart.defaults.plugins.tooltip.boxPadding = 5;
-            Chart.defaults.plugins.tooltip.usePointStyle = true;
-            Chart.defaults.plugins.tooltip.titleFont = { weight: '700', size: 12 };
-            Chart.defaults.plugins.tooltip.bodyFont = { size: 12 };
-            Chart.defaults.plugins.tooltip.footerFont = { size: 11, weight: '400' };
-            Chart.defaults.plugins.tooltip.footerColor = '#B8C9A3';
-            Chart.defaults.animation = { duration: 700, easing: 'easeOutQuart' };
-            chartReady();
+        const ensureTip = (wrap) => {
+            let tip = wrap.querySelector('.xchart-tip');
+            if (!tip) {
+                tip = document.createElement('div');
+                tip.className = 'xchart-tip';
+                tip.hidden = true;
+                wrap.appendChild(tip);
+            }
+            return tip;
+        };
 
-            const grid = { color: 'rgba(202, 220, 193, 0.5)' };
+        const showTip = (tip, wrap, clientX, html) => {
+            tip.innerHTML = html;
+            tip.hidden = false;
+            const rect = wrap.getBoundingClientRect();
+            const x = clientX - rect.left;
+            const max = rect.width - tip.offsetWidth - 8;
+            tip.style.left = `${Math.max(8, Math.min(x - tip.offsetWidth / 2, max))}px`;
+        };
 
-            // خطی: بازدید روزانه ۳۰ روز اخیر با تفکیک نوع
-            new Chart(document.getElementById('chart-daily'), {
-                type: 'line',
-                data: {
-                    labels: data.daily.labels,
-                    datasets: [
-                        { label: 'صفحه چالش', data: data.daily.challenge, borderColor: '#659287', backgroundColor: 'rgba(101, 146, 135, 0.14)', fill: true, tension: 0.35, pointRadius: 2, pointHoverRadius: 6, pointHitRadius: 18 },
-                        { label: 'کارت روز', data: data.daily.day, borderColor: '#D9B96E', backgroundColor: 'rgba(217, 185, 110, 0.14)', fill: true, tension: 0.35, pointRadius: 2, pointHoverRadius: 6, pointHitRadius: 18 },
-                        { label: 'داشبورد شرکت‌کننده', data: data.daily.dashboard, borderColor: '#A8B89A', backgroundColor: 'rgba(168, 184, 154, 0.16)', fill: true, tension: 0.35, pointRadius: 2, pointHoverRadius: 6, pointHitRadius: 18 },
-                        { label: 'صفحه اصلی', data: data.daily.home, borderColor: '#4E7268', backgroundColor: 'rgba(78, 114, 104, 0.12)', fill: true, tension: 0.35, pointRadius: 2, pointHoverRadius: 6, pointHitRadius: 18 },
-                    ],
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    interaction: { mode: 'index', intersect: false },
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label: (item) => ` ${item.dataset.label}: ${fa(item.parsed.y)} بازدید`,
-                                footer: (items) => 'مجموع روز: ' + fa(items.reduce((sum, i) => sum + (i.parsed.y || 0), 0)),
-                            },
-                        },
-                    },
-                    scales: {
-                        y: { beginAtZero: true, ticks: { precision: 0, callback: (v) => fa(v) }, grid },
-                        x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkipPadding: 12 } },
-                    },
-                },
+        /* --- ۱) نمودار سطحی/خطی روزانه --- */
+        const areaEl = document.getElementById('xchart-daily');
+        if (areaEl && data.daily?.labels?.length) {
+            const labels = data.daily.labels;
+            const series = [
+                { name: 'صفحه چالش', color: COLORS[0], values: data.daily.challenge || [] },
+                { name: 'کارت روز', color: COLORS[1], values: data.daily.day || [] },
+                { name: 'داشبورد', color: COLORS[2], values: data.daily.dashboard || [] },
+                { name: 'صفحه اصلی', color: COLORS[3], values: data.daily.home || [] },
+            ];
+
+            const W = 720;
+            const H = 260;
+            const padL = 40;
+            const padR = 10;
+            const padT = 12;
+            const padB = 26;
+            const max = Math.max(1, ...series.flatMap((serie) => serie.values));
+            const xAt = (i) => padL + (i * (W - padL - padR)) / Math.max(1, labels.length - 1);
+            const yAt = (v) => padT + (1 - v / max) * (H - padT - padB);
+
+            let svg = `<svg viewBox="0 0 ${W} ${H}" class="xchart-svg" role="img" aria-label="نمودار بازدید روزانه">`;
+
+            for (let g = 0; g <= 4; g += 1) {
+                const gy = padT + (g * (H - padT - padB)) / 4;
+                svg += `<line x1="${padL}" y1="${gy.toFixed(1)}" x2="${W - padR}" y2="${gy.toFixed(1)}" stroke="#D6DAC8" stroke-opacity="0.55" stroke-dasharray="3 4"/>`;
+                svg += `<text x="${padL - 6}" y="${(gy + 3).toFixed(1)}" text-anchor="end" font-size="9" fill="#71817A">${fa(Math.round(max * (1 - g / 4)))}</text>`;
+            }
+
+            const step = Math.max(1, Math.ceil(labels.length / 6));
+            for (let i = 0; i < labels.length; i += step) {
+                svg += `<text x="${xAt(i).toFixed(1)}" y="${H - 8}" text-anchor="middle" font-size="9" fill="#71817A">${labels[i]}</text>`;
+            }
+
+            series.forEach((serie) => {
+                const points = serie.values.map((v, i) => `${xAt(i).toFixed(1)},${yAt(v).toFixed(1)}`).join(' ');
+                svg += `<polygon points="${xAt(0).toFixed(1)},${yAt(0).toFixed(1)} ${points} ${xAt(serie.values.length - 1).toFixed(1)},${yAt(0).toFixed(1)}" fill="${serie.color}" fill-opacity="0.10"/>`;
+                svg += `<polyline points="${points}" fill="none" stroke="${serie.color}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`;
             });
 
-            // ستونی: جمع ماهانه شمسی
-            new Chart(document.getElementById('chart-monthly'), {
-                type: 'bar',
-                data: {
-                    labels: data.monthly.labels,
-                    datasets: [{ label: 'بازدید ماه', data: data.monthly.totals, backgroundColor: 'rgba(217, 185, 110, 0.75)', borderColor: '#D9B96E', borderWidth: 1, borderRadius: 8, hoverBackgroundColor: '#D9B96E' }],
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        y: { beginAtZero: true, ticks: { precision: 0, callback: (v) => fa(v) }, grid },
-                        x: { grid: { display: false } },
-                    },
-                },
+            svg += `<line class="xchart-cursor" x1="0" y1="${padT}" x2="0" y2="${H - padB}" stroke="#4E7268" stroke-opacity="0" stroke-width="1.5"/>`;
+            svg += '</svg>';
+            areaEl.innerHTML = svg;
+            areaEl.classList.add('is-ready');
+
+            const tip = ensureTip(areaEl);
+            const cursor = areaEl.querySelector('.xchart-cursor');
+
+            areaEl.addEventListener('pointermove', (event) => {
+                const rect = areaEl.getBoundingClientRect();
+                const px = ((event.clientX - rect.left) / rect.width) * W;
+                let i = Math.round(((px - padL) / (W - padL - padR)) * (labels.length - 1));
+                i = Math.max(0, Math.min(labels.length - 1, i));
+
+                cursor.setAttribute('x1', xAt(i).toFixed(1));
+                cursor.setAttribute('x2', xAt(i).toFixed(1));
+                cursor.setAttribute('stroke-opacity', '0.4');
+
+                const rows = series
+                    .map((serie) => `<span><i style="background:${serie.color}"></i>${serie.name}: ${fa(serie.values[i] || 0)}</span>`)
+                    .join('');
+                const total = series.reduce((sum, serie) => sum + (serie.values[i] || 0), 0);
+                showTip(tip, areaEl, event.clientX, `<b>${labels[i]}</b>${rows}<u>مجموع روز: ${fa(total)}</u>`);
             });
 
-            // دونات: سهم هر نوع بازدید در ۳۰ روز اخیر
-            new Chart(document.getElementById('chart-types'), {
-                type: 'doughnut',
-                data: {
-                    labels: data.types.labels,
-                    datasets: [{ data: data.types.totals, backgroundColor: ['#659287', '#D9B96E', '#A8B89A', '#4E7268'], borderColor: '#ffffff', borderWidth: 2, hoverOffset: 10, spacing: 2 }],
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    cutout: '62%',
-                    plugins: {
-                        tooltip: {
-                            callbacks: {
-                                label: (item) => {
-                                    const total = item.dataset.data.reduce((sum, value) => sum + value, 0);
-                                    const percent = total ? Math.round((item.parsed / total) * 100) : 0;
-                                    return ` ${item.label}: ${fa(item.parsed)} (${fa(percent)}٪)`;
-                                },
-                            },
-                        },
-                    },
-                },
+            areaEl.addEventListener('pointerleave', () => {
+                tip.hidden = true;
+                cursor.setAttribute('stroke-opacity', '0');
+            });
+        }
+
+        /* --- ۲) ستون‌های ماهانه --- */
+        const barsEl = document.getElementById('xchart-monthly');
+        if (barsEl && data.monthly?.totals?.length) {
+            const max = Math.max(1, ...data.monthly.totals);
+            barsEl.innerHTML = `<div class="xbars">${data.monthly.totals
+                .map(
+                    (value, i) => `
+                    <div class="xbar-col">
+                        <div class="xbar" style="height:${Math.max(2, (value / max) * 100)}%;background:linear-gradient(180deg,#D9B96E,#F2DDA8)"></div>
+                        <span class="xbar-label">${data.monthly.labels[i]}</span>
+                    </div>`
+                )
+                .join('')}</div>`;
+            barsEl.classList.add('is-ready');
+
+            const tip = ensureTip(barsEl);
+            barsEl.querySelectorAll('.xbar-col').forEach((col, i) => {
+                col.addEventListener('pointerenter', (event) => {
+                    showTip(tip, barsEl, event.clientX, `<b>${data.monthly.labels[i]}</b><span>بازدید ماه: ${fa(data.monthly.totals[i])}</span>`);
+                });
+                col.addEventListener('pointerleave', () => {
+                    tip.hidden = true;
+                });
+            });
+        }
+
+        /* --- ۳) دونات سهم انواع بازدید --- */
+        const donutEl = document.getElementById('xchart-types');
+        if (donutEl && data.types?.totals?.length) {
+            const totals = data.types.totals;
+            const total = totals.reduce((sum, v) => sum + v, 0);
+            const R = 54;
+            const C = 2 * Math.PI * R;
+            let offset = 0;
+            let circles = '';
+
+            totals.forEach((value, i) => {
+                const fraction = total ? value / total : 0;
+                circles += `<circle class="xdonut-seg" data-i="${i}" cx="80" cy="80" r="${R}" fill="none" stroke="${COLORS[i]}" stroke-width="22" stroke-dasharray="${(fraction * C).toFixed(2)} ${C.toFixed(2)}" stroke-dashoffset="${(-offset * C).toFixed(2)}" transform="rotate(-90 80 80)"/>`;
+                offset += fraction;
             });
 
-            // ستونی افقی: چالش‌ها در ۳۰ روز اخیر (فقط وقتی بومش هست)
-            const challengesEl = document.getElementById('chart-challenges');
+            const legendItems = data.types.labels.map((label, i) => {
+                const percent = total ? Math.round((totals[i] / total) * 100) : 0;
+                return `<li data-i="${i}"><i style="background:${COLORS[i]}"></i><span>${label}</span><b>${fa(totals[i])} (${fa(percent)}٪)</b></li>`;
+            }).join('');
 
-            if (challengesEl) new Chart(challengesEl, {
-                type: 'bar',
-                data: {
-                    labels: data.challenges.labels,
-                    datasets: [{ label: 'بازدید ۳۰ روز', data: data.challenges.totals, backgroundColor: 'rgba(101, 146, 135, 0.75)', borderColor: '#659287', borderWidth: 1, borderRadius: 8 }],
-                },
-                options: {
-                    indexAxis: 'y',
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    scales: {
-                        x: { beginAtZero: true, ticks: { precision: 0, callback: (v) => fa(v) }, grid },
-                        y: { grid: { display: false } },
-                    },
-                },
+            donutEl.innerHTML = `<div class="xdonut"><svg viewBox="0 0 160 160" class="xdonut-svg" role="img" aria-label="سهم انواع بازدید">${circles}<text x="80" y="78" text-anchor="middle" font-size="15" font-weight="700" fill="#2F3E38">${fa(total)}</text><text x="80" y="96" text-anchor="middle" font-size="9" fill="#71817A">کل بازدید</text></svg><ul class="xdonut-legend">${legendItems}</ul></div>`;
+            donutEl.classList.add('is-ready');
+
+            const tip = ensureTip(donutEl);
+            donutEl.querySelectorAll('[data-i]').forEach((el) => {
+                const i = Number(el.dataset.i);
+
+                el.addEventListener('pointerenter', () => {
+                    donutEl.querySelectorAll('.xdonut-seg').forEach((seg) => {
+                        seg.style.opacity = seg.dataset.i === String(i) ? '1' : '0.3';
+                    });
+                });
+
+                el.addEventListener('pointermove', (event) => {
+                    const percent = total ? Math.round((totals[i] / total) * 100) : 0;
+                    showTip(tip, donutEl, event.clientX, `<b>${data.types.labels[i]}</b><span>${fa(totals[i])} بازدید (${fa(percent)}٪)</span>`);
+                });
+
+                el.addEventListener('pointerleave', () => {
+                    donutEl.querySelectorAll('.xdonut-seg').forEach((seg) => {
+                        seg.style.opacity = '1';
+                    });
+                    tip.hidden = true;
+                });
             });
-        }).catch(() => {});
+        }
+
+        /* --- ۴) میله‌های افقی چالش‌ها (بدون innerHTML برای عنوان‌ها) --- */
+        const hEl = document.getElementById('xchart-challenges');
+        if (hEl && data.challenges?.totals?.length) {
+            const max = Math.max(1, ...data.challenges.totals);
+            const tip = ensureTip(hEl);
+            const wrap = document.createElement('div');
+            wrap.className = 'xhbars';
+
+            data.challenges.labels.forEach((label, i) => {
+                const row = document.createElement('div');
+                row.className = 'xhbar-row';
+
+                const title = document.createElement('span');
+                title.className = 'xhbar-title';
+                title.textContent = label;
+
+                const track = document.createElement('span');
+                track.className = 'xhbar-track';
+                const fill = document.createElement('span');
+                fill.className = 'xhbar-fill';
+                fill.style.width = `${Math.max(2, (data.challenges.totals[i] / max) * 100)}%`;
+                track.appendChild(fill);
+
+                const value = document.createElement('b');
+                value.className = 'xhbar-value';
+                value.textContent = fa(data.challenges.totals[i]);
+
+                row.append(title, track, value);
+
+                row.addEventListener('pointerenter', (event) => {
+                    showTip(tip, hEl, event.clientX, `<b>${title.textContent}</b><span>بازدید ماه اخیر: ${fa(data.challenges.totals[i])}</span>`);
+                });
+                row.addEventListener('pointerleave', () => {
+                    tip.hidden = true;
+                });
+
+                wrap.appendChild(row);
+            });
+
+            hEl.innerHTML = '';
+            hEl.appendChild(wrap);
+            hEl.classList.add('is-ready');
+        }
     },
 
-    /* آمار بازدید: وقتی کارت روز باز می‌شود، یک beacon کوچک «دیده‌شدن روز»
-       می‌فرستد (یک‌بار در هر نشست مرورگر، برای هر روز و هر چالش). */
     /* انتخابگر اختصاصی: منوی پیش‌فرض مرورگر با فهرست سبک سایت جایگزین
        می‌شود؛ خود <select> پنهان می‌ماند تا فرم‌ها مثل قبل کار کنند. */
     initCustomSelects() {
@@ -949,18 +1046,31 @@ const app = {
             pill.style.height = `${rect.height}px`;
             document.body.appendChild(pill);
 
+            // تا وقتی قرص در راه است، هایلایت واقعی خاموش بماند تا دوتایی دیده نشود
+            active.style.backgroundColor = 'transparent';
+            active.style.boxShadow = 'none';
+            active.style.color = 'var(--color-forest)';
+
+            const restore = () => {
+                pill.remove();
+                active.style.backgroundColor = '';
+                active.style.boxShadow = '';
+                active.style.color = '';
+            };
+
             const animation = pill.animate(
                 [{ transform: `translateY(${offset}px)` }, { transform: 'translateY(0)' }],
                 { duration: 420, easing: 'cubic-bezier(0.22, 0.8, 0.36, 1)' }
             );
-            animation.onfinish = () => pill.remove();
-            animation.oncancel = () => pill.remove();
+            animation.onfinish = restore;
+            animation.oncancel = restore;
         };
 
+        // دو فریم بعد از آماده شدن فونت‌ها: چیدمان کاملاً قطعی است
         if (document.fonts?.ready) {
-            document.fonts.ready.then(() => requestAnimationFrame(run));
+            document.fonts.ready.then(() => requestAnimationFrame(() => requestAnimationFrame(run)));
         } else {
-            requestAnimationFrame(run);
+            requestAnimationFrame(() => requestAnimationFrame(run));
         }
     },
 
@@ -1036,8 +1146,14 @@ const app = {
             if (event.key === 'Escape') closeAll();
         });
 
-        window.addEventListener('scroll', () => closeAll(), { capture: true, passive: true });
-        window.addEventListener('resize', () => closeAll());
+        // با اسکرول/رزایز منو دوباره روی دکمه‌اش می‌نشیند (بسته نمی‌شود)
+        const reposition = () => {
+            const open = document.querySelector('details.action-menu[open]');
+            if (open) place(open);
+        };
+
+        window.addEventListener('scroll', reposition, { capture: true, passive: true });
+        window.addEventListener('resize', reposition);
     },
 
     /* نوار بارگذاری هنگام جابه‌جایی بین صفحات (لینک‌ها و فرم‌های غیر AJAX) */
@@ -1193,7 +1309,7 @@ const app = {
 
             if (event.target.closest('[data-close-modal]')) {
                 event.preventDefault();
-                event.target.closest('dialog')?.close();
+                this.closeModalAnimated(event.target.closest('dialog'));
             }
         });
 
@@ -1203,7 +1319,13 @@ const app = {
             dialog.dataset.bound = '1';
 
             dialog.addEventListener('click', (event) => {
-                if (event.target === dialog) dialog.close();
+                if (event.target === dialog) this.closeModalAnimated(dialog);
+            });
+
+            // Escape هم با همان انیمیشن ببندد
+            dialog.addEventListener('cancel', (event) => {
+                event.preventDefault();
+                this.closeModalAnimated(dialog);
             });
         });
     },
@@ -1256,9 +1378,44 @@ const app = {
         dialog.querySelector('input:not([type="hidden"]), textarea, select')?.focus();
     },
 
+    /* بستن مودال با انیمیشن محو و جمع‌شدن (کلید Esc و پس‌زمینه هم همین‌طور) */
+    closeModalAnimated(dialog) {
+        if (!dialog || !dialog.open) return;
+
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches || typeof dialog.animate !== 'function') {
+            dialog.close();
+
+            return;
+        }
+
+        const card = dialog.firstElementChild;
+        const animations = [
+            dialog.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 170, easing: 'ease-in', fill: 'forwards' }),
+        ];
+
+        if (card) {
+            animations.push(
+                card.animate(
+                    [{ transform: 'none' }, { transform: 'translateY(10px) scale(0.97)' }],
+                    { duration: 170, easing: 'ease-in', fill: 'forwards' }
+                )
+            );
+        }
+
+        Promise.all(animations.map((animation) => animation.finished))
+            .then(() => {
+                dialog.close();
+                dialog.style.opacity = '';
+            })
+            .catch(() => {
+                dialog.close();
+                dialog.style.opacity = '';
+            });
+    },
+
     closeModalFor(form) {
         const dialog = form.closest('dialog');
-        if (dialog?.open) dialog.close();
+        if (dialog?.open) this.closeModalAnimated(dialog);
     },
 
     /* بعد از ذخیره موفق در مودال‌های data-stay-open: فرم خالی می‌شود تا

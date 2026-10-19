@@ -467,6 +467,209 @@
         color: var(--color-jade);
     }
 
+    /* ارتفاع یکسان همهٔ ورودی‌ها و دکمه‌های بخش فیلتر آمار */
+    .analytics-filters .input,
+    .analytics-filters .csel-btn,
+    .analytics-filters .btn,
+    .analytics-filters .filter-chip {
+        height: 3rem;
+    }
+
+    .analytics-filters .filter-chip {
+        display: inline-flex;
+        align-items: center;
+    }
+
+    /* ------------------------------------------------------------------
+       نمودارهای اختصاصی آمار (بدون کتابخانهٔ خارجی)
+       ------------------------------------------------------------------ */
+    .xchart {
+        position: relative;
+    }
+
+    .xchart-svg {
+        width: 100%;
+        height: 100%;
+    }
+
+    .xchart-tip {
+        position: absolute;
+        top: 8px;
+        z-index: 12;
+        min-width: 9rem;
+        padding: 0.55rem 0.7rem;
+        border-radius: 0.9rem;
+        background-color: var(--color-ink);
+        color: #fff;
+        font-size: 11px;
+        line-height: 1.9;
+        pointer-events: none;
+        box-shadow: 0 14px 30px -14px rgb(47 62 56 / 0.55);
+    }
+
+    .xchart-tip b {
+        display: block;
+        font-size: 11.5px;
+    }
+
+    .xchart-tip span {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .xchart-tip i {
+        width: 0.55rem;
+        height: 0.55rem;
+        border-radius: 999px;
+        flex-shrink: 0;
+    }
+
+    .xchart-tip u {
+        display: block;
+        margin-top: 0.25rem;
+        padding-top: 0.25rem;
+        border-top: 1px solid rgb(255 255 255 / 0.15);
+        color: var(--color-leaf);
+        text-decoration: none;
+    }
+
+    /* ستون‌های ماهانه */
+    .xbars {
+        display: flex;
+        align-items: flex-end;
+        gap: 0.5rem;
+        height: 100%;
+    }
+
+    .xbar-col {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.4rem;
+        height: 100%;
+        cursor: pointer;
+    }
+
+    .xbar {
+        width: 70%;
+        max-width: 3.2rem;
+        border-radius: 0.7rem 0.7rem 0.3rem 0.3rem;
+        transition: filter 0.15s ease;
+    }
+
+    .xbar-col:hover .xbar {
+        filter: brightness(1.07);
+    }
+
+    .xbar-label {
+        font-size: 10px;
+        color: var(--color-hint);
+        white-space: nowrap;
+    }
+
+    /* دونات */
+    .xdonut {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 1.5rem;
+        height: 100%;
+    }
+
+    .xdonut-svg {
+        height: 100%;
+        max-height: 12rem;
+    }
+
+    .xdonut-seg {
+        cursor: pointer;
+        transition: opacity 0.15s ease;
+    }
+
+    .xdonut-legend {
+        display: grid;
+        gap: 0.55rem;
+        min-width: 12rem;
+        margin: 0;
+        padding: 0;
+        font-size: 11.5px;
+        list-style: none;
+    }
+
+    .xdonut-legend li {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        color: var(--color-ink);
+    }
+
+    .xdonut-legend i {
+        width: 0.7rem;
+        height: 0.7rem;
+        border-radius: 0.35rem;
+        flex-shrink: 0;
+    }
+
+    .xdonut-legend b {
+        margin-inline-start: auto;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--color-muted);
+    }
+
+    /* میله‌های افقی چالش‌ها */
+    .xhbars {
+        display: grid;
+        gap: 0.7rem;
+        height: 100%;
+        align-content: center;
+    }
+
+    .xhbar-row {
+        display: grid;
+        grid-template-columns: minmax(6rem, 11rem) 1fr auto;
+        align-items: center;
+        gap: 0.75rem;
+        cursor: pointer;
+    }
+
+    .xhbar-title {
+        overflow: hidden;
+        font-size: 11.5px;
+        color: var(--color-ink);
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .xhbar-track {
+        height: 0.7rem;
+        overflow: hidden;
+        border-radius: 999px;
+        background-color: var(--color-cream);
+    }
+
+    .xhbar-fill {
+        display: block;
+        height: 100%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #659287, #B8C9A3);
+        transition: width 0.6s cubic-bezier(0.22, 0.8, 0.36, 1);
+    }
+
+    .xhbar-row:hover .xhbar-fill {
+        filter: brightness(1.06);
+    }
+
+    .xhbar-value {
+        font-size: 11px;
+        color: var(--color-muted);
+    }
+
     /* ------------------------------------------------------------------
        چک‌باکس و رادیوی اختصاصی سایت (به‌جای کنترل پیش‌فرض مرورگر)
        ------------------------------------------------------------------ */

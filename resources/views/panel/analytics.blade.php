@@ -6,7 +6,7 @@
 
 @section('content')
     {{-- فیلترها: چالش، نوع بازدید و بازهٔ زمانی --}}
-    <section class="card space-y-4">
+    <section class="card analytics-filters space-y-4">
         <form method="GET" action="{{ route('panel.analytics') }}" class="flex flex-wrap items-end gap-3">
             <div class="min-w-56 flex-1">
                 <label class="label" for="analytics-challenge">آمار کدام چالش؟</label>
@@ -33,7 +33,7 @@
             <noscript><button type="submit" class="btn btn-white btn-sm">نمایش</button></noscript>
 
             @if ($selected || $type || $custom)
-                <a href="{{ route('panel.analytics') }}" class="btn btn-ghost btn-sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="size-4"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></svg> حذف فیلترها</a>
+                <a href="{{ route('panel.analytics') }}" class="btn btn-ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="size-4"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></svg> حذف فیلترها</a>
             @endif
         </form>
 
@@ -48,10 +48,10 @@
 
             @foreach ($rangeOptions as $days => $label)
                 <a href="{{ route('panel.analytics', array_merge($keep, ['range' => $days])) }}"
-                   class="rounded-2xl px-3.5 py-1.5 text-xs font-medium transition {{ ! $custom && $range === $days ? 'bg-jade text-white' : 'bg-cream text-muted hover:bg-line/50 hover:text-forest' }}">{{ $label }}</a>
+                   class="filter-chip rounded-2xl px-4 text-xs font-medium transition {{ ! $custom && $range === $days ? 'bg-jade text-white' : 'bg-cream text-muted hover:bg-line/50 hover:text-forest' }}">{{ $label }}</a>
             @endforeach
 
-            <span class="rounded-2xl px-3.5 py-1.5 text-xs font-medium {{ $custom ? 'bg-jade text-white' : 'bg-cream text-muted' }}">دلخواه</span>
+            <span class="filter-chip rounded-2xl px-4 text-xs font-medium {{ $custom ? 'bg-jade text-white' : 'bg-cream text-muted' }}">دلخواه</span>
         </div>
 
         <form method="GET" action="{{ route('panel.analytics') }}" class="flex flex-wrap items-end gap-3">
@@ -91,7 +91,7 @@
         <x-stat-card label="دانلود ضمیمه‌ها" :value="fa_num($fileTotals['attachments'])" hint="فایل‌های ضمیمهٔ چالش" icon="📎" tone="emerald" />
     </div>
 
-    {{-- نمودارها (chart.js — داده از $chartsJson) --}}
+    {{-- نمودارهای اختصاصی (SVG/CSS — داده از $chartsJson) --}}
     <section class="card">
         <div class="flex flex-wrap items-center justify-between gap-3">
             <div>
@@ -100,34 +100,26 @@
             </div>
         </div>
 
-        <div class="mt-4 chart-box" style="height: 19rem">
-            <canvas id="chart-daily" role="img" aria-label="نمودار خطی بازدید روزانه ۳۰ روز اخیر"></canvas>
-        </div>
+        <div id="xchart-daily" class="xchart chart-box mt-4" style="height: 19rem" role="img" aria-label="نمودار بازدید روزانه"></div>
 
         <div class="mt-6 grid gap-6 lg:grid-cols-2">
             <div>
                 <h3 class="text-sm font-semibold text-ink">جمع ماهانه (شمسی)</h3>
                 <p class="mt-0.5 text-[11px] text-hint">در بازهٔ انتخابی، تا دوازده ماه.</p>
-                <div class="mt-3 chart-box" style="height: 13rem">
-                    <canvas id="chart-monthly" role="img" aria-label="نمودار ستونی جمع ماهانه"></canvas>
-                </div>
+                <div id="xchart-monthly" class="xchart chart-box mt-3" style="height: 13rem" role="img" aria-label="ستون‌های جمع ماهانه"></div>
             </div>
 
             <div>
                 <h3 class="text-sm font-semibold text-ink">سهم هر نوع بازدید (بازهٔ انتخابی)</h3>
                 <p class="mt-0.5 text-[11px] text-hint">صفحه چالش، باز شدن کارت روز، داشبورد و صفحه اصلی.</p>
-                <div class="mt-3 chart-box" style="height: 13rem">
-                    <canvas id="chart-types" role="img" aria-label="نمودار دونات سهم انواع بازدید"></canvas>
-                </div>
+                <div id="xchart-types" class="xchart chart-box mt-3" style="height: 13rem" role="img" aria-label="دونات سهم انواع بازدید"></div>
             </div>
         </div>
 
         @if (! $selected && $perChallenge->isNotEmpty())
             <div class="mt-6">
                 <h3 class="text-sm font-semibold text-ink">پربازدیدترین چالش‌ها (۳۰ روز اخیر)</h3>
-                <div class="mt-3 chart-box" style="height: 15rem">
-                    <canvas id="chart-challenges" role="img" aria-label="نمودار ستونی بازدید چالش‌ها"></canvas>
-                </div>
+                <div id="xchart-challenges" class="xchart chart-box mt-3" style="height: 15rem" role="img" aria-label="میله‌های بازدید چالش‌ها"></div>
             </div>
         @endif
 
