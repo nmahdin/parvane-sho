@@ -33,7 +33,7 @@
             <noscript><button type="submit" class="btn btn-white btn-sm">نمایش</button></noscript>
 
             @if ($selected || $type || $custom)
-                <a href="{{ route('panel.analytics') }}" class="btn btn-ghost btn-sm">✕ حذف فیلترها</a>
+                <a href="{{ route('panel.analytics') }}" class="btn btn-ghost btn-sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="size-4"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></svg> حذف فیلترها</a>
             @endif
         </form>
 

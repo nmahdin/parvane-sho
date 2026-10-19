@@ -348,6 +348,19 @@
         }
     }
 
+    /* دکمهٔ آیکون استاندارد — هم‌خانوادهٔ فلش کارت روزها */
+    .icon-btn {
+        @apply grid size-9 shrink-0 cursor-pointer place-items-center rounded-xl bg-cream text-muted transition-all;
+    }
+
+    .icon-btn:hover {
+        @apply bg-line/60 text-forest;
+    }
+
+    .icon-btn:active {
+        transform: translateY(1px) scale(0.97);
+    }
+
     /* تولتیپ اطلاعات — با هاور روی آیکون ℹ نمایش داده می‌شود */
     .tip-anchor {
         position: relative;

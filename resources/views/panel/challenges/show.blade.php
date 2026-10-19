@@ -644,7 +644,7 @@
         <div class="panel-modal-box">
             <div class="panel-modal-head">
                 <h3 class="text-sm font-semibold text-ink"><span data-modal-heading>افزودن کار یا پرسش</span> <span data-modal-day-label class="font-normal text-muted"></span></h3>
-                <button type="button" class="btn btn-ghost btn-sm" data-close-modal aria-label="بستن">✕</button>
+                <button type="button" class="icon-btn" data-close-modal aria-label="بستن"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="size-4"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></svg></button>
             </div>
 
             <form method="POST" action="{{ route('panel.days.store', $challenge) }}" data-day-type-form data-ajax-save data-modal-form data-stay-open class="grid gap-4 text-right">
@@ -708,7 +708,7 @@
         <div class="panel-modal-box">
             <div class="panel-modal-head">
                 <h3 class="text-sm font-semibold text-ink">افزودن چند کار یک‌جا <span data-modal-day-label class="font-normal text-muted"></span></h3>
-                <button type="button" class="btn btn-ghost btn-sm" data-close-modal aria-label="بستن">✕</button>
+                <button type="button" class="icon-btn" data-close-modal aria-label="بستن"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="size-4"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></svg></button>
             </div>
 
             <form method="POST" action="{{ route('panel.tasks.bulk', $challenge) }}" data-ajax-save data-modal-form data-stay-open class="space-y-3 text-right">
@@ -730,7 +730,7 @@
         <div class="panel-modal-box">
             <div class="panel-modal-head">
                 <h3 class="text-sm font-semibold text-ink">افزودن فایل یا فایل صوتی <span data-modal-day-label class="font-normal text-muted"></span></h3>
-                <button type="button" class="btn btn-ghost btn-sm" data-close-modal aria-label="بستن">✕</button>
+                <button type="button" class="icon-btn" data-close-modal aria-label="بستن"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="size-4"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></svg></button>
             </div>
 
             <form method="POST" action="{{ route('panel.day-files.store', $challenge) }}" data-ajax-save data-modal-form data-stay-open enctype="multipart/form-data" class="space-y-3 text-right">
@@ -760,7 +760,7 @@
         <div class="panel-modal-box">
             <div class="panel-modal-head">
                 <h3 class="text-sm font-semibold text-ink">افزودن نکته <span data-modal-day-label class="font-normal text-muted"></span></h3>
-                <button type="button" class="btn btn-ghost btn-sm" data-close-modal aria-label="بستن">✕</button>
+                <button type="button" class="icon-btn" data-close-modal aria-label="بستن"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="size-4"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></svg></button>
             </div>
 
             <x-tip-form :challenge="$challenge" modal data-modal-form data-stay-open class="text-right" />

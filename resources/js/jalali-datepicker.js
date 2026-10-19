@@ -73,16 +73,16 @@ class JalaliDatePicker {
         this.wrapper.innerHTML = `
             <div class="animate-rise w-full max-w-sm rounded-3xl bg-paper p-5 shadow-xl" data-picker-panel>
                 <div class="flex items-center justify-between">
-                    <button type="button" class="grid size-9 place-items-center rounded-xl text-muted hover:bg-line/60" data-nav="prev-year" aria-label="سال قبل">«</button>
-                    <button type="button" class="grid size-9 place-items-center rounded-xl text-muted hover:bg-line/60" data-nav="prev-month" aria-label="ماه قبل">‹</button>
+                    <button type="button" class="icon-btn" data-nav="prev-year" aria-label="سال قبل"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="size-4"><path d="M17 6l-6 6 6 6"/><path d="M11 6l-6 6 6 6"/></svg></button>
+                    <button type="button" class="icon-btn" data-nav="prev-month" aria-label="ماه قبل"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="size-4"><path d="M15 6l-6 6 6 6"/></svg></button>
 
                     <div class="text-center">
                         <p class="text-sm font-semibold text-ink" data-picker-title></p>
                         <p class="mt-0.5 text-[11px] text-muted/80">تاریخ شمسی</p>
                     </div>
 
-                    <button type="button" class="grid size-9 place-items-center rounded-xl text-muted hover:bg-line/60" data-nav="next-month" aria-label="ماه بعد">›</button>
-                    <button type="button" class="grid size-9 place-items-center rounded-xl text-muted hover:bg-line/60" data-nav="next-year" aria-label="سال بعد">»</button>
+                    <button type="button" class="icon-btn" data-nav="next-month" aria-label="ماه بعد"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="size-4"><path d="M9 6l6 6-6 6"/></svg></button>
+                    <button type="button" class="icon-btn" data-nav="next-year" aria-label="سال بعد"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="size-4"><path d="M7 6l6 6-6 6"/><path d="M13 6l6 6-6 6"/></svg></button>
                 </div>
 
                 <div class="mt-4 grid grid-cols-7 gap-1 text-center text-[11px] font-medium text-muted/80">

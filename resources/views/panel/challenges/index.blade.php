@@ -80,7 +80,7 @@
                                         <a href="{{ route('panel.challenges.show', $challenge) }}" class="btn btn-ghost btn-sm">مدیریت</a>
 
                                         <details class="action-menu">
-                                            <summary class="btn btn-ghost btn-sm" aria-label="عملیات چالش {{ $challenge->title }}">عملیات ▾</summary>
+                                            <summary class="btn btn-ghost btn-sm" aria-label="عملیات چالش {{ $challenge->title }}">عملیات <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="size-3.5"><path d="M6 9l6 6 6-6"/></svg></summary>
 
                                             <div class="action-menu-panel">
                                                 <a href="{{ route('panel.challenges.show', $challenge) }}">📋 مدیریت روزها و محتوا</a>

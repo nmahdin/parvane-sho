@@ -30,7 +30,7 @@ class PanelChromeTest extends TestCase
         $html = $this->get(route('panel.challenges.index'))->assertOk()->getContent();
 
         $this->assertStringContainsString('data-action-menu', $html);
-        $this->assertStringContainsString('عملیات ▾', $html);
+        $this->assertStringContainsString('عملیات <svg', $html);
         $this->assertStringContainsString('action-menu-panel', $html);
         $this->assertStringContainsString('مدیریت روزها و محتوا', $html);
         $this->assertStringContainsString('حذف چالش', $html);
