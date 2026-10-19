@@ -21,11 +21,11 @@
 <body class="grid min-h-screen place-items-center bg-canvas px-4 py-10">
     <div class="w-full max-w-lg text-center">
         <a href="{{ route('home') }}" class="inline-flex items-center gap-3">
-            <img src="{{ asset('favicon.svg') }}" alt="{{ config('panel.site_name') }}" class="size-12 rounded-2xl bg-white p-2 shadow-sm ring-1 ring-line">
+            <img src="{{ asset('favicon.svg') }}" alt="{{ config('panel.site_name') }}" class="size-12 rounded-2xl bg-white p-2 shadow-sm" loading="lazy" decoding="async">
             <span class="text-base font-semibold text-ink">{{ config('panel.site_name') }}</span>
         </a>
 
-        <div class="animate-rise mt-6 rounded-3xl bg-paper p-7 shadow-sm ring-1 ring-line">
+        <div class="animate-rise mt-6 rounded-3xl bg-paper p-7 surface">
             <p class="text-4xl">{{ $icon }}</p>
             <h1 class="mt-4 text-lg">{{ $title }}</h1>
             <p class="mt-3 text-sm leading-7 text-ink/80">{{ $body }}</p>

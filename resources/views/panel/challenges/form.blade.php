@@ -74,7 +74,7 @@
                     </div>
                 </div>
 
-                <p class="rounded-2xl bg-brand-50/70 px-4 py-3 text-xs leading-6 text-ink ring-1 ring-line">
+                <p class="rounded-2xl bg-brand-50/70 px-4 py-3 text-xs leading-6 text-ink">
                     🗓️ با این بازه، چالش <span class="font-bold text-brand-700" data-day-range-output>{{ fa_num($challenge->totalDays()) }} روز</span> می‌شود؛
                     روزها از همین بازه ساخته می‌شوند و از روز اول تا آخرین روز به‌طور پیش‌فرض فعال‌اند — نیازی به فعال‌کردن دستی روزها نیست.
                 </p>

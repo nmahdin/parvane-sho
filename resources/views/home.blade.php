@@ -135,7 +135,7 @@
 
     {{-- ورود سریع با کد اختصاصی --}}
     <section class="mx-auto max-w-6xl px-4 pb-4 sm:px-6">
-        <div class="rounded-[2rem] bg-paper p-6 shadow-sm ring-1 ring-line sm:p-8">
+        <div class="rounded-[2rem] bg-paper p-6 surface sm:p-8">
             <div class="grid items-center gap-6 lg:grid-cols-[1.2fr_1fr]">
                 <div>
                     <h2 class="text-xl">کد اختصاصی داری؟</h2>
@@ -212,7 +212,7 @@
 
     {{-- چطور کار می‌کند --}}
     <section id="how" class="mx-auto max-w-6xl px-4 py-12 sm:px-6">
-        <div class="rounded-[2rem] bg-paper p-8 shadow-sm ring-1 ring-line sm:p-12">
+        <div class="rounded-[2rem] bg-paper p-8 surface sm:p-12">
             <div class="max-w-2xl">
                 <h2 class="text-2xl">چالش چطور اجرا می‌شود؟</h2>
                 <p class="mt-3 text-sm leading-8 text-ink/80">
@@ -270,7 +270,7 @@
                 ['پیشرفت من را چه کسی می‌بیند؟', 'تنها مسئول چالش می‌تواند وضعیت شرکت‌کننده‌ها را ببیند. لینک تو هم مثل یک کلید شخصی است؛ آن را جایی منتشر نکن.'],
                 ['اگر یک روز را از دست بدهم چه می‌شود؟', 'هیچ چیز از بین نمی‌رود. همان روز را می‌توانی بعداً هم کامل کنی و زنجیره‌ات را ادامه بدهی.'],
             ] as [$question, $answer])
-                <details class="group overflow-hidden rounded-3xl bg-paper shadow-sm ring-1 ring-line">
+                <details class="group overflow-hidden rounded-3xl bg-paper surface">
                     <summary class="flex cursor-pointer items-center gap-3 px-6 py-5">
                         <span class="grid size-7 shrink-0 place-items-center rounded-xl bg-brand-50 text-xs font-bold text-brand-700">؟</span>
                         <span class="min-w-0 flex-1 text-sm font-medium text-ink">{{ $question }}</span>

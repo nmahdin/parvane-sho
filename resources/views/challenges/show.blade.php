@@ -37,7 +37,7 @@
             <span class="text-ink">{{ $challenge->title }}</span>
         </nav>
 
-        <div class="mt-4 overflow-hidden rounded-[1.75rem] bg-paper ring-1 ring-line">
+        <div class="mt-4 overflow-hidden rounded-[1.75rem] bg-paper surface">
             <div class="bg-gradient-to-tl {{ $style['gradient'] }} px-5 py-7 text-white sm:px-8">
                 <div class="flex flex-wrap items-start justify-between gap-4">
                     <div class="max-w-2xl">
@@ -218,7 +218,7 @@
                                                 @endif
 
                                                 @if ($question->answer)
-                                                    <div class="mt-2 rounded-xl bg-paper px-3 py-2 text-xs leading-7 text-ink/80 ring-1 ring-line">
+                                                    <div class="mt-2 rounded-xl bg-paper px-3 py-2 text-xs leading-7 text-ink/80">
                                                         {!! \App\Support\RichText::toHtml($question->answer) !!}
                                                     </div>
                                                 @endif

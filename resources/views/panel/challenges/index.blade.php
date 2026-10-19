@@ -12,7 +12,7 @@
     <section class="card">
         @if ($challenges->isEmpty())
             <div class="py-8 text-center">
-                <img src="{{ asset('favicon.svg') }}" alt="" class="mx-auto size-14">
+                <img src="{{ asset('favicon.svg') }}" alt="" class="mx-auto size-14" loading="lazy" decoding="async">
                 <p class="mt-3 text-sm text-ink/80">هنوز چالشی ساخته نشده است.</p>
                 <a href="{{ route('panel.challenges.create') }}" class="btn btn-primary mt-5">ساخت اولین چالش</a>
             </div>

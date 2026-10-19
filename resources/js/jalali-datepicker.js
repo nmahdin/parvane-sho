@@ -71,7 +71,7 @@ class JalaliDatePicker {
         this.wrapper.setAttribute('aria-modal', 'true');
 
         this.wrapper.innerHTML = `
-            <div class="animate-rise w-full max-w-sm rounded-3xl bg-paper p-5 shadow-xl ring-1 ring-line" data-picker-panel>
+            <div class="animate-rise w-full max-w-sm rounded-3xl bg-paper p-5 shadow-xl" data-picker-panel>
                 <div class="flex items-center justify-between">
                     <button type="button" class="grid size-9 place-items-center rounded-xl text-muted hover:bg-line/60" data-nav="prev-year" aria-label="سال قبل">«</button>
                     <button type="button" class="grid size-9 place-items-center rounded-xl text-muted hover:bg-line/60" data-nav="prev-month" aria-label="ماه قبل">‹</button>

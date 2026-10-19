@@ -148,7 +148,7 @@
                         از آن صفحه می‌توانی مدیر جدید بسازی، رمزش را عوض کنی یا حسابش را غیرفعال کنی.
                     </p>
                 @else
-                    <div class="rounded-2xl bg-cream px-4 py-3 text-xs leading-6 text-ink/80 ring-1 ring-line">
+                    <div class="rounded-2xl bg-cream px-4 py-3 text-xs leading-6 text-ink/80">
                         برای ساخت مدیر جدید یا تغییر دسترسی‌ها با مدیر اصلی سایت تماس بگیر.
                     </div>
                 @endif

@@ -15,8 +15,10 @@
     --color-forest: #4E7268;
     --color-jade: #659287;
     --color-leaf: #D2DCB6;
-    /* بوم صفحه: سبز-کرم بسیار کم‌رنگ؛ cream برای سطح‌های داخلی */
-    --color-cream: #EFF1E6;
+    /* بوم صفحه: سبز-کرم بسیار کم‌رنگ؛ cream برای سطح‌های داخلی؛
+       shell پس‌زمینه خود پنل مدیریت است */
+    --color-cream: #F6F6F2;
+    --color-shell: #EFF1E6;
     --color-canvas: #F6F7F1;
     --color-gold: #FAEDCE;
     --color-line: #D6DAC8;
@@ -125,14 +127,22 @@
         }
     }
 
+    .surface {
+        box-shadow: 0 1px 2px rgb(78 114 104 / 0.05), 0 16px 32px -24px rgb(78 114 104 / 0.30);
+    }
+
     .card,
-    .day-card {
+    .day-card,
+    .day-group,
+    .surface {
         animation: card-in 0.5s cubic-bezier(0.22, 0.8, 0.36, 1) both;
     }
 
     @media (prefers-reduced-motion: reduce) {
         .card,
-        .day-card {
+        .day-card,
+        .day-group,
+        .surface {
             animation: none;
         }
     }
@@ -375,7 +385,7 @@
 
     /* سایدبار پنل: یک باکس واحد ------------------------------------------ */
     .panel-sidebar {
-        @apply overflow-hidden rounded-3xl bg-cream/70;
+        @apply overflow-hidden rounded-3xl bg-paper;
         box-shadow: 0 1px 2px rgb(78 114 104 / 0.05), 0 16px 32px -26px rgb(78 114 104 / 0.32);
     }
 
@@ -384,7 +394,8 @@
     }
 
     .sidebar-link.is-active {
-        @apply bg-paper font-semibold text-forest;
+        @apply font-semibold text-forest;
+        background-color: var(--color-cream);
         box-shadow: 0 2px 4px rgb(78 114 104 / 0.10), 0 12px 24px -14px rgb(78 114 104 / 0.45);
     }
 
@@ -465,6 +476,9 @@
     .day-card {
         @apply overflow-hidden rounded-3xl bg-paper;
         box-shadow: 0 1px 2px rgb(78 114 104 / 0.05), 0 14px 28px -22px rgb(78 114 104 / 0.28);
+        /* رندر تنبل: کارت‌های خارج از دید، سنگینِ رندر نمی‌شوند */
+        content-visibility: auto;
+        contain-intrinsic-size: auto 220px;
     }
 
     /* روزی که هستیم: بدون حاشیه، با سایهٔ یشمی برجسته‌تر */
@@ -575,7 +589,8 @@
 
     /* کارت روز قفل‌شده در چالش‌های روزانه */
     .locked-panel {
-        @apply rounded-3xl border border-dashed border-line bg-cream/70 p-6 text-center;
+        @apply rounded-3xl bg-cream/70 p-6 text-center;
+        box-shadow: 0 1px 2px rgb(78 114 104 / 0.05), 0 12px 24px -22px rgb(78 114 104 / 0.25);
     }
 }
 

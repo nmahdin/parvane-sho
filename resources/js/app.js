@@ -624,7 +624,7 @@ const app = {
     /* انیمیشن ورود کارت‌ها: هر کارت کمی دیرتر از قبلی ظاهر می‌شود.
        بعد از رفرش جزئی بخش‌ها هم کارت‌های تازه همان‌طور می‌آیند. */
     initCardEntrance() {
-        document.querySelectorAll('.card, .day-card').forEach((el, index) => {
+        document.querySelectorAll('.card, .day-card, .day-group, .surface').forEach((el, index) => {
             if (el.dataset.entered) return;
             el.dataset.entered = '1';
             el.style.animationDelay = `${Math.min(index, 10) * 45}ms`;

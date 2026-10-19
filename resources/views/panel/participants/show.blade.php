@@ -222,7 +222,7 @@
                             $locked = ! $challenge->isDayUnlocked($day > 0 ? (int) $day : null);
                         @endphp
 
-                        <div class="overflow-hidden rounded-3xl ring-1 ring-line">
+                        <div class="overflow-hidden rounded-3xl bg-paper surface">
                             <div class="flex flex-wrap items-center justify-between gap-2 bg-cream px-5 py-3">
                                 <p class="flex items-center gap-2 text-sm font-semibold text-ink">
                                     {{ $day > 0 ? 'روز '.fa_num($day) : 'موارد بدون روز مشخص' }}

@@ -78,7 +78,7 @@
     </section>
 
     {{-- ناوبری بخش‌های چالش --}}
-    <nav class="flex gap-2 overflow-x-auto rounded-3xl bg-paper p-3 shadow-sm ring-1 ring-line">
+    <nav class="flex gap-2 overflow-x-auto rounded-3xl bg-paper p-3 surface">
         @foreach ([
             ['#days', '📅 روزها، کارها و پرسش‌ها'],
             ['#tips', '💡 نکات'],
@@ -121,7 +121,7 @@
                 @php($dayTips = $day['tips'])
                 @php($dayFiles = $day['files'] ?? collect())
 
-                <details id="day-{{ $dayNumber }}" class="group overflow-hidden rounded-3xl ring-1 ring-line" @if ($day['open']) open @endif>
+                <details id="day-{{ $dayNumber }}" class="group overflow-hidden rounded-3xl bg-paper surface" @if ($day['open']) open @endif>
                     <summary class="flex cursor-pointer flex-wrap items-center justify-between gap-3 bg-cream px-4 py-3 sm:px-5">
                         <span class="flex flex-wrap items-center gap-2 text-sm font-semibold text-ink">
                             <span class="grid size-8 shrink-0 place-items-center rounded-xl text-xs font-bold {{ $day['is_today'] ? 'bg-jade text-white' : ($day['has_content'] ? 'bg-paper text-ink ring-1 ring-line' : 'bg-line/60 text-muted') }}">
@@ -269,7 +269,7 @@
                                                     </summary>
 
                                                     <div class="mt-3 grid gap-2 lg:grid-cols-2">
-                                                        <div class="rounded-2xl bg-cream p-3 ring-1 ring-line">
+                                                        <div class="rounded-2xl bg-cream p-3">
                                                             <p class="text-[11px] font-semibold text-forest">انجام داده‌اند ({{ fa_num(count($taskStatus['done'])) }})</p>
 
                                                             @if ($taskStatus['done'] === [])
@@ -287,7 +287,7 @@
                                                             @endif
                                                         </div>
 
-                                                        <div class="rounded-2xl bg-paper p-3 ring-1 ring-line">
+                                                        <div class="rounded-2xl bg-paper p-3">
                                                             <p class="text-[11px] font-semibold text-muted">انجام نداده‌اند ({{ fa_num(count($taskStatus['pending'])) }})</p>
 
                                                             @if ($taskStatus['pending'] === [])
@@ -415,13 +415,13 @@
                                                 </summary>
 
                                                 @if ($question->answers->isEmpty())
-                                                    <p class="mt-3 rounded-2xl bg-paper px-3 py-4 text-center text-[11px] text-muted ring-1 ring-line">
+                                                    <p class="mt-3 rounded-2xl bg-paper px-3 py-4 text-center text-[11px] text-muted">
                                                         هنوز کسی به این پرسش پاسخ نداده است.
                                                     </p>
                                                 @else
                                                     <ul class="mt-3 space-y-2">
                                                         @foreach ($question->answers as $answerRow)
-                                                            <li class="rounded-2xl bg-paper p-3 ring-1 ring-line">
+                                                            <li class="rounded-2xl bg-paper p-3">
                                                                 <div class="flex flex-wrap items-center justify-between gap-2">
                                                                     <a href="{{ route('panel.participants.show', $answerRow->participant) }}"
                                                                        class="text-xs font-semibold text-forest hover:text-brand-700">
@@ -461,7 +461,7 @@
                                             <details>
                                                 <summary class="btn btn-ghost btn-sm list-none">ویرایش</summary>
 
-                                                <form method="POST" action="{{ route('panel.questions.update', [$challenge, $question]) }}" data-ajax-save class="mt-3 grid w-full max-w-lg gap-3 rounded-2xl bg-paper p-4 text-right ring-1 ring-line">
+                                                <form method="POST" action="{{ route('panel.questions.update', [$challenge, $question]) }}" data-ajax-save class="mt-3 grid w-full max-w-lg gap-3 rounded-2xl bg-paper p-4 text-right">
                                                     @csrf
                                                     @method('PUT')
 
@@ -596,7 +596,7 @@
                                                     <details>
                                                         <summary class="btn btn-ghost btn-sm list-none">ویرایش</summary>
 
-                                                        <form method="POST" action="{{ route('panel.day-files.update', [$challenge, $dayFile]) }}" data-ajax-save class="mt-3 grid w-full max-w-md gap-3 rounded-2xl bg-paper p-4 text-right ring-1 ring-line">
+                                                        <form method="POST" action="{{ route('panel.day-files.update', [$challenge, $dayFile]) }}" data-ajax-save class="mt-3 grid w-full max-w-md gap-3 rounded-2xl bg-paper p-4 text-right">
                                                             @csrf
                                                             @method('PUT')
 

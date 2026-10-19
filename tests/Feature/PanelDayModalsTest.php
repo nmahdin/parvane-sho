@@ -52,6 +52,10 @@ class PanelDayModalsTest extends TestCase
         // فلش کنار آیتم فعال سایدبار حذف شده است
         $this->assertStringNotContainsString('◂', $html);
 
+        // پس‌زمینه پنل توکن shell (#EFF1E6) است و باکس‌ها surface بدون حاشیه
+        $this->assertStringContainsString('<body class="min-h-screen bg-shell">', $html);
+        $this->assertStringContainsString('surface', $html);
+
         // همه گروه‌های داخل روز به‌طور پیش‌فرض بسته‌اند (بدون open)
         foreach (['title', 'tasks', 'questions', 'tips', 'files'] as $group) {
             $this->assertStringNotContainsString('id="day-1-'.$group.'" class="day-group rounded-2xl bg-cream/70" open', $html);
@@ -137,6 +141,7 @@ class PanelDayModalsTest extends TestCase
         // انیمیشن ورود کارت‌ها
         $this->assertStringContainsString('initCardEntrance', $js);
         $this->assertStringContainsString('animationDelay', $js);
+        $this->assertStringContainsString('.card, .day-card, .day-group, .surface', $js);
     }
 
     public function test_the_modal_styles_are_in_the_built_css(): void
@@ -170,6 +175,17 @@ class PanelDayModalsTest extends TestCase
         $this->assertStringContainsString('.card{box-shadow:', $css);
         $this->assertStringContainsString('card-in', $css);
         $this->assertSame(0, preg_match('/\.card\{[^}]*ring-line[^}]*\}/', $css));
+
+        // پالت تازه: cream = #F6F6F2، پس‌زمینه پنل = shell #EFF1E6
+        $this->assertStringContainsString('#f6f6f2', strtolower($css));
+        $this->assertStringContainsString('#eff1e6', strtolower($css));
+
+        // سایدبار سفید و آیتم فعال #F6F6F2
+        $this->assertSame(1, preg_match('/\.panel-sidebar\{[^}]*background-color:var\(--color-paper\)/', $css));
+        $this->assertSame(1, preg_match('/\.sidebar-link\.is-active\{[^}]*background-color:var\(--color-cream\)/', $css));
+
+        // رندر تنبل کارت‌های روز برای لود سریع‌تر صفحات طولانی
+        $this->assertStringContainsString('content-visibility:auto', $css);
 
         // آیتم فعال سایدبار: برجسته با سایه، بدون حاشیه
         $activeCss = substr($css, (int) strpos($css, '.sidebar-link.is-active{'));

@@ -54,7 +54,7 @@
             </div>
         </div>
 
-        <div class="rounded-2xl bg-paper p-4 ring-1 ring-line">
+        <div class="rounded-2xl bg-paper p-4 surface">
             <div class="flex flex-wrap items-center justify-between gap-2 text-xs">
                 <p class="font-semibold text-ink">مجموع فایل‌های آپلودشده: {{ $humanBytes($storage['total_bytes']) }}</p>
 

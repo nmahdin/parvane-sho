@@ -69,7 +69,7 @@
 
         <div class="mt-5 space-y-4">
             @foreach ($admins as $adminItem)
-                <div class="rounded-2xl bg-cream p-4 ring-1 ring-line">
+                <div class="rounded-2xl bg-cream p-4 surface">
                     <div class="flex flex-wrap items-center justify-between gap-3">
                         <div class="flex items-center gap-3">
                             <span class="grid size-10 shrink-0 place-items-center rounded-2xl bg-paper text-sm font-bold text-ink/80 ring-1 ring-line">

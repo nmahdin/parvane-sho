@@ -5,7 +5,7 @@
     $dayChoices ??= collect();
 @endphp
 
-<div {{ $attributes->merge(['class' => 'rounded-3xl bg-gradient-to-tl from-gold/15 to-paper p-4 ring-1 ring-gold/50']) }}>
+<div {{ $attributes->merge(['class' => 'rounded-3xl bg-gradient-to-tl from-gold/15 to-paper p-4 surface']) }}>
     <div class="flex flex-wrap items-start justify-between gap-3">
         <div class="flex items-start gap-3">
             <span class="grid size-10 shrink-0 place-items-center rounded-2xl bg-paper text-lg shadow-sm ring-1 ring-gold/50">{{ $tip->emoji }}</span>
@@ -31,7 +31,7 @@
 
             <details>
                 <summary class="btn btn-ghost btn-sm list-none">ویرایش</summary>
-                <form method="POST" action="{{ route('panel.tips.update', [$challenge, $tip]) }}" data-ajax-save class="mt-3 grid w-full max-w-lg gap-3 rounded-2xl bg-paper p-4 text-right ring-1 ring-line sm:grid-cols-[5rem_1fr]">
+                <form method="POST" action="{{ route('panel.tips.update', [$challenge, $tip]) }}" data-ajax-save class="mt-3 grid w-full max-w-lg gap-3 rounded-2xl bg-paper p-4 text-right sm:grid-cols-[5rem_1fr]">
                     @csrf
                     @method('PUT')
 

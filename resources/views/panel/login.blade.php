@@ -17,11 +17,11 @@
 <body class="grid min-h-screen place-items-center bg-gradient-to-tl from-forest via-jade to-leaf px-4 py-10">
     <div class="w-full max-w-md">
         <div class="mb-6 text-center text-white">
-            <span class="mx-auto grid size-16 place-items-center rounded-3xl bg-white shadow-lg"><img src="{{ asset('favicon.svg') }}" alt="{{ $site['site_name'] ?? config('panel.site_name') }}" class="size-11"></span>
+            <span class="mx-auto grid size-16 place-items-center rounded-3xl bg-white shadow-lg"><img src="{{ asset('favicon.svg') }}" alt="{{ $site['site_name'] ?? config('panel.site_name') }}" class="size-11" loading="lazy" decoding="async"></span>
             <h1 class="mt-4 text-xl text-white">ورود به پنل {{ $site['site_name'] ?? config('panel.site_name') }}</h1>
         </div>
 
-        <div class="animate-rise rounded-[2rem] bg-paper p-7 shadow-xl ring-1 ring-line">
+        <div class="animate-rise rounded-[2rem] bg-paper p-7 shadow-xl">
             {{-- خطاهای فرم زیر خود فیلدها نشان داده می‌شوند؛ اینجا تکرارشان نکن --}}
             <x-flash :show-errors="false" />
 

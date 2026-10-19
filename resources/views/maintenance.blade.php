@@ -18,7 +18,7 @@
     <main class="w-full max-w-md text-center">
         <div class="animate-rise card space-y-5 py-10">
             <span class="mx-auto grid size-20 place-items-center rounded-3xl bg-white p-3 ring-1 ring-line">
-                <img src="{{ asset('favicon.svg') }}" alt="پروانه شو" class="size-full">
+                <img src="{{ asset('favicon.svg') }}" alt="پروانه شو" class="size-full" loading="lazy" decoding="async">
             </span>
 
             <div>

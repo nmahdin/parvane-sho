@@ -13,7 +13,7 @@
         $unlockLabel = $challenge->unlockLabel($first) ?: $challenge->dayDateLabel($first);
     @endphp
 
-    <div id="locked-days" class="rounded-3xl bg-cream px-4 py-3.5 ring-1 ring-line sm:px-5">
+    <div id="locked-days" class="rounded-3xl bg-cream px-4 py-3.5 surface sm:px-5">
         <div class="flex flex-wrap items-center gap-3">
             <span class="grid size-9 shrink-0 place-items-center rounded-xl bg-paper text-sm ring-1 ring-line">🔒</span>
 
