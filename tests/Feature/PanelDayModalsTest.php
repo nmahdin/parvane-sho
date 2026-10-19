@@ -195,6 +195,9 @@ class PanelDayModalsTest extends TestCase
         $this->assertSame(1, preg_match('/\.panel-sidebar\{[^}]*background-color:var\(--color-paper\)/', $css));
         $this->assertSame(1, preg_match('/\.sidebar-link\.is-active\{[^}]*background-color:var\(--color-jade\)/', $css));
 
+        // پخش‌کنندهٔ صوت سفید است
+        $this->assertSame(1, preg_match('/\.audio-player\{[^}]*background-color:var\(--color-paper\)/', $css));
+
         // نوار بارگذاری صفحه
         $this->assertStringContainsString('page-loader', $css);
 

@@ -895,22 +895,23 @@ const app = {
         });
     },
 
-    /* جابه‌جانی انتخاب سایدبار: نشانگر از جای قبلی به آیتم تازه سُر می‌خورد */
+    /* جابه‌جانی انتخاب سایدبار: قرص سبز از لینک کلیک‌شده به آیتم فعالِ
+       صفحهٔ تازه سُر می‌خورد. اندازه‌گیری بعد از آماده شدن فونت‌ها انجام
+       می‌شود تا جابه‌جایی بدون پرش باشد. */
     initSidebarTransition() {
         const links = Array.from(document.querySelectorAll('.sidebar-link'));
         if (!links.length) return;
 
-        const active = document.querySelector('.sidebar-link.is-active');
         const key = 'sidebar-nav-from';
 
         links.forEach((link) => {
             link.addEventListener('click', (event) => {
                 if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+
                 const href = link.getAttribute('href') || '';
                 if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
 
-                const source = active || link;
-                const rect = source.getBoundingClientRect();
+                const rect = link.getBoundingClientRect();
                 sessionStorage.setItem(key, JSON.stringify({
                     top: rect.top + window.scrollY,
                     height: rect.height,
@@ -919,8 +920,11 @@ const app = {
         });
 
         const savedRaw = sessionStorage.getItem(key);
-        if (!savedRaw || !active) return;
+        if (!savedRaw) return;
         sessionStorage.removeItem(key);
+
+        const active = document.querySelector('.sidebar-link.is-active');
+        if (!active) return;
 
         let saved;
         try {
@@ -929,17 +933,35 @@ const app = {
             return;
         }
 
-        const rect = active.getBoundingClientRect();
-        const offset = saved.top - (rect.top + window.scrollY);
-        if (!offset || Math.abs(offset) < 4 || typeof active.animate !== 'function') return;
+        const run = () => {
+            if (typeof active.animate !== 'function') return;
 
-        active.animate(
-            [
-                { transform: `translateY(${offset}px)`, boxShadow: 'none', offset: 0 },
-                { transform: 'translateY(0)', offset: 1 },
-            ],
-            { duration: 420, easing: 'cubic-bezier(0.22, 0.8, 0.36, 1)' }
-        );
+            const rect = active.getBoundingClientRect();
+            const offset = saved.top - (rect.top + window.scrollY);
+            if (Math.abs(offset) < 4) return;
+
+            const pill = document.createElement('span');
+            pill.className = 'sidebar-pill';
+            pill.setAttribute('aria-hidden', 'true');
+            pill.style.top = `${rect.top + window.scrollY}px`;
+            pill.style.left = `${rect.left + window.scrollX}px`;
+            pill.style.width = `${rect.width}px`;
+            pill.style.height = `${rect.height}px`;
+            document.body.appendChild(pill);
+
+            const animation = pill.animate(
+                [{ transform: `translateY(${offset}px)` }, { transform: 'translateY(0)' }],
+                { duration: 420, easing: 'cubic-bezier(0.22, 0.8, 0.36, 1)' }
+            );
+            animation.onfinish = () => pill.remove();
+            animation.oncancel = () => pill.remove();
+        };
+
+        if (document.fonts?.ready) {
+            document.fonts.ready.then(() => requestAnimationFrame(run));
+        } else {
+            requestAnimationFrame(run);
+        }
     },
 
     /* چیپ «در حال بارگذاری…» در صفحه نمایش اطلاعات (صفحه عمومی چالش) */
@@ -963,21 +985,59 @@ const app = {
         setTimeout(hide, 8000);
     },
 
-    /* منوی عملیات: با کلیک بیرون بسته می‌شود */
+    /* منوی عملیات: پنل با position:fixed روی همه‌چیز (از جمله جدول با
+       scroll) شناور می‌ماند؛ با کلیک بیرون، Escape یا اسکرول بسته می‌شود. */
     initActionMenus() {
-        document.addEventListener('click', (event) => {
+        const closeAll = (except = null) => {
             document.querySelectorAll('details.action-menu[open]').forEach((menu) => {
-                if (!menu.contains(event.target)) menu.open = false;
+                if (menu !== except) menu.open = false;
+            });
+        };
+
+        const place = (menu) => {
+            const panel = menu.querySelector('.action-menu-panel');
+            const summary = menu.querySelector('summary');
+            if (!panel || !summary) return;
+
+            const rect = summary.getBoundingClientRect();
+            panel.style.position = 'fixed';
+            panel.style.insetInlineEnd = 'auto';
+            panel.style.bottom = 'auto';
+            panel.style.left = 'auto';
+            panel.style.right = `${Math.max(8, window.innerWidth - rect.right)}px`;
+
+            const height = panel.offsetHeight || 220;
+            let top = rect.bottom + 6;
+
+            if (top + height > window.innerHeight - 8) {
+                top = Math.max(8, rect.top - height - 6);
+            }
+
+            panel.style.top = `${top}px`;
+        };
+
+        document.querySelectorAll('details.action-menu').forEach((menu) => {
+            if (menu.dataset.menuBound) return;
+            menu.dataset.menuBound = '1';
+            menu.addEventListener('toggle', () => {
+                if (menu.open) place(menu);
             });
         });
 
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape') {
-                document.querySelectorAll('details.action-menu[open]').forEach((menu) => {
-                    menu.open = false;
-                });
-            }
+        if (this._menusDocumentBound) return;
+        this._menusDocumentBound = true;
+
+        document.addEventListener('click', (event) => {
+            const menu = event.target.closest('details.action-menu');
+            closeAll(menu);
         });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') closeAll();
+        });
+
+        window.addEventListener('scroll', () => closeAll(), { capture: true, passive: true });
+        window.addEventListener('resize', () => closeAll());
     },
 
     /* نوار بارگذاری هنگام جابه‌جایی بین صفحات (لینک‌ها و فرم‌های غیر AJAX) */

@@ -72,6 +72,10 @@ class PanelChromeTest extends TestCase
         $this->assertStringContainsString('action-menu-panel', $css);
         $this->assertStringContainsString('has-js', $css);
         $this->assertStringContainsString('initSidebarTransition', $js);
+        // قرص متحرک سایدبار و منوی عملیات شناور
+        $this->assertStringContainsString('sidebar-pill', $css);
+        $this->assertStringContainsString('sidebar-pill', $js);
+        $this->assertStringContainsString('document.fonts', $js);
         $this->assertStringContainsString('initPageReadyChip', $js);
         $this->assertStringContainsString('initActionMenus', $js);
         $this->assertStringContainsString('animationPlayState', $js);

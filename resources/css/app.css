@@ -568,6 +568,16 @@
         }
     }
 
+    /* قرص متحرک سایدبار: نشانگر انتخاب از لینک کلیک‌شده به آیتم فعال سُر می‌خورد */
+    .sidebar-pill {
+        position: absolute;
+        z-index: 40;
+        border-radius: var(--radius-2xl);
+        background-color: var(--color-jade);
+        box-shadow: 0 2px 4px rgb(78 114 104 / 0.10), 0 12px 24px -14px rgb(78 114 104 / 0.45);
+        pointer-events: none;
+    }
+
     /* جعبهٔ نمودار تا آماده شدن chart.js ضربان دارد */
     .chart-box {
         border-radius: var(--radius-2xl);
@@ -633,7 +643,7 @@
         position: absolute;
         inset-inline-end: 0;
         top: calc(100% + 6px);
-        z-index: 45;
+        z-index: 65;
         min-width: 11rem;
         padding: 0.4rem;
         border-radius: var(--radius-2xl);
@@ -801,7 +811,7 @@
 
     /* پخش‌کننده اختصاصی فایل صوتی (هماهنگ با پالت سایت) ------------------ */
     .audio-player {
-        @apply rounded-2xl bg-leaf/30 p-3 sm:p-3.5;
+        @apply rounded-2xl bg-paper p-3 sm:p-3.5;
     }
 
     .audio-player.is-playing {
