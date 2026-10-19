@@ -50,7 +50,7 @@
             </div>
         </div>
 
-        <div class="mt-6 grid gap-4 border-t border-line pt-6 sm:grid-cols-3 xl:grid-cols-6">
+        <div class="mt-6 grid grid-cols-2 gap-4 border-t border-line pt-6 sm:grid-cols-3 xl:grid-cols-6">
             <div>
                 <p class="text-xs text-muted">روزها</p>
                 <p class="mt-1 text-lg font-bold text-ink">{{ fa_num($challenge->totalDays()) }}</p>
@@ -160,26 +160,26 @@
                     {{-- افزودن به همین روز: چهار دکمهٔ ثابت؛ هر کدام مودال خودش را
                          باز می‌کند. روز از خود دکمه می‌آید و مودال‌ها فیلد انتخاب روز ندارند؛
                          بعد از هر ذخیره فرم خالی می‌شود و مودال باز می‌ماند. --}}
-                    <div class="flex flex-wrap items-center gap-2 px-4 py-3 sm:px-5">
-                        <button type="button" class="btn btn-primary btn-sm"
+                    <div class="grid grid-cols-2 gap-2 px-4 py-3 sm:flex sm:flex-wrap sm:items-center sm:px-5">
+                        <button type="button" class="btn btn-primary btn-sm w-full justify-center sm:w-auto"
                                 data-open-modal="modal-content"
                                 data-modal-day="{{ $isGeneral ? '' : $dayNumber }}"
                                 data-modal-type="task"
                                 data-modal-title="افزودن کار (چالش عملی)">📝 افزودن کار (چالش عملی)</button>
 
-                        <button type="button" class="btn btn-white btn-sm"
+                        <button type="button" class="btn btn-white btn-sm w-full justify-center sm:w-auto"
                                 data-open-modal="modal-content"
                                 data-modal-day="{{ $isGeneral ? '' : $dayNumber }}"
                                 data-modal-type="question"
                                 data-modal-title="افزودن پرسش">❓ افزودن پرسش</button>
 
-                        <button type="button" class="btn btn-gold btn-sm"
+                        <button type="button" class="btn btn-gold btn-sm w-full justify-center sm:w-auto"
                                 data-open-modal="modal-tip"
                                 data-modal-day="{{ $isGeneral ? '' : $dayNumber }}"
                                 data-modal-title="افزودن نکته">💡 افزودن نکته</button>
 
                         @unless ($isGeneral)
-                            <button type="button" class="btn btn-white btn-sm"
+                            <button type="button" class="btn btn-white btn-sm w-full justify-center sm:w-auto"
                                     data-open-modal="modal-file"
                                     data-modal-day="{{ $dayNumber }}"
                                     data-modal-title="افزودن فایل">📎 افزودن فایل</button>
@@ -895,7 +895,7 @@
                         <tr>
                             <th>نام</th>
                             <th class="w-44">پیشرفت</th>
-                            <th class="min-w-[22rem]">لینک اختصاصی</th>
+                            <th class="w-36">لینک اختصاصی</th>
                             <th>آخرین بازدید</th>
                             <th></th>
                         </tr>
@@ -934,7 +934,7 @@
                                     <button type="button" class="btn btn-soft btn-sm" data-copy-target="#link-{{ $participant->id }}">کپی لینک</button>
                                 </td>
 
-                                <td data-label="آخرین بازدید" class="text-xs text-muted">
+                                <td data-label="آخرین بازدید" class="text-xs whitespace-nowrap text-muted">
                                     {{ $participant->last_seen_at ? fa_datetime($participant->last_seen_at) : 'هنوز باز نکرده' }}
                                 </td>
 
