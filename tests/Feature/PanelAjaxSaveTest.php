@@ -115,11 +115,13 @@ class PanelAjaxSaveTest extends TestCase
             'title' => 'کار روز دوم',
         ])->assertRedirect();
 
-        // JS صفحه را دوباره می‌گیرد و پیام را از [data-flash] بیرون می‌کشد
+        // JS صفحه را دوباره می‌گیرد و پیام را از JSON فلش بیرون می‌کشد
         $html = $this->get(route('panel.challenges.show', $challenge))->assertOk()->getContent();
 
-        $this->assertStringContainsString('data-flash="status"', $html);
+        $this->assertStringContainsString('id="flash-data"', $html);
         $this->assertStringContainsString('برای روز ۲ اضافه شد', $html);
+        // بنر قدیمی دیگر رندر نمی‌شود
+        $this->assertStringNotContainsString('data-flash="status"', $html);
     }
 
     public function test_the_built_assets_ship_the_loading_and_toast_styles_and_handler(): void

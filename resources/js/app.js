@@ -586,18 +586,25 @@ const app = {
     /* پیام‌های فلش سرور (ذخیره شد، خوش‌آمدگویی، خطا) به‌جای بنر بالای
        صفحه، به‌صورت توست نشان داده می‌شوند */
     initFlashToasts() {
-        document.querySelectorAll('[data-flash]').forEach((flash) => {
-            if (flash.dataset.toastShown) return;
-            flash.dataset.toastShown = '1';
+        const tag = document.getElementById('flash-data');
+        if (!tag || tag.dataset.toastShown) return;
+        tag.dataset.toastShown = '1';
 
-            const message = flash.querySelector('ul li, span:last-child')?.textContent.trim();
+        let messages = [];
+        try {
+            messages = JSON.parse(tag.textContent) || [];
+        } catch {
+            messages = [];
+        }
 
-            if (message) {
-                this.showToast(message, flash.dataset.flash === 'status' ? 'status' : 'error');
-            }
+        // اگر خطایی هست اولویت با آن است، وگرنه اولین پیام
+        const first = messages.find((item) => item.type !== 'status') || messages[0];
 
-            flash.remove();
-        });
+        if (first?.text) {
+            this.showToast(first.text, first.type === 'status' ? 'status' : 'error');
+        }
+
+        tag.remove();
     },
 
     /* شمارهٔ روزی که فرم به آن مربوط است (ورودی day_number یا کارت روزِ دربردارنده) */
@@ -653,10 +660,18 @@ const app = {
             overlays.forEach((overlay) => overlay.remove());
         }
 
-        const flash = parsed.querySelector('[data-flash]');
-        const message = flash
-            ? (flash.querySelector('ul li, span:last-child')?.textContent.trim() || null)
-            : null;
+        let message = null;
+        const flashTag = parsed.getElementById('flash-data');
+
+        if (flashTag) {
+            try {
+                const items = JSON.parse(flashTag.textContent) || [];
+                const first = items.find((item) => item.type !== 'status') || items[0];
+                message = first?.text || null;
+            } catch {
+                message = null;
+            }
+        }
 
         const freshSubtitle = parsed.getElementById('page-subtitle');
         const subtitle = document.getElementById('page-subtitle');

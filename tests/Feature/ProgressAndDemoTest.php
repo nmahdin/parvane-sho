@@ -289,12 +289,11 @@ class ProgressAndDemoTest extends TestCase
 
         $content = $response->getContent();
 
-        // فقط یک کادر خلاصه خطاها روی صفحه می‌آید (خطاها کنار خودِ فیلدها هم می‌آیند)
-        $this->assertSame(1, substr_count($content, 'bg-danger-soft px-4 py-3 text-sm text-danger'));
+        // خلاصه خطاها دیگر بنر بالای صفحه نیست؛ به توست تبدیل می‌شود
+        $this->assertSame(0, substr_count($content, 'bg-danger-soft px-4 py-3 text-sm text-danger'));
+        $this->assertSame(1, substr_count($content, 'id="flash-data"'));
 
-        // کادر خطاها فقط یک فهرست دارد (فهرست ناوبری سایدبار جدا است)
-        $errorBox = substr($content, (int) strpos($content, 'bg-danger-soft px-4 py-3 text-sm text-danger'), 800);
-        $this->assertSame(1, substr_count($errorBox, '<ul class="space-y-1">'));
+        // خطا کنار خود فیلد هم می‌آید
         $this->assertGreaterThanOrEqual(1, substr_count($content, 'نام مدیر را وارد کنید.'));
     }
 }

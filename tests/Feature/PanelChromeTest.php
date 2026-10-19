@@ -80,9 +80,9 @@ class PanelChromeTest extends TestCase
         $this->assertStringContainsString('sticky-nav', $css);
         $this->assertStringContainsString('document.fonts', $js);
         $this->assertStringContainsString('initPageReadyChip', $js);
-        // پیام‌های فلش به توست تبدیل می‌شوند
+        // پیام‌های فلش فقط به توست تبدیل می‌شوند (بنری در کار نیست)
         $this->assertStringContainsString('initFlashToasts', $js);
-        $this->assertStringContainsString('.has-js [data-flash]{display:none}', $css);
+        $this->assertStringContainsString('flash-data', $js);
         $this->assertStringContainsString('closeModalAnimated', $js);
         // لغو انیمیشن بسته‌شدن تا مودال دوباره نامرئی باز نشود
         $this->assertStringContainsString('getAnimations', $js);
