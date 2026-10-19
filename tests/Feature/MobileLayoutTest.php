@@ -127,7 +127,7 @@ class MobileLayoutTest extends TestCase
         $this->assertStringContainsString('table-cards', $css, 'حالت کارتی جدول‌ها به CSS نرسیده است.');
         $this->assertStringContainsString('safe-bottom', $css, 'فاصله پایین صفحه برای موبایل در CSS نیست.');
         $this->assertStringContainsString('767px', $css, 'قواعد موبایل در CSS نیست.');
-        $this->assertStringContainsString('min-height:2.75rem', $css, 'اندازه دکمه‌ها برای لمس مناسب نشده است.');
+        $this->assertStringContainsString('min-height:2.25rem', $css, 'ارتفاع استاندارد ۳۶ پیکسل دکمه‌ها اعمال نشده است.');
     }
 
     public function test_the_public_header_has_a_phone_shortcut_to_the_personal_code(): void

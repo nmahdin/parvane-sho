@@ -123,7 +123,7 @@
                                 <input type="color" name="colors[{{ $key }}]" value="{{ old('colors.'.$key, $themeColors[$key]) }}"
                                        class="size-10 shrink-0 cursor-pointer rounded-xl border-0 bg-transparent p-0">
                                 <span class="min-w-0">
-                                    <span class="block truncate text-xs font-semibold text-ink">{{ $themeLabels[$key] ?? $key }}</span>
+                                    <span class="block text-xs leading-5 font-semibold text-ink">{{ $themeLabels[$key] ?? $key }}</span>
                                     <span class="block text-[11px] text-muted" dir="ltr">{{ old('colors.'.$key, $themeColors[$key]) }}</span>
                                 </span>
                             </label>
