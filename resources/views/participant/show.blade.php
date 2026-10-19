@@ -50,7 +50,7 @@
                     <div>
                         <p class="text-xs text-white/75">داشبورد اختصاصی چالش</p>
                         <h1 class="mt-1 text-xl text-white sm:text-2xl">سلام {{ $participant->name }} 👋</h1>
-                        <p class="mt-1.5 text-xs text-white/80">{{ $challenge->emoji }} {{ $challenge->title }}</p>
+                        <p class="mt-1.5 text-xs text-white/80"><x-challenge-icon :value="$challenge->emoji" size="size-4" /> {{ $challenge->title }}</p>
                     </div>
                 </div>
 

@@ -37,7 +37,7 @@
                     </div>
 
                     <p class="mt-1.5 text-xs text-muted">
-                        <a href="{{ route('panel.challenges.show', $challenge) }}" class="hover:text-brand-700">{{ $challenge->emoji }} {{ $challenge->title }}</a>
+                        <a href="{{ route('panel.challenges.show', $challenge) }}" class="hover:text-brand-700"><x-challenge-icon :value="$challenge->emoji" size="size-4" class="text-forest" /> {{ $challenge->title }}</a>
                         @if ($participant->contact)
                             · <span dir="auto">{{ $participant->contact }}</span>
                         @endif
@@ -197,7 +197,7 @@
             <section class="card">
                 <div class="flex flex-wrap items-center justify-between gap-3">
                     <div>
-                        <h2 class="text-base">{{ $challenge->emoji }} کارها و پرسش‌های او، روز به روز</h2>
+                        <h2 class="text-base"><x-challenge-icon :value="$challenge->emoji" size="size-5" class="text-forest" /> کارها و پرسش‌های او، روز به روز</h2>
                         <p class="mt-1 text-xs leading-6 text-muted">
                             هر روز، کارهایش (با تیک) و پرسش‌هایش (با پاسخ) کنار هم آمده است؛
                             پرسش‌هایی که پاسخ نداده‌اند با «جواب نداده است» مشخص شده‌اند.

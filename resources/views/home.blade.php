@@ -68,7 +68,7 @@
                             <div class="flex items-center justify-between">
                                 <div class="flex items-center gap-3">
                                     <span class="grid size-11 place-items-center rounded-2xl bg-gradient-to-tl {{ $heroChallenge->style()['gradient'] }} text-white">
-                                        {{ $heroChallenge->emoji }}
+                                        <x-challenge-icon :value="$heroChallenge->emoji" size="size-6" />
                                     </span>
                                     <div>
                                         <p class="text-sm font-semibold text-ink">داشبورد اختصاصی شرکت‌کننده</p>
@@ -240,7 +240,7 @@
             @if ($activeChallenge)
                 <div class="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-3xl {{ $activeChallenge->styleValue('bg') }} px-6 py-5">
                     <div class="flex items-center gap-4">
-                        <span class="grid size-11 place-items-center rounded-2xl bg-paper text-lg shadow-sm">{{ $activeChallenge->emoji }}</span>
+                        <span class="grid size-11 place-items-center rounded-2xl bg-paper text-lg text-forest shadow-sm"><x-challenge-icon :value="$activeChallenge->emoji" size="size-5" /></span>
                         <div>
                             <p class="text-sm font-semibold text-ink">{{ $activeChallenge->title }}</p>
                             <p class="mt-0.5 text-xs text-ink/80">

@@ -121,4 +121,18 @@ class MaintenanceModeTest extends TestCase
         $this->assertSame('فردا صبح برمی‌گردیم.', Setting::get('maintenance_message'));
         $this->assertSame('فردا صبح برمی‌گردیم.', Setting::maintenanceMessage());
     }
+
+    public function test_maintenance_message_saves_from_the_maintenance_box(): void
+    {
+        $this->loginAsAdmin();
+
+        $this->patch(route('panel.settings.maintenance'), [
+            'maintenance_message' => 'به‌زودی برمی‌گردیم',
+            'save_message' => '1',
+        ])->assertRedirect();
+
+        $this->assertSame('به‌زودی برمی‌گردیم', Setting::get('maintenance_message'));
+        // ذخیرهٔ پیام، حالت تعمیر را روشن/خاموش نمی‌کند
+        $this->assertFalse(Setting::maintenanceMode());
+    }
 }

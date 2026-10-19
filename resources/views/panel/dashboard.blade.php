@@ -58,7 +58,7 @@
                             <tr>
                                 <td data-label="">
                                     <div class="flex items-center gap-3">
-                                        <span class="grid size-9 place-items-center rounded-xl bg-cream">{{ $challenge->emoji }}</span>
+                                        <span class="grid size-9 place-items-center rounded-xl bg-cream text-forest"><x-challenge-icon :value="$challenge->emoji" size="size-5" /></span>
                                         <div class="min-w-0">
                                             <a href="{{ route('panel.challenges.show', $challenge) }}" class="block truncate font-medium text-ink hover:text-brand-700">
                                                 {{ $challenge->title }}
@@ -111,7 +111,7 @@
                 <div>
                     <div class="flex flex-wrap items-center justify-between gap-3">
                         <h3 class="text-sm font-semibold text-ink">
-                            {{ $challenge->emoji }} {{ $challenge->title }}
+                            <x-challenge-icon :value="$challenge->emoji" size="size-4" class="text-forest" /> {{ $challenge->title }}
                             <span class="ms-2 text-xs font-normal text-muted">{{ fa_num($members->count()) }} نفر</span>
                         </h3>
 

@@ -116,7 +116,7 @@
 
                                 <td data-label="چالش">
                                     <a href="{{ route('panel.challenges.show', $participant->challenge) }}" class="text-xs text-ink/80 hover:text-brand-700">
-                                        {{ $participant->challenge->emoji }} {{ $participant->challenge->title }}
+                                        <x-challenge-icon :value="$participant->challenge->emoji" size="size-4" class="text-forest" /> {{ $participant->challenge->title }}
                                     </a>
                                 </td>
 
@@ -138,10 +138,9 @@
                                 </td>
 
                                 <td data-label="لینک اختصاصی">
-                                    <div class="flex items-center gap-2">
-                                        <input id="row-link-{{ $participant->id }}" type="text" readonly value="{{ route('participant.show', $participant) }}" class="input py-2 text-[11px]" dir="ltr">
-                                        <button type="button" class="btn btn-soft btn-sm shrink-0" data-copy-target="#row-link-{{ $participant->id }}">کپی</button>
-                                    </div>
+                                    {{-- خود لینک نمایش داده نمی‌شود؛ فقط دکمهٔ کپی --}}
+                                    <input id="row-link-{{ $participant->id }}" type="hidden" value="{{ route('participant.show', $participant) }}">
+                                    <button type="button" class="btn btn-soft btn-sm" data-copy-target="#row-link-{{ $participant->id }}">کپی لینک</button>
                                 </td>
 
                                 <td data-label="">

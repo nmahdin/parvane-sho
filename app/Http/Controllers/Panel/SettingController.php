@@ -187,6 +187,19 @@ class SettingController extends Controller
     {
         abort_unless($this->currentAdmin()->isSuper(), 403);
 
+        $validated = $request->validate([
+            'maintenance_message' => ['nullable', 'string', 'max:500'],
+        ]);
+
+        // پیام صفحهٔ تعمیر حالا در همین باکس ویرایش و ذخیره می‌شود
+        if ($request->has('maintenance_message')) {
+            Setting::put('maintenance_message', trim((string) ($validated['maintenance_message'] ?? '')));
+        }
+
+        if ($request->filled('save_message')) {
+            return back()->with('status', 'پیام صفحه «در حال تعمیر» ذخیره شد.');
+        }
+
         $enabled = $request->input('maintenance_mode') === '1';
 
         Setting::put('maintenance_mode', $enabled ? '1' : '0');

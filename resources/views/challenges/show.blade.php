@@ -43,7 +43,7 @@
             <div class="bg-gradient-to-tl {{ $style['gradient'] }} px-5 py-7 text-white sm:px-8">
                 <div class="flex flex-wrap items-start justify-between gap-4">
                     <div class="max-w-2xl">
-                        <span class="grid size-12 place-items-center rounded-2xl bg-white/15 text-xl backdrop-blur">{{ $challenge->emoji }}</span>
+                        <span class="grid size-12 place-items-center rounded-2xl bg-white/15 text-xl text-white backdrop-blur"><x-challenge-icon :value="$challenge->emoji" size="size-7" /></span>
                         <h1 class="mt-4 text-2xl text-white sm:text-3xl">{{ $challenge->title }}</h1>
                     </div>
 

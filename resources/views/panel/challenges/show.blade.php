@@ -17,7 +17,7 @@
     <section class="card" id="challenge-stats">
         <div class="flex flex-wrap items-start justify-between gap-6">
             <div class="flex items-start gap-4">
-                <span class="grid size-14 shrink-0 place-items-center rounded-3xl bg-gradient-to-tl {{ $style['gradient'] }} text-2xl text-white">{{ $challenge->emoji }}</span>
+                <span class="grid size-14 shrink-0 place-items-center rounded-3xl bg-gradient-to-tl {{ $style['gradient'] }} text-2xl text-white"><x-challenge-icon :value="$challenge->emoji" size="size-8" /></span>
 
                 <div>
                     <h2 class="text-lg">{{ $challenge->title }}</h2>

@@ -96,12 +96,12 @@
                             @endforeach
                         </div>
 
-                        {{-- نمادهای برجسته با رنگ‌بندی اصلی سایت --}}
-                        <p class="mt-4 text-[11px] text-hint">نمادهای برجسته با رنگ سایت</p>
+                        {{-- نمادهای اختصاصی: پس‌زمینه رنگی از پالت سایت، نقش سفید --}}
+                        <p class="mt-4 text-[11px] text-hint">نمادهای اختصاصی (نقش سفید روی رنگ سایت)</p>
                         <div class="mt-1.5 flex flex-wrap gap-2">
-                            @foreach ([['✨', 'jade'], ['🕊️', 'leaf'], ['🌿', 'leaf'], ['⭐', 'gold'], ['🌸', 'gold'], ['💚', 'jade'], ['🔆', 'gold'], ['🌲', 'forest'], ['🤲', 'forest'], ['💠', 'jade']] as [$tileEmoji, $tileTone])
-                                <button type="button" data-emoji="#emoji" data-emoji-value="{{ $tileEmoji }}" class="emoji-tile emoji-tile-{{ $tileTone }}">
-                                    {{ $tileEmoji }}
+                            @foreach ([['star', 'jade'], ['heart', 'gold'], ['leaf', 'leaf'], ['moon', 'forest'], ['sun', 'gold'], ['drop', 'jade'], ['target', 'forest'], ['book', 'leaf']] as [$iconKey, $tileTone])
+                                <button type="button" data-emoji="#emoji" data-emoji-value="{{ $iconKey }}" class="emoji-tile emoji-tile-{{ $tileTone }} text-white">
+                                    <x-challenge-icon :value="$iconKey" size="size-6" />
                                 </button>
                             @endforeach
                         </div>

@@ -35,7 +35,7 @@
                             <tr>
                                 <td data-label="">
                                     <div class="flex items-center gap-3">
-                                        <span class="grid size-9 place-items-center rounded-xl bg-cream">{{ $challenge->emoji }}</span>
+                                        <span class="grid size-9 place-items-center rounded-xl bg-cream text-forest"><x-challenge-icon :value="$challenge->emoji" size="size-5" /></span>
                                         <div class="min-w-0">
                                             <a href="{{ route('panel.challenges.show', $challenge) }}" class="block max-w-[16rem] truncate font-medium text-ink hover:text-brand-700">
                                                 {{ $challenge->title }}

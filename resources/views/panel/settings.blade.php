@@ -83,12 +83,6 @@
                         <textarea id="site_about" name="site_about" rows="5" class="input resize-y">{{ old('site_about', $site_about) }}</textarea>
                     </div>
 
-                    <div>
-                        <label class="label" for="maintenance_message">پیام صفحه «در حال تعمیر»</label>
-                        <textarea id="maintenance_message" name="maintenance_message" rows="3" class="input resize-y" placeholder="{{ \App\Models\Setting::DEFAULT_MAINTENANCE_MESSAGE }}">{{ old('maintenance_message', $maintenanceMessage) }}</textarea>
-                        <p class="hint">خالی بگذاری، پیام پیش‌فرض نشان داده می‌شود.</p>
-                    </div>
-
                     <button type="submit" class="btn btn-primary">ذخیره تنظیمات</button>
                 </form>
             </section>
@@ -237,33 +231,41 @@
 
             {{-- حالت تعمیر سایت --}}
             <section class="card self-start space-y-4 {{ $maintenanceMode ? 'ring-2 ring-gold' : '' }}">
-                <div class="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                    <h2 class="flex flex-wrap items-center gap-2 text-base">
+                        🛠️ حالت تعمیر سایت
+
+                        <span class="badge {{ $maintenanceMode ? 'bg-gold/20 text-gold-ink ring-gold/50' : 'bg-leaf/10 text-forest ring-leaf/30' }}">
+                            {{ $maintenanceMode ? 'روشن — سایت در حال تعمیر است' : 'خاموش — سایت باز است' }}
+                        </span>
+                    </h2>
+
+                    <p class="mt-2 max-w-2xl text-xs leading-6 text-muted">
+                        وقتی روشن باشد، بازدیدکننده‌های سایت صفحه «در حال تعمیر» با پیام زیر را می‌بینند (وضعیت ۵۰۳).
+                        <span class="font-semibold text-ink">پنل مدیریت و داشبورد اختصاصی شرکت‌کننده‌ها باز می‌ماند</span>
+                        تا کار چالش‌ها نخوابد.
+                    </p>
+                </div>
+
+                <form method="POST" action="{{ route('panel.settings.maintenance') }}" class="space-y-3">
+                    @csrf
+                    @method('PATCH')
+                    <input type="hidden" name="maintenance_mode" value="{{ $maintenanceMode ? '0' : '1' }}">
+
                     <div>
-                        <h2 class="flex flex-wrap items-center gap-2 text-base">
-                            🛠️ حالت تعمیر سایت
-
-                            <span class="badge {{ $maintenanceMode ? 'bg-gold/20 text-gold-ink ring-gold/50' : 'bg-leaf/10 text-forest ring-leaf/30' }}">
-                                {{ $maintenanceMode ? 'روشن — سایت در حال تعمیر است' : 'خاموش — سایت باز است' }}
-                            </span>
-                        </h2>
-
-                        <p class="mt-2 max-w-2xl text-xs leading-6 text-muted">
-                            وقتی روشن باشد، بازدیدکننده‌های سایت صفحه «در حال تعمیر» با پیام بالا را می‌بینند (وضعیت ۵۰۳).
-                            <span class="font-semibold text-ink">پنل مدیریت و داشبورد اختصاصی شرکت‌کننده‌ها باز می‌ماند</span>
-                            تا کار چالش‌ها نخوابد.
-                        </p>
+                        <label class="label" for="maintenance_message">پیام صفحه «در حال تعمیر»</label>
+                        <textarea id="maintenance_message" name="maintenance_message" rows="3" class="input resize-y" placeholder="{{ \App\Models\Setting::DEFAULT_MAINTENANCE_MESSAGE }}">{{ old('maintenance_message', $maintenanceMessage) }}</textarea>
+                        <p class="hint">خالی بگذاری، پیام پیش‌فرض نشان داده می‌شود.</p>
                     </div>
 
-                    <form method="POST" action="{{ route('panel.settings.maintenance') }}" class="shrink-0">
-                        @csrf
-                        @method('PATCH')
-                        <input type="hidden" name="maintenance_mode" value="{{ $maintenanceMode ? '0' : '1' }}">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button type="submit" name="save_message" value="1" class="btn btn-white">ذخیرهٔ پیام</button>
 
                         <button type="submit" class="btn {{ $maintenanceMode ? 'btn-primary' : 'btn-gold' }}">
                             {{ $maintenanceMode ? 'خاموش کردن حالت تعمیر' : 'روشن کردن حالت تعمیر' }}
                         </button>
-                    </form>
-                </div>
+                    </div>
+                </form>
 
                 @if ($maintenanceMode)
                     <p class="rounded-2xl bg-gold/15 px-4 py-3 text-xs leading-6 text-ink ring-1 ring-gold/50">

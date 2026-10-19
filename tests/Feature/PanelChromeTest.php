@@ -84,6 +84,7 @@ class PanelChromeTest extends TestCase
         // لغو انیمیشن بسته‌شدن تا مودال دوباره نامرئی باز نشود
         $this->assertStringContainsString('getAnimations', $js);
         $this->assertStringContainsString('initActionMenus', $js);
+        $this->assertStringContainsString('parentElement!==document.body', $js);
         $this->assertStringContainsString('animationPlayState', $js);
         // انتخابگر اختصاصی به‌جای منوی پیش‌فرض مرورگر
         $this->assertStringContainsString('initCustomSelects', $js);
@@ -121,6 +122,9 @@ class PanelChromeTest extends TestCase
         $this->assertStringContainsString('emoji-tile emoji-tile-jade', $html);
         $this->assertStringContainsString('emoji-tile emoji-tile-gold', $html);
         $this->assertStringContainsString('emoji-tile emoji-tile-forest', $html);
+        // نقش سفید SVG روی کاشی رنگی
+        $this->assertStringContainsString('data-emoji-value="star"', $html);
+        $this->assertStringContainsString('emoji-tile-jade text-white', $html);
     }
 
     public function test_day_modals_have_equal_size_cancel_and_submit_buttons(): void
@@ -169,5 +173,37 @@ class PanelChromeTest extends TestCase
         $this->assertStringContainsString('dayNumberOf', $js);
         $this->assertStringContainsString('refreshDynamicSections', $js);
         $this->assertStringContainsString('5500', $js);
+    }
+
+    public function test_custom_icon_keys_render_as_svg_not_text(): void
+    {
+        $challenge = Challenge::create([
+            'title' => 'چالش آیکون',
+            'slug' => 'svg-icon-challenge',
+            'emoji' => 'star',
+            'is_published' => true,
+        ]);
+
+        $this->loginAsAdmin();
+
+        $html = $this->get(route('panel.challenges.show', $challenge))->assertOk()->getContent();
+
+        // کلید «star» به SVG ستارهٔ سفید روی کاشی رنگی تبدیل می‌شود
+        $this->assertStringContainsString('M12 3.6l2.6', $html);
+
+        // و دیگر به‌صورت متن خام دیده نمی‌شود
+        $this->assertStringNotContainsString('>star<', $html);
+
+        // ایموجی معمولی هنوز همان ایموجی می‌ماند
+        $butterfly = Challenge::create([
+            'title' => 'چالش پروانه',
+            'slug' => 'emoji-challenge',
+            'emoji' => '🦋',
+            'is_published' => true,
+        ]);
+
+        $this->get(route('panel.challenges.show', $butterfly))
+            ->assertOk()
+            ->assertSee('🦋');
     }
 }

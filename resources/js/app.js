@@ -728,6 +728,13 @@ const app = {
 
         update();
 
+        // با اسکرول، هدر از نیمه‌شفاف به کاملاً مات (و سایه‌دار) می‌رود
+        const stuck = () => {
+            header.classList.toggle('is-stuck', window.scrollY > 8);
+        };
+
+        stuck();
+
         if (!this._stickyOffsetsBound) {
             this._stickyOffsetsBound = true;
 
@@ -736,6 +743,8 @@ const app = {
                 window.clearTimeout(timer);
                 timer = window.setTimeout(update, 120);
             });
+
+            window.addEventListener('scroll', stuck, { passive: true });
 
             if (document.fonts?.ready) {
                 document.fonts.ready.then(update);
@@ -1121,7 +1130,7 @@ const app = {
         };
 
         const place = (menu) => {
-            const panel = menu.querySelector('.action-menu-panel');
+            const panel = menu._panel;
             const summary = menu.querySelector('summary');
             if (!panel || !summary) return;
 
@@ -1145,8 +1154,20 @@ const app = {
         document.querySelectorAll('details.action-menu').forEach((menu) => {
             if (menu.dataset.menuBound) return;
             menu.dataset.menuBound = '1';
+            menu._panel = menu.querySelector('.action-menu-panel');
+
             menu.addEventListener('toggle', () => {
-                if (menu.open) place(menu);
+                if (menu.open) {
+                    // پنل از دل جدول (با scroll) به body منتقل می‌شود تا
+                    // هیچ overflow یا جدِّ دارای transform نتواند بریده‌اش کند
+                    if (menu._panel && menu._panel.parentElement !== document.body) {
+                        document.body.appendChild(menu._panel);
+                    }
+
+                    place(menu);
+                } else if (menu._panel && menu._panel.parentElement === document.body) {
+                    menu.appendChild(menu._panel);
+                }
             });
         });
 

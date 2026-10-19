@@ -168,6 +168,16 @@
         top: var(--sticky-nav-top, 6rem);
     }
 
+    /* هدر پنل: نیمه‌شفاف؛ با اسکرول کاملاً مات و سایه‌دار می‌شود */
+    #panel-header {
+        transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    #panel-header.is-stuck {
+        background-color: var(--color-paper);
+        box-shadow: 0 10px 26px -20px rgb(47 62 56 / 0.5);
+    }
+
     /* بدون جاوااسکریپت هم کارت‌ها یک‌بار آرام ظاهر می‌شوند */
     .card,
     .day-card,
