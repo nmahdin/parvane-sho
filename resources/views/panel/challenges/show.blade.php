@@ -8,8 +8,6 @@
 
 @section('page-actions')
     <a href="{{ $challenge->publicUrl() }}" target="_blank" class="btn btn-white btn-sm">مشاهده در سایت ↗</a>
-    <a href="{{ route('panel.challenges.export', $challenge) }}" class="btn btn-white btn-sm">⬇️ خروجی اکسل</a>
-    <a href="{{ route('panel.challenges.edit', $challenge) }}" class="btn btn-soft btn-sm">ویرایش مشخصات</a>
 @endsection
 
 @section('content')
@@ -20,7 +18,11 @@
                 <span class="grid size-14 shrink-0 place-items-center rounded-3xl bg-gradient-to-tl {{ $style['gradient'] }} text-2xl text-white"><x-challenge-icon :value="$challenge->emoji" size="size-8" /></span>
 
                 <div>
-                    <h2 class="text-lg">{{ $challenge->title }}</h2>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <h2 class="text-lg">{{ $challenge->title }}</h2>
+                        <a href="{{ route('panel.challenges.export', $challenge) }}" class="btn btn-white btn-sm">⬇️ خروجی اکسل</a>
+                        <a href="{{ route('panel.challenges.edit', $challenge) }}" class="btn btn-soft btn-sm">ویرایش مشخصات</a>
+                    </div>
                     @php($shortText = $challenge->tagline ?: $challenge->description)
                     <p class="mt-1.5 max-w-2xl text-xs leading-6 text-muted">{{ $shortText ? \Illuminate\Support\Str::limit($shortText, 160) : 'توضیح کوتاهی ثبت نشده است.' }}</p>
 
@@ -190,36 +192,56 @@
                     @unless ($isGeneral)
                         {{-- عنوان و توضیحات همین روز --}}
                         <div class="px-4 py-3 sm:px-5">
-                            <details id="day-{{ $dayNumber }}-title" class="day-group rounded-2xl bg-shell/60">
-                                <summary class="day-group-head">
-                                    <span>✏️ عنوان و توضیحات این روز</span>
-                                    <span class="font-normal text-muted">
-                                        @if ($day['title'])
-                                            — {{ $day['title'] }}
-                                        @else
-                                            — هنوز چیزی نوشته نشده
-                                        @endif
-                                    </span>
-                                </summary>
+                            <div class="rounded-2xl bg-shell/60 p-4">
+                                <div class="flex flex-wrap items-center justify-between gap-2">
+                                    <p class="text-xs font-semibold text-ink">
+                                        ✏️ عنوان و توضیحات این روز
+                                        <span class="font-normal text-muted">
+                                            @if ($day['title'])
+                                                — {{ $day['title'] }}
+                                            @else
+                                                — هنوز چیزی نوشته نشده
+                                            @endif
+                                        </span>
+                                    </p>
 
-                                <form method="POST" action="{{ route('panel.days.update', [$challenge, $dayNumber]) }}" data-ajax-save class="space-y-3 px-4 py-4 text-right">
-                                    @csrf
-                                    @method('PUT')
+                                    <button type="button" class="btn btn-ghost btn-sm" data-open-modal="edit-day-info-{{ $dayNumber }}" data-modal-title="ویرایش عنوان و توضیحات روز {{ fa_num($dayNumber) }}">ویرایش</button>
+                                </div>
 
-                                    <div>
-                                        <label class="label" for="day-title-{{ $dayNumber }}">عنوان این روز</label>
-                                        <input id="day-title-{{ $dayNumber }}" name="title" type="text" maxlength="190" value="{{ $day['title'] }}" class="input" placeholder="مثلاً روز شکرگزاری از آدم‌ها">
+                                @if ($day['description'])
+                                    <p class="mt-2 text-xs leading-6 text-muted whitespace-pre-line">{{ $day['description'] }}</p>
+                                @endif
+                            </div>
+
+                            <dialog id="edit-day-info-{{ $dayNumber }}" class="panel-modal">
+                                <div class="panel-modal-box">
+                                    <div class="panel-modal-head">
+                                        <h3 class="text-sm font-semibold text-ink"><span data-modal-heading>ویرایش عنوان و توضیحات روز {{ fa_num($dayNumber) }}</span></h3>
+                                        <button type="button" class="icon-btn" data-close-modal aria-label="بستن"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="size-4"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></svg></button>
                                     </div>
 
-                                    <div>
-                                        <label class="label" for="day-description-{{ $dayNumber }}">توضیحات این روز</label>
-                                        <textarea id="day-description-{{ $dayNumber }}" name="description" rows="4" class="input resize-y" placeholder="چند خط دربارهٔ هدف این روز، تمرین‌ها یا نکته‌هایش...">{{ $day['description'] }}</textarea>
-                                        <p class="hint">این متن بالای کارها و پرسش‌های همان روز به شرکت‌کننده نشان داده می‌شود.</p>
-                                    </div>
+                                    <form method="POST" action="{{ route('panel.days.update', [$challenge, $dayNumber]) }}" data-ajax-save data-modal-form class="space-y-3 text-right">
+                                        @csrf
+                                        @method('PUT')
 
-                                    <button type="submit" class="btn btn-primary btn-sm">ذخیره عنوان و توضیحات</button>
-                                </form>
-                            </details>
+                                        <div>
+                                            <label class="label" for="day-title-{{ $dayNumber }}">عنوان این روز</label>
+                                            <input id="day-title-{{ $dayNumber }}" name="title" type="text" maxlength="190" value="{{ $day['title'] }}" class="input" placeholder="مثلاً روز شکرگزاری از آدم‌ها">
+                                        </div>
+
+                                        <div>
+                                            <label class="label" for="day-description-{{ $dayNumber }}">توضیحات این روز</label>
+                                            <textarea id="day-description-{{ $dayNumber }}" name="description" rows="4" class="input resize-y" placeholder="چند خط دربارهٔ هدف این روز، تمرین‌ها یا نکته‌هایش...">{{ $day['description'] }}</textarea>
+                                            <p class="hint">این متن بالای کارها و پرسش‌های همان روز به شرکت‌کننده نشان داده می‌شود.</p>
+                                        </div>
+
+                                        <div class="flex items-center gap-2">
+                                            <button type="button" class="btn btn-ghost flex-1 justify-center" data-close-modal>انصراف</button>
+                                            <button type="submit" class="btn btn-primary flex-1 justify-center">ذخیره</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </dialog>
                         </div>
                     @endunless
 
@@ -316,10 +338,16 @@
                                                 <button type="submit" class="btn btn-ghost btn-sm" aria-label="پایین">↓</button>
                                             </form>
 
-                                            <details>
-                                                <summary class="btn btn-ghost btn-sm list-none">ویرایش</summary>
+                                            <button type="button" class="btn btn-ghost btn-sm" data-open-modal="edit-tasks-{{ $task->id }}" data-modal-title="ویرایش کار">ویرایش</button>
 
-                                                <form method="POST" action="{{ route('panel.tasks.update', [$challenge, $task]) }}" data-ajax-save class="mt-3 grid w-full max-w-xl gap-3 rounded-2xl bg-cream p-4 text-right sm:grid-cols-2">
+                                            <dialog id="edit-tasks-{{ $task->id }}" class="panel-modal">
+                                                <div class="panel-modal-box">
+                                                    <div class="panel-modal-head">
+                                                        <h3 class="text-sm font-semibold text-ink"><span data-modal-heading>ویرایش کار</span></h3>
+                                                        <button type="button" class="icon-btn" data-close-modal aria-label="بستن"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="size-4"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></svg></button>
+                                                    </div>
+
+                                                    <form method="POST" action="{{ route('panel.tasks.update', [$challenge, $task]) }}" data-ajax-save data-modal-form class="grid gap-3 text-right sm:grid-cols-2">
                                                     @csrf
                                                     @method('PUT')
 
@@ -344,7 +372,8 @@
                                                         <button type="submit" class="btn btn-primary btn-sm">ذخیره</button>
                                                     </div>
                                                 </form>
-                                            </details>
+                                                </div>
+                                            </dialog>
 
                                             <form method="POST" action="{{ route('panel.tasks.destroy', [$challenge, $task]) }}" data-ajax-save data-confirm="این کار حذف شود؟ تیک‌های مربوط به آن هم پاک می‌شود.">
                                                 @csrf
@@ -453,10 +482,16 @@
                                                 <button type="submit" class="btn btn-white btn-sm">{{ $question->is_published ? 'پنهان کن' : 'نمایش بده' }}</button>
                                             </form>
 
-                                            <details>
-                                                <summary class="btn btn-ghost btn-sm list-none">ویرایش</summary>
+                                            <button type="button" class="btn btn-ghost btn-sm" data-open-modal="edit-questions-{{ $question->id }}" data-modal-title="ویرایش پرسش">ویرایش</button>
 
-                                                <form method="POST" action="{{ route('panel.questions.update', [$challenge, $question]) }}" data-ajax-save class="mt-3 grid w-full max-w-lg gap-3 rounded-2xl bg-paper p-4 text-right">
+                                            <dialog id="edit-questions-{{ $question->id }}" class="panel-modal">
+                                                <div class="panel-modal-box">
+                                                    <div class="panel-modal-head">
+                                                        <h3 class="text-sm font-semibold text-ink"><span data-modal-heading>ویرایش پرسش</span></h3>
+                                                        <button type="button" class="icon-btn" data-close-modal aria-label="بستن"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="size-4"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></svg></button>
+                                                    </div>
+
+                                                    <form method="POST" action="{{ route('panel.questions.update', [$challenge, $question]) }}" data-ajax-save data-modal-form class="grid gap-3 text-right">
                                                     @csrf
                                                     @method('PUT')
 
@@ -487,7 +522,8 @@
 
                                                     <button type="submit" class="btn btn-primary btn-sm">ذخیره</button>
                                                 </form>
-                                            </details>
+                                                </div>
+                                            </dialog>
 
                                             <form method="POST" action="{{ route('panel.questions.destroy', [$challenge, $question]) }}" data-ajax-save data-confirm="این پرسش حذف شود؟">
                                                 @csrf
@@ -588,10 +624,16 @@
                                                 <div class="flex items-center gap-1">
                                                     <a href="{{ $dayFile->url() }}" target="_blank" class="btn btn-white btn-sm">دیدن</a>
 
-                                                    <details>
-                                                        <summary class="btn btn-ghost btn-sm list-none">ویرایش</summary>
+                                                    <button type="button" class="btn btn-ghost btn-sm" data-open-modal="edit-day-files-{{ $dayFile->id }}" data-modal-title="ویرایش فایل">ویرایش</button>
 
-                                                        <form method="POST" action="{{ route('panel.day-files.update', [$challenge, $dayFile]) }}" data-ajax-save class="mt-3 grid w-full max-w-md gap-3 rounded-2xl bg-paper p-4 text-right">
+                                                    <dialog id="edit-day-files-{{ $dayFile->id }}" class="panel-modal">
+                                                        <div class="panel-modal-box">
+                                                            <div class="panel-modal-head">
+                                                                <h3 class="text-sm font-semibold text-ink"><span data-modal-heading>ویرایش فایل</span></h3>
+                                                                <button type="button" class="icon-btn" data-close-modal aria-label="بستن"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="size-4"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></svg></button>
+                                                            </div>
+
+                                                            <form method="POST" action="{{ route('panel.day-files.update', [$challenge, $dayFile]) }}" data-ajax-save data-modal-form class="grid gap-3 text-right">
                                                             @csrf
                                                             @method('PUT')
 
@@ -611,7 +653,8 @@
 
                                                             <button type="submit" class="btn btn-primary btn-sm">ذخیره</button>
                                                         </form>
-                                                    </details>
+                                                        </div>
+                                                    </dialog>
 
                                                     <form method="POST" action="{{ route('panel.day-files.destroy', [$challenge, $dayFile]) }}" data-ajax-save data-confirm="فایل «{{ $dayFile->title }}» حذف شود؟">
                                                         @csrf
@@ -829,9 +872,16 @@
                                     <div class="flex items-center justify-end gap-1">
                                         <a href="{{ $attachment->url() }}" class="btn btn-ghost btn-sm">دانلود</a>
 
-                                        <details>
-                                            <summary class="btn btn-ghost btn-sm list-none">ویرایش</summary>
-                                            <form method="POST" action="{{ route('panel.attachments.update', [$challenge, $attachment]) }}" class="mt-3 grid w-full max-w-sm gap-3 rounded-2xl bg-cream p-4 text-right">
+                                        <button type="button" class="btn btn-ghost btn-sm" data-open-modal="edit-attachments-{{ $attachment->id }}" data-modal-title="ویرایش ضمیمه">ویرایش</button>
+
+                                        <dialog id="edit-attachments-{{ $attachment->id }}" class="panel-modal">
+                                            <div class="panel-modal-box">
+                                                <div class="panel-modal-head">
+                                                    <h3 class="text-sm font-semibold text-ink"><span data-modal-heading>ویرایش ضمیمه</span></h3>
+                                                    <button type="button" class="icon-btn" data-close-modal aria-label="بستن"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="size-4"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></svg></button>
+                                                </div>
+
+                                                <form data-ajax-save data-modal-form method="POST" action="{{ route('panel.attachments.update', [$challenge, $attachment]) }}" class="grid gap-3 text-right">
                                                 @csrf
                                                 @method('PUT')
                                                 <div>
@@ -840,7 +890,8 @@
                                                 </div>
                                                 <button type="submit" class="btn btn-primary btn-sm">ذخیره</button>
                                             </form>
-                                        </details>
+                                            </div>
+                                        </dialog>
 
                                         <form method="POST" action="{{ route('panel.attachments.destroy', [$challenge, $attachment]) }}" data-confirm="فایل «{{ $attachment->title }}» حذف شود؟">
                                             @csrf

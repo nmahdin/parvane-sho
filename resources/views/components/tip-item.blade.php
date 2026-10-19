@@ -29,9 +29,16 @@
                 <button type="submit" class="btn btn-ghost btn-sm" aria-label="پایین">↓</button>
             </form>
 
-            <details>
-                <summary class="btn btn-ghost btn-sm list-none">ویرایش</summary>
-                <form method="POST" action="{{ route('panel.tips.update', [$challenge, $tip]) }}" data-ajax-save class="mt-3 grid w-full max-w-lg gap-3 rounded-2xl bg-paper p-4 text-right sm:grid-cols-[5rem_1fr]">
+            <button type="button" class="btn btn-ghost btn-sm" data-open-modal="edit-tips-{{ $tip->getKey() }}" data-modal-title="ویرایش نکته">ویرایش</button>
+
+            <dialog id="edit-tips-{{ $tip->getKey() }}" class="panel-modal">
+                <div class="panel-modal-box">
+                    <div class="panel-modal-head">
+                        <h3 class="text-sm font-semibold text-ink"><span data-modal-heading>ویرایش نکته</span></h3>
+                        <button type="button" class="icon-btn" data-close-modal aria-label="بستن"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="size-4"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></svg></button>
+                    </div>
+
+                    <form method="POST" action="{{ route('panel.tips.update', [$challenge, $tip]) }}" data-ajax-save data-modal-form class="grid gap-3 text-right sm:grid-cols-[5rem_1fr]">
                     @csrf
                     @method('PUT')
 
@@ -75,7 +82,8 @@
                         <button type="submit" class="btn btn-primary btn-sm">ذخیره</button>
                     </div>
                 </form>
-            </details>
+                </div>
+            </dialog>
 
             <form method="POST" action="{{ route('panel.tips.destroy', [$challenge, $tip]) }}" data-ajax-save data-confirm="این نکته حذف شود؟">
                 @csrf

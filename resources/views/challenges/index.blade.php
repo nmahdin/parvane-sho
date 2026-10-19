@@ -19,7 +19,6 @@
                 </p>
             </div>
 
-            <a href="{{ route('panel.dashboard') }}" class="btn btn-white">ورود به پنل مدیریت</a>
         </div>
     </section>
 

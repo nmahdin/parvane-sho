@@ -43,9 +43,26 @@ class PanelDayModalsTest extends TestCase
 
         $html = $this->panelHtml($challenge);
 
-        foreach (['title', 'tasks', 'questions', 'tips', 'files'] as $group) {
+        foreach (['tasks', 'questions', 'tips', 'files'] as $group) {
             $this->assertStringContainsString('id="day-1-'.$group.'"', $html);
         }
+
+        // عنوان/توضیحات روز: نمایش ثابت + ویرایش در مدال
+        $this->assertStringContainsString('id="edit-day-info-1"', $html);
+        $this->assertStringContainsString('data-open-modal="edit-day-info-1"', $html);
+
+        // ویرایش محتوای روز (کار/پرسش/نکته/فایل) هم در مدال انجام می‌شود
+        $this->assertStringContainsString('data-open-modal="edit-tasks-1" data-modal-title="ویرایش کار"', $html);
+        $this->assertStringContainsString('data-open-modal="edit-tips-1" data-modal-title="ویرایش نکته"', $html);
+
+        // فرم ویرایش کار: داخل مدال، با data-modal-form تا بعد از ذخیره بسته شود
+        $this->assertStringContainsString(
+            'action="'.route('panel.tasks.update', [$challenge, 1]).'" data-ajax-save data-modal-form',
+            $html
+        );
+
+        // ویرایش درون‌خطی (summary ویرایش) دیگر وجود ندارد
+        $this->assertStringNotContainsString('<summary class="btn btn-ghost btn-sm list-none">ویرایش</summary>', $html);
 
         $this->assertStringContainsString('day-group-head', $html);
 
@@ -63,7 +80,7 @@ class PanelDayModalsTest extends TestCase
         $this->assertStringContainsString('sticky top-3 z-50', $html);
 
         // همه گروه‌های داخل روز به‌طور پیش‌فرض بسته‌اند (بدون open)
-        foreach (['title', 'tasks', 'questions', 'tips', 'files'] as $group) {
+        foreach (['tasks', 'questions', 'tips', 'files'] as $group) {
             $this->assertStringNotContainsString('id="day-1-'.$group.'" class="day-group rounded-2xl bg-shell/60" open', $html);
             $this->assertStringNotContainsString('id="day-1-'.$group.'" class="day-group rounded-2xl bg-gold/10" open', $html);
         }

@@ -30,7 +30,8 @@
         </div>
     </div>
 
-    <div class="border-t border-line py-5 text-center text-xs text-muted">
-        {{ $siteName }} — امروز {{ fa_date(now(), true) }}
+    <div class="flex flex-wrap items-center justify-center gap-3 border-t border-line px-4 py-5 text-xs text-muted">
+        <span>{{ $siteName }} — امروز {{ fa_date(now(), true) }}</span>
+        <a href="{{ route('panel.login') }}" class="btn btn-white btn-sm">ورود به پنل مدیریت چالش</a>
     </div>
 </footer>

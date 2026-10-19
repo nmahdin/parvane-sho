@@ -1392,6 +1392,42 @@
         min-height: 2.25rem;
     }
 
+    /* ------------------------------------------------------------------
+       کارایی موبایل: محو (blur) و انیمیشن‌های ورود، گران‌ترین کارهای
+       رندر روی گوشی‌اند — اینجا هر دو حذف می‌شوند تا باز/بسته‌شدن
+       مدال‌ها و بارگذاری صفحه روان بماند.
+       ------------------------------------------------------------------ */
+    .backdrop-blur,
+    .panel-modal::backdrop {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
+
+    /* پس‌زمینه نیمه‌شفاف بدون محو خوانا نمی‌ماند؛ کمی کدرتر می‌شود */
+    .sticky.top-0.backdrop-blur,
+    .sticky.top-3.backdrop-blur,
+    .fixed.bottom-0.backdrop-blur,
+    .jump-bar {
+        background-color: var(--color-paper);
+    }
+
+    .section-loading::before {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
+
+    .card,
+    .day-card,
+    .day-group,
+    .surface,
+    .animate-rise {
+        animation: none;
+    }
+
+    .panel-modal-box {
+        animation-duration: 0.12s;
+    }
+
     /* جدول‌های «table-cards» روی موبایل به کارت تبدیل می‌شوند */
     .table-wrap {
         overflow: visible;
