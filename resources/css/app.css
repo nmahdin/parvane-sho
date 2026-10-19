@@ -9,37 +9,38 @@
 
 @theme {
     /* ------------------------------------------------------------------
-       پالت رنگی پروانه شو
+       پالت رنگی پروانه شو — رنگ اصلی #659287 با ثانویه‌های
+       #D6DAC8، #D2DCB6 و #FAEDCE
        ------------------------------------------------------------------ */
-    --color-forest: #075741;
-    --color-jade: #11735b;
-    --color-leaf: #508d42;
-    /* بوم صفحه: کرم بسیار کم‌رنگ؛ cream برای سطح‌های داخلی کارت‌ها پررنگ‌تر است */
-    --color-cream: #f7f4e8;
-    --color-canvas: #fdfcf7;
-    --color-gold: #cead60;
-    --color-line: #cadcc1;
-    --color-ink: #24473c;
-    --color-muted: #566f64;
-    --color-hint: #6d8177;
+    --color-forest: #4E7268;
+    --color-jade: #659287;
+    --color-leaf: #D2DCB6;
+    /* بوم صفحه: سبز-کرم بسیار کم‌رنگ؛ cream برای سطح‌های داخلی */
+    --color-cream: #EFF1E6;
+    --color-canvas: #F6F7F1;
+    --color-gold: #FAEDCE;
+    --color-line: #D6DAC8;
+    --color-ink: #2F3E38;
+    --color-muted: #5A6B62;
+    --color-hint: #71817A;
     --color-gold-ink: #8a6a26;
-    --color-paper: #fffefa;
+    --color-paper: #FFFFFF;
 
     /* تنها رنگ خارج از پالت: وضعیت خطر و پیام خطا (حذف/اعتبارسنجی) */
     --color-danger: #a2463a;
     --color-danger-soft: #f8ece7;
 
-    /* مقیاس «برند» از دل همان پالت ساخته شده: jade = 600 و forest = 800 */
-    --color-brand-50: #f1f7f3;
-    --color-brand-100: #e0eee5;
-    --color-brand-200: #c3ded0;
-    --color-brand-300: #9ac7ae;
-    --color-brand-400: #6cab8b;
-    --color-brand-500: #3f8f6c;
-    --color-brand-600: #11735b;
-    --color-brand-700: #0d624d;
-    --color-brand-800: #075741;
-    --color-brand-900: #064435;
+    /* مقیاس «برند» از دل رنگ اصلی #659287 */
+    --color-brand-50: #F2F6F4;
+    --color-brand-100: #E3ECE8;
+    --color-brand-200: #C9DAD3;
+    --color-brand-300: #A5C0B6;
+    --color-brand-400: #82A398;
+    --color-brand-500: #659287;
+    --color-brand-600: #5B857B;
+    --color-brand-700: #4E7268;
+    --color-brand-800: #405E56;
+    --color-brand-900: #354D46;
 
     --font-sans: 'Vazirmatn Variable', ui-sans-serif, system-ui, 'Segoe UI', sans-serif;
 }
@@ -107,8 +108,33 @@
     }
 
     .card {
-        @apply rounded-3xl bg-paper p-5 ring-1 ring-line sm:p-6;
-        box-shadow: 0 1px 2px rgb(7 87 65 / 0.06), 0 12px 26px -20px rgb(7 87 65 / 0.28);
+        @apply rounded-3xl bg-paper p-5 sm:p-6;
+        box-shadow: 0 1px 2px rgb(78 114 104 / 0.05), 0 16px 32px -24px rgb(78 114 104 / 0.30);
+    }
+
+    /* انیمیشن ورود کارت‌ها — تأخیر پله‌ای را جاوااسکریپت می‌گذارد */
+    @keyframes card-in {
+        from {
+            opacity: 0;
+            transform: translateY(14px) scale(0.985);
+        }
+
+        to {
+            opacity: 1;
+            transform: none;
+        }
+    }
+
+    .card,
+    .day-card {
+        animation: card-in 0.5s cubic-bezier(0.22, 0.8, 0.36, 1) both;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .card,
+        .day-card {
+            animation: none;
+        }
     }
 
     .input {
@@ -241,7 +267,7 @@
     }
 
     .panel-modal::backdrop {
-        background-color: #07574180;
+        background-color: #4E726880;
         backdrop-filter: blur(3px);
     }
 
@@ -254,7 +280,7 @@
         border-radius: var(--radius-3xl);
         background-color: var(--color-paper);
         color: var(--color-ink);
-        box-shadow: 0 24px 60px -24px #07574173;
+        box-shadow: 0 24px 60px -24px #4E726873;
         animation: modal-in 0.18s ease-out;
     }
 
@@ -288,7 +314,7 @@
         padding: 0.85rem 1rem;
         border-radius: var(--radius-2xl);
         background-color: var(--color-paper);
-        box-shadow: 0 18px 40px -20px #07574166, 0 1px 2px #24473c1a;
+        box-shadow: 0 18px 40px -20px #4E726866, 0 1px 2px #2F3E381a;
         border: 1px solid var(--color-line);
         animation: upload-progress-in 0.22s ease-out;
         transition: opacity 0.4s ease, transform 0.4s ease;
@@ -349,8 +375,8 @@
 
     /* سایدبار پنل: یک باکس واحد ------------------------------------------ */
     .panel-sidebar {
-        @apply overflow-hidden rounded-3xl bg-paper ring-1 ring-line;
-        box-shadow: 0 1px 2px rgb(7 87 65 / 0.06), 0 16px 32px -26px rgb(7 87 65 / 0.35);
+        @apply overflow-hidden rounded-3xl bg-cream/70;
+        box-shadow: 0 1px 2px rgb(78 114 104 / 0.05), 0 16px 32px -26px rgb(78 114 104 / 0.32);
     }
 
     .sidebar-link {
@@ -358,17 +384,18 @@
     }
 
     .sidebar-link.is-active {
-        @apply bg-brand-50 font-semibold text-brand-700 ring-1 ring-brand-100;
+        @apply bg-paper font-semibold text-forest;
+        box-shadow: 0 2px 4px rgb(78 114 104 / 0.10), 0 12px 24px -14px rgb(78 114 104 / 0.45);
     }
 
     /* پخش‌کننده اختصاصی فایل صوتی (هماهنگ با پالت سایت) ------------------ */
     .audio-player {
-        @apply rounded-2xl bg-paper p-3 ring-1 ring-line sm:p-3.5;
+        @apply rounded-2xl bg-paper p-3 sm:p-3.5;
     }
 
     .audio-player.is-playing {
         @apply ring-jade/40;
-        box-shadow: 0 1px 2px rgb(17 115 91 / 0.1), 0 14px 28px -22px rgb(17 115 91 / 0.4);
+        box-shadow: 0 1px 2px rgb(101 146 135 / 0.1), 0 14px 28px -22px rgb(101 146 135 / 0.4);
     }
 
     .audio-play {
@@ -436,15 +463,13 @@
 
     /* کارت روز به‌صورت آکاردئون ---------------------------------------- */
     .day-card {
-        @apply overflow-hidden rounded-3xl border border-line bg-paper;
-        box-shadow: 0 1px 2px rgb(7 87 65 / 0.06), 0 12px 26px -20px rgb(7 87 65 / 0.28);
+        @apply overflow-hidden rounded-3xl bg-paper;
+        box-shadow: 0 1px 2px rgb(78 114 104 / 0.05), 0 14px 28px -22px rgb(78 114 104 / 0.28);
     }
 
-    /* روزی که هستیم: حاشیه رنگی دور تا دور باکس (border واقعی، نه ring که
-       با box-shadow سفارشی پاک می‌شود) */
+    /* روزی که هستیم: بدون حاشیه، با سایهٔ یشمی برجسته‌تر */
     .day-card.is-today {
-        @apply border-2 border-jade;
-        box-shadow: 0 1px 2px rgb(17 115 91 / 0.12), 0 18px 36px -22px rgb(17 115 91 / 0.5);
+        box-shadow: 0 2px 4px rgb(101 146 135 / 0.12), 0 20px 40px -22px rgb(101 146 135 / 0.55);
     }
 
     .day-card.is-today > summary {

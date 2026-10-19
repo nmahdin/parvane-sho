@@ -10,6 +10,7 @@ const app = {
         this.initModals();
         this.initDayViewTracking();
         this.initAnalyticsCharts();
+        this.initCardEntrance();
         this.initCopy();
         this.initMenus();
         this.initConfirm();
@@ -607,6 +608,8 @@ const app = {
             subtitle.textContent = freshSubtitle.textContent;
         }
 
+        this.initCardEntrance();
+
         // باکس‌هایی که کاربر باز کرده بود، باز بمانند
         document.querySelectorAll('details[id]').forEach((details) => {
             details.open = openIds.has(details.id);
@@ -616,6 +619,16 @@ const app = {
         this.init();
 
         return message;
+    },
+
+    /* انیمیشن ورود کارت‌ها: هر کارت کمی دیرتر از قبلی ظاهر می‌شود.
+       بعد از رفرش جزئی بخش‌ها هم کارت‌های تازه همان‌طور می‌آیند. */
+    initCardEntrance() {
+        document.querySelectorAll('.card, .day-card').forEach((el, index) => {
+            if (el.dataset.entered) return;
+            el.dataset.entered = '1';
+            el.style.animationDelay = `${Math.min(index, 10) * 45}ms`;
+        });
     },
 
     /* نمودارهای صفحهٔ «آمار بازدید» با chart.js — فقط همان‌جا بارگذاری می‌شود */
@@ -641,10 +654,10 @@ const app = {
                 data: {
                     labels: data.daily.labels,
                     datasets: [
-                        { label: 'صفحه چالش', data: data.daily.challenge, borderColor: '#11735b', backgroundColor: 'rgba(17, 115, 91, 0.12)', fill: true, tension: 0.35, pointRadius: 2 },
-                        { label: 'کارت روز', data: data.daily.day, borderColor: '#cead60', backgroundColor: 'rgba(206, 173, 96, 0.12)', fill: true, tension: 0.35, pointRadius: 2 },
-                        { label: 'داشبورد شرکت‌کننده', data: data.daily.dashboard, borderColor: '#508d42', backgroundColor: 'rgba(80, 141, 66, 0.12)', fill: true, tension: 0.35, pointRadius: 2 },
-                        { label: 'صفحه اصلی', data: data.daily.home, borderColor: '#075741', backgroundColor: 'rgba(7, 87, 65, 0.10)', fill: true, tension: 0.35, pointRadius: 2 },
+                        { label: 'صفحه چالش', data: data.daily.challenge, borderColor: '#659287', backgroundColor: 'rgba(101, 146, 135, 0.14)', fill: true, tension: 0.35, pointRadius: 2 },
+                        { label: 'کارت روز', data: data.daily.day, borderColor: '#D9B96E', backgroundColor: 'rgba(217, 185, 110, 0.14)', fill: true, tension: 0.35, pointRadius: 2 },
+                        { label: 'داشبورد شرکت‌کننده', data: data.daily.dashboard, borderColor: '#A8B89A', backgroundColor: 'rgba(168, 184, 154, 0.16)', fill: true, tension: 0.35, pointRadius: 2 },
+                        { label: 'صفحه اصلی', data: data.daily.home, borderColor: '#4E7268', backgroundColor: 'rgba(78, 114, 104, 0.12)', fill: true, tension: 0.35, pointRadius: 2 },
                     ],
                 },
                 options: {
@@ -663,7 +676,7 @@ const app = {
                 type: 'bar',
                 data: {
                     labels: data.monthly.labels,
-                    datasets: [{ label: 'بازدید ماه', data: data.monthly.totals, backgroundColor: 'rgba(206, 173, 96, 0.75)', borderColor: '#cead60', borderWidth: 1, borderRadius: 8 }],
+                    datasets: [{ label: 'بازدید ماه', data: data.monthly.totals, backgroundColor: 'rgba(217, 185, 110, 0.75)', borderColor: '#D9B96E', borderWidth: 1, borderRadius: 8 }],
                 },
                 options: {
                     responsive: true,
@@ -680,7 +693,7 @@ const app = {
                 type: 'doughnut',
                 data: {
                     labels: data.types.labels,
-                    datasets: [{ data: data.types.totals, backgroundColor: ['#11735b', '#cead60', '#508d42', '#075741'], borderColor: '#fffefa', borderWidth: 2 }],
+                    datasets: [{ data: data.types.totals, backgroundColor: ['#659287', '#D9B96E', '#A8B89A', '#4E7268'], borderColor: '#ffffff', borderWidth: 2 }],
                 },
                 options: {
                     responsive: true,
@@ -703,7 +716,7 @@ const app = {
                 type: 'bar',
                 data: {
                     labels: data.challenges.labels,
-                    datasets: [{ label: 'بازدید ۳۰ روز', data: data.challenges.totals, backgroundColor: 'rgba(17, 115, 91, 0.75)', borderColor: '#11735b', borderWidth: 1, borderRadius: 8 }],
+                    datasets: [{ label: 'بازدید ۳۰ روز', data: data.challenges.totals, backgroundColor: 'rgba(101, 146, 135, 0.75)', borderColor: '#659287', borderWidth: 1, borderRadius: 8 }],
                 },
                 options: {
                     indexAxis: 'y',

@@ -49,10 +49,13 @@ class PanelDayModalsTest extends TestCase
 
         $this->assertStringContainsString('day-group-head', $html);
 
+        // فلش کنار آیتم فعال سایدبار حذف شده است
+        $this->assertStringNotContainsString('◂', $html);
+
         // همه گروه‌های داخل روز به‌طور پیش‌فرض بسته‌اند (بدون open)
         foreach (['title', 'tasks', 'questions', 'tips', 'files'] as $group) {
-            $this->assertStringNotContainsString('id="day-1-'.$group.'" class="day-group rounded-2xl bg-cream/70 ring-1 ring-line" open', $html);
-            $this->assertStringNotContainsString('id="day-1-'.$group.'" class="day-group rounded-2xl bg-paper/80 ring-1 ring-gold/40" open', $html);
+            $this->assertStringNotContainsString('id="day-1-'.$group.'" class="day-group rounded-2xl bg-cream/70" open', $html);
+            $this->assertStringNotContainsString('id="day-1-'.$group.'" class="day-group rounded-2xl bg-paper/80" open', $html);
         }
     }
 
@@ -131,6 +134,9 @@ class PanelDayModalsTest extends TestCase
         $this->assertStringContainsString('data-stay-open', $js);
         $this->assertStringContainsString('resetModalForm', $js);
         $this->assertStringContainsString('data-modal-heading', $js);
+        // انیمیشن ورود کارت‌ها
+        $this->assertStringContainsString('initCardEntrance', $js);
+        $this->assertStringContainsString('animationDelay', $js);
     }
 
     public function test_the_modal_styles_are_in_the_built_css(): void
@@ -159,5 +165,16 @@ class PanelDayModalsTest extends TestCase
         $dayBodyCss = substr($css, (int) strpos($css, '.day-body{'));
         $dayBodyCss = substr($dayBodyCss, 0, (int) strpos($dayBodyCss, '}'));
         $this->assertStringContainsString('padding-top', $dayBodyCss);
+
+        // کارت‌ها بدون حاشیه‌اند، سایه دارند و با انیمیشن ورود می‌آیند
+        $this->assertStringContainsString('.card{box-shadow:', $css);
+        $this->assertStringContainsString('card-in', $css);
+        $this->assertSame(0, preg_match('/\.card\{[^}]*ring-line[^}]*\}/', $css));
+
+        // آیتم فعال سایدبار: برجسته با سایه، بدون حاشیه
+        $activeCss = substr($css, (int) strpos($css, '.sidebar-link.is-active{'));
+        $activeCss = substr($activeCss, 0, (int) strpos($activeCss, '}'));
+        $this->assertStringContainsString('box-shadow', $activeCss);
+        $this->assertStringNotContainsString('ring', $activeCss);
     }
 }

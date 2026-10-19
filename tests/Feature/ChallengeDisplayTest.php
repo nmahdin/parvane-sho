@@ -175,7 +175,7 @@ class ChallengeDisplayTest extends TestCase
         $this->assertFileExists(public_path('favicon.ico'));
         $this->assertFileExists(public_path('apple-touch-icon.png'));
 
-        $this->assertStringContainsString('#11735b', file_get_contents($svg));
+        $this->assertStringContainsString('#659287', file_get_contents($svg));
 
         // همه صفحات (سایت و پنل) آیکون را معرفی می‌کنند و لوگو با تصویر پروانه است
         $this->get(route('home'))->assertOk()->assertSee('favicon.svg', false);
