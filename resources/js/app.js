@@ -12,6 +12,7 @@ const app = {
         this.initAnalyticsCharts();
         this.initCardEntrance();
         this.initDayCardAnimation();
+        this.initPageLoader();
         this.initCopy();
         this.initMenus();
         this.initConfirm();
@@ -735,6 +736,50 @@ const app = {
 
     /* آمار بازدید: وقتی کارت روز باز می‌شود، یک beacon کوچک «دیده‌شدن روز»
        می‌فرستد (یک‌بار در هر نشست مرورگر، برای هر روز و هر چالش). */
+    /* نوار بارگذاری هنگام جابه‌جایی بین صفحات (لینک‌ها و فرم‌های غیر AJAX) */
+    initPageLoader() {
+        let showTimer = null;
+
+        const show = () => {
+            if (document.getElementById('page-loader')) return;
+            const bar = document.createElement('div');
+            bar.id = 'page-loader';
+            bar.setAttribute('aria-hidden', 'true');
+            document.body.appendChild(bar);
+        };
+
+        const hide = () => {
+            clearTimeout(showTimer);
+            document.getElementById('page-loader')?.remove();
+        };
+
+        document.addEventListener('click', (event) => {
+            if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+            const link = event.target.closest('a[href]');
+            if (!link || link.target === '_blank' || link.hasAttribute('download')) return;
+
+            const href = link.getAttribute('href') || '';
+            if (!href || href.startsWith('#') || href.startsWith('javascript:') || href.startsWith('mailto:')) return;
+
+            const url = new URL(link.href, window.location.href);
+            if (url.origin !== window.location.origin) return;
+
+            clearTimeout(showTimer);
+            showTimer = setTimeout(show, 180);
+        });
+
+        document.addEventListener('submit', (event) => {
+            const form = event.target;
+            if (form.hasAttribute('data-ajax-save') || form.hasAttribute('data-stay-open')) return;
+            clearTimeout(showTimer);
+            showTimer = setTimeout(show, 180);
+        });
+
+        // بازگشت از bfcache یا لغو ناوبری
+        window.addEventListener('pageshow', hide);
+        window.addEventListener('pagehide', hide);
+    },
+
     /* باز و بسته شدن نرم کارت روزها در سایت: ارتفاع با انیمیشن جمع/باز
        می‌شود و محتوای روز کمی محو/نمایان می‌شود. */
     initDayCardAnimation() {

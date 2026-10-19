@@ -314,6 +314,37 @@
         }
     }
 
+    /* نوار بارگذاری صفحه — هنگام جابه‌جایی بین صفحات */
+    #page-loader {
+        position: fixed;
+        inset-inline: 0;
+        top: 0;
+        z-index: 90;
+        height: 3px;
+        overflow: hidden;
+        pointer-events: none;
+    }
+
+    #page-loader::before {
+        content: '';
+        display: block;
+        height: 100%;
+        width: 40%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, var(--color-jade), var(--color-leaf));
+        animation: page-loader-slide 1s ease-in-out infinite;
+    }
+
+    @keyframes page-loader-slide {
+        from {
+            transform: translateX(-100%);
+        }
+
+        to {
+            transform: translateX(250%);
+        }
+    }
+
     /* نوار پیشرفت آپلود فایل (بالای صفحه) */
     .upload-progress {
         position: fixed;
@@ -394,8 +425,8 @@
     }
 
     .sidebar-link.is-active {
-        @apply font-semibold text-forest;
-        background-color: var(--color-cream);
+        @apply font-semibold text-white;
+        background-color: var(--color-jade);
         box-shadow: 0 2px 4px rgb(78 114 104 / 0.10), 0 12px 24px -14px rgb(78 114 104 / 0.45);
     }
 

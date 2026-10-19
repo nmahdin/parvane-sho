@@ -78,7 +78,7 @@
     </section>
 
     {{-- ناوبری بخش‌های چالش --}}
-    <nav class="sticky top-[4.5rem] z-20 flex gap-2 overflow-x-auto rounded-3xl bg-paper p-3 surface">
+    <nav class="sticky top-[4.5rem] z-30 flex gap-2 overflow-x-auto rounded-3xl bg-paper p-3 surface">
         @foreach ([
             ['#days', '📅 روزها، کارها و پرسش‌ها'],
             ['#tips', '💡 نکات'],

@@ -58,7 +58,9 @@ class PanelDayModalsTest extends TestCase
 
         // هدر اصلی همیشه چسبان است و ناوبری بخش‌ها زیر آن فیکس می‌شود
         $this->assertStringNotContainsString('lg:static', $html);
-        $this->assertStringContainsString('sticky top-[4.5rem] z-20', $html);
+        // ناوبری بالاتر از هدر نقاشی می‌شود تا سایهٔ هدر رویش نیفتد
+        $this->assertStringContainsString('sticky top-[4.5rem] z-30', $html);
+        $this->assertStringContainsString('sticky top-0 z-20', $html);
 
         // همه گروه‌های داخل روز به‌طور پیش‌فرض بسته‌اند (بدون open)
         foreach (['title', 'tasks', 'questions', 'tips', 'files'] as $group) {
@@ -148,6 +150,8 @@ class PanelDayModalsTest extends TestCase
         $this->assertStringContainsString('.card, .day-card, .day-group, .surface', $js);
         // انیمیشن نرم باز/بسته شدن کارت روزها
         $this->assertStringContainsString('initDayCardAnimation', $js);
+        // نوار بارگذاری هنگام جابه‌جایی بین صفحات
+        $this->assertStringContainsString('initPageLoader', $js);
         $this->assertStringContainsString('details.day-card', $js);
     }
 
@@ -189,10 +193,13 @@ class PanelDayModalsTest extends TestCase
 
         // سایدبار سفید و آیتم فعال #F6F6F2
         $this->assertSame(1, preg_match('/\.panel-sidebar\{[^}]*background-color:var\(--color-paper\)/', $css));
-        $this->assertSame(1, preg_match('/\.sidebar-link\.is-active\{[^}]*background-color:var\(--color-cream\)/', $css));
+        $this->assertSame(1, preg_match('/\.sidebar-link\.is-active\{[^}]*background-color:var\(--color-jade\)/', $css));
 
         // رندر تنبل کارت‌های روز برای لود سریع‌تر صفحات طولانی
         $this->assertStringContainsString('content-visibility:auto', $css);
+
+        // نوار بارگذاری صفحه
+        $this->assertStringContainsString('page-loader', $css);
 
         // پالت پررنگ‌تر و حذف نوار کناری ریل‌ها
         $this->assertStringContainsString('#b8c9a3', strtolower($css));
