@@ -7,8 +7,7 @@
     <meta name="robots" content="noindex, nofollow">
     <meta name="theme-color" content="#659287">
 
-    <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
-    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="16x16 32x32 48x48">
+    <x-head-extras />
     <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
 
     <title>@yield('title', 'پنل مدیریت') — {{ $site['site_name'] ?? config('panel.site_name') }}</title>
@@ -39,7 +38,7 @@
         <aside class="hidden w-64 shrink-0 lg:block">
             <div class="panel-sidebar sticky top-6">
                 <a href="{{ route('panel.dashboard') }}" class="flex items-center gap-3 border-b border-line px-4 py-4">
-                    <img src="{{ asset('favicon.svg') }}" alt="پنل مدیریت" class="size-10 rounded-2xl bg-white p-1.5 shadow-sm" loading="lazy" decoding="async">
+                    <img src="{{ \App\Models\Setting::get('site_logo') ? route('branding', 'logo') : asset('favicon.svg') }}" alt="پنل مدیریت" class="size-10 rounded-2xl bg-white p-1.5 shadow-sm" loading="lazy" decoding="async">
                     <span class="min-w-0">
                         <span class="block truncate text-sm font-semibold text-ink">{{ $site['site_name'] ?? config('panel.site_name') }}</span>
                         <span class="block text-[11px] text-hint">پنل مدیریت چالش‌ها</span>

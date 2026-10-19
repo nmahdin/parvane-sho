@@ -78,7 +78,31 @@
    ---------------------------------------------------------------------- */
 @layer components {
     .btn {
-        @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60;
+        @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-60;
+        transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease;
+    }
+
+    /* حس لمسی: همهٔ دکمه‌ها و کنترل‌های کلیک‌شدنی کمی فرو می‌روند */
+    .btn:active,
+    .sidebar-link:active,
+    .day-chev:active,
+    .audio-play:active,
+    .audio-download:active,
+    .action-menu > summary:active,
+    .mobile-tab:active {
+        transform: translateY(1px) scale(0.97);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .btn:active,
+        .sidebar-link:active,
+        .day-chev:active,
+        .audio-play:active,
+        .audio-download:active,
+        .action-menu > summary:active,
+        .mobile-tab:active {
+            transform: none;
+        }
     }
 
     .btn-primary {
@@ -131,11 +155,21 @@
         box-shadow: 0 1px 2px rgb(78 114 104 / 0.05), 0 16px 32px -24px rgb(78 114 104 / 0.30);
     }
 
+    /* بدون جاوااسکریپت هم کارت‌ها یک‌بار آرام ظاهر می‌شوند */
     .card,
     .day-card,
     .day-group,
     .surface {
         animation: card-in 0.5s cubic-bezier(0.22, 0.8, 0.36, 1) both;
+    }
+
+    /* با جاوااسکریپت: انیمیشن «مکث» شروع می‌شود تا تأخیر پله‌ای بدون پرش
+       اعمال شود — کارت هرگز پیش از انیمیشن دیده نمی‌شود. */
+    .has-js .card,
+    .has-js .day-card,
+    .has-js .day-group,
+    .has-js .surface {
+        animation-play-state: paused;
     }
 
     @media (prefers-reduced-motion: reduce) {
@@ -354,6 +388,167 @@
     .tip-anchor:focus-visible .tip-bubble {
         opacity: 1;
         transform: translateX(50%) translateY(0);
+    }
+
+    /* اسکلتون — جای خالی محتوایی که هنوز نرسیده */
+    .skeleton {
+        border-radius: var(--radius-xl);
+        background: linear-gradient(100deg, var(--color-cream) 40%, var(--color-line) 50%, var(--color-cream) 60%);
+        background-size: 200% 100%;
+        animation: skeleton-shimmer 1.4s ease-in-out infinite;
+    }
+
+    @keyframes skeleton-shimmer {
+        to {
+            background-position: -200% 0;
+        }
+    }
+
+    /* روکش «در حال بارگذاری» روی بخشی که با AJAX تازه می‌شود */
+    .section-loading {
+        position: absolute;
+        inset: 0;
+        z-index: 25;
+        display: grid;
+        place-items: center;
+        gap: 0.5rem;
+        border-radius: inherit;
+        background-color: rgb(255 255 255 / 0.72);
+        backdrop-filter: blur(2px);
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--color-forest);
+    }
+
+    .section-loading::before {
+        content: '';
+        width: 1.4rem;
+        height: 1.4rem;
+        border-radius: 999px;
+        border: 2.5px solid var(--color-line);
+        border-top-color: var(--color-jade);
+        animation: section-spin 0.8s linear infinite;
+    }
+
+    @keyframes section-spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    /* جعبهٔ نمودار تا آماده شدن chart.js ضربان دارد */
+    .chart-box {
+        border-radius: var(--radius-2xl);
+        background: linear-gradient(100deg, var(--color-cream) 40%, var(--color-line) 50%, var(--color-cream) 60%);
+        background-size: 200% 100%;
+        animation: skeleton-shimmer 1.4s ease-in-out infinite;
+    }
+
+    .chart-box.is-ready {
+        animation: none;
+        background: none;
+    }
+
+    /* چیپ «در حال بارگذاری» صفحه نمایش اطلاعات */
+    .page-chip {
+        position: fixed;
+        bottom: 1.25rem;
+        inset-inline-start: 50%;
+        transform: translateX(50%);
+        z-index: 60;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.55rem 1rem;
+        border-radius: 999px;
+        background-color: var(--color-ink);
+        color: #fff;
+        font-size: 12px;
+        font-weight: 600;
+        box-shadow: 0 14px 30px -14px rgb(47 62 56 / 0.5);
+        transition: opacity 0.3s ease;
+    }
+
+    .page-chip::before {
+        content: '';
+        width: 0.9rem;
+        height: 0.9rem;
+        border-radius: 999px;
+        border: 2px solid rgb(255 255 255 / 0.35);
+        border-top-color: var(--color-leaf);
+        animation: section-spin 0.8s linear infinite;
+    }
+
+    .page-chip.is-out {
+        opacity: 0;
+    }
+
+    /* منوی عملیات (فهرست چالش‌ها) */
+    .action-menu {
+        position: relative;
+    }
+
+    .action-menu > summary {
+        list-style: none;
+        cursor: pointer;
+    }
+
+    .action-menu > summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .action-menu-panel {
+        position: absolute;
+        inset-inline-end: 0;
+        top: calc(100% + 6px);
+        z-index: 45;
+        min-width: 11rem;
+        padding: 0.4rem;
+        border-radius: var(--radius-2xl);
+        background-color: var(--color-paper);
+        box-shadow: 0 1px 2px rgb(78 114 104 / 0.08), 0 18px 36px -20px rgb(78 114 104 / 0.4);
+        animation: menu-in 0.16s ease-out;
+    }
+
+    @keyframes menu-in {
+        from {
+            opacity: 0;
+            transform: translateY(-4px);
+        }
+
+        to {
+            opacity: 1;
+            transform: none;
+        }
+    }
+
+    .action-menu-panel a,
+    .action-menu-panel button {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        gap: 0.5rem;
+        border-radius: var(--radius-xl);
+        padding: 0.5rem 0.65rem;
+        font-size: 12px;
+        text-align: right;
+        color: var(--color-ink);
+        transition: background-color 0.12s ease, color 0.12s ease;
+    }
+
+    .action-menu-panel a:hover,
+    .action-menu-panel button:hover {
+        background-color: var(--color-cream);
+        color: var(--color-forest);
+    }
+
+    .action-menu-panel .is-danger,
+    .action-menu-panel .is-danger:hover {
+        color: var(--color-danger);
+    }
+
+    .action-menu-panel .is-danger:hover {
+        background-color: var(--color-danger-soft);
     }
 
     /* نوار بارگذاری صفحه — هنگام جابه‌جایی بین صفحات */

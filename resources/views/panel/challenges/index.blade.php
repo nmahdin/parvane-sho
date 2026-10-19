@@ -76,21 +76,30 @@
                                 <td data-label="پیشرفت"><x-progress-bar :percent="$challenge->progressPercent()" :class="$challenge->styleValue('bar')" show-label /></td>
 
                                 <td data-label="">
-                                    <div class="flex items-center justify-end gap-1">
+                                    <div class="flex items-center justify-end gap-1" data-action-menu data-challenge-actions="{{ $challenge->id }}">
                                         <a href="{{ route('panel.challenges.show', $challenge) }}" class="btn btn-ghost btn-sm">مدیریت</a>
-                                        <a href="{{ route('panel.challenges.edit', $challenge) }}" class="btn btn-ghost btn-sm">ویرایش</a>
 
-                                        <form method="POST" action="{{ route('panel.challenges.publish', $challenge) }}">
-                                            @csrf
-                                            @method('PATCH')
-                                            <button type="submit" class="btn btn-ghost btn-sm">{{ $challenge->is_published ? 'پنهان کن' : 'منتشر کن' }}</button>
-                                        </form>
+                                        <details class="action-menu">
+                                            <summary class="btn btn-ghost btn-sm" aria-label="عملیات چالش {{ $challenge->title }}">عملیات ▾</summary>
 
-                                        <form method="POST" action="{{ route('panel.challenges.destroy', $challenge) }}" data-confirm="چالش «{{ $challenge->title }}» و همه شرکت‌کننده‌ها و پیشرفت‌هایش حذف شود؟">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-danger btn-sm">حذف</button>
-                                        </form>
+                                            <div class="action-menu-panel">
+                                                <a href="{{ route('panel.challenges.show', $challenge) }}">📋 مدیریت روزها و محتوا</a>
+                                                <a href="{{ route('panel.challenges.edit', $challenge) }}">✏️ ویرایش چالش</a>
+                                                <a href="{{ route('challenges.show', $challenge) }}" target="_blank" rel="noopener">🌐 دیدن صفحه عمومی</a>
+
+                                                <form method="POST" action="{{ route('panel.challenges.publish', $challenge) }}">
+                                                    @csrf
+                                                    @method('PATCH')
+                                                    <button type="submit">{{ $challenge->is_published ? '🙈 پنهان کردن' : '📢 منتشر کردن' }}</button>
+                                                </form>
+
+                                                <form method="POST" action="{{ route('panel.challenges.destroy', $challenge) }}" data-confirm="چالش «{{ $challenge->title }}» و همه شرکت‌کننده‌ها و پیشرفت‌هایش حذف شود؟">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="is-danger">🗑 حذف چالش</button>
+                                                </form>
+                                            </div>
+                                        </details>
                                     </div>
                                 </td>
                             </tr>

@@ -37,6 +37,38 @@ class Setting extends Model
     }
 
     /**
+     * متن‌های پیش‌فرض صفحه اصلی (قابل مدیریت از پنل).
+     */
+    public const HOME_DEFAULTS = [
+        'home_hero_line' => 'هر روز یک قدم کوچک، یک تغییر واقعی',
+        'home_cta_primary' => 'دیدن چالش‌ها',
+        'home_cta_secondary' => 'کد اختصاصی من را دارم',
+        'home_why_title' => 'چرا با هم و در چالش؟',
+        'home_banner_title' => 'آماده‌ای امروز شروع کنی؟',
+        'home_banner_text' => 'چالش‌ها را ببین، چالشی که به تو نزدیک است را انتخاب کن و همان امروز اولین قدم را بردار.',
+    ];
+
+    /**
+     * محتوای صفحه اصلی: ذخیره‌شده‌ها روی پیش‌فرض‌ها.
+     *
+     * @return array<string, string>
+     */
+    public static function home(): array
+    {
+        $content = self::HOME_DEFAULTS;
+
+        foreach (array_keys(self::HOME_DEFAULTS) as $key) {
+            $stored = trim((string) static::get($key, ''));
+
+            if ($stored !== '') {
+                $content[$key] = $stored;
+            }
+        }
+
+        return $content;
+    }
+
+    /**
      * رنگ‌های پیش‌فرض سایت (همان توکن‌های resources/css/app.css).
      */
     public const THEME_DEFAULTS = [

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\BrandingController;
 use App\Http\Controllers\ChallengeController;
 use App\Http\Controllers\ChallengeFileController;
 use App\Http\Controllers\DayFileController as PublicDayFileController;
@@ -29,6 +30,7 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('branding/{kind}', [BrandingController::class, 'show'])->name('branding');
 
 Route::get('/challenges', [ChallengeController::class, 'index'])->name('challenges.index');
 Route::get('/challenges/{challenge}', [ChallengeController::class, 'show'])->name('challenges.show');
@@ -128,6 +130,8 @@ Route::prefix('panel')->name('panel.')->group(function () {
         Route::get('settings', [SettingController::class, 'edit'])->name('settings.edit');
         Route::put('settings', [SettingController::class, 'update'])->name('settings.update');
         Route::put('settings/theme', [SettingController::class, 'updateTheme'])->name('settings.theme');
+        Route::post('settings/branding', [SettingController::class, 'updateBranding'])->name('settings.branding');
+        Route::put('settings/home', [SettingController::class, 'updateHome'])->name('settings.home');
         Route::put('settings/password', [SettingController::class, 'updatePassword'])->name('settings.password');
         Route::patch('settings/maintenance', [SettingController::class, 'toggleMaintenance'])->name('settings.maintenance');
 

@@ -41,10 +41,9 @@
             <span class="text-xs text-muted">بازهٔ زمانی:</span>
 
             @php
-                $keep = array_filter([
-                    'challenge' => $selected?->id,
-                    'type' => $type,
-                ], fn ($v) => filled($v));
+                $keep = [];
+                if (filled($selected?->id)) { $keep['challenge'] = $selected->id; }
+                if (filled($type)) { $keep['type'] = $type; }
             @endphp
 
             @foreach ($rangeOptions as $days => $label)
@@ -101,7 +100,7 @@
             </div>
         </div>
 
-        <div class="mt-4" style="height: 19rem">
+        <div class="mt-4 chart-box" style="height: 19rem">
             <canvas id="chart-daily" role="img" aria-label="نمودار خطی بازدید روزانه ۳۰ روز اخیر"></canvas>
         </div>
 
@@ -109,7 +108,7 @@
             <div>
                 <h3 class="text-sm font-semibold text-ink">جمع ماهانه (شمسی)</h3>
                 <p class="mt-0.5 text-[11px] text-hint">در بازهٔ انتخابی، تا دوازده ماه.</p>
-                <div class="mt-3" style="height: 13rem">
+                <div class="mt-3 chart-box" style="height: 13rem">
                     <canvas id="chart-monthly" role="img" aria-label="نمودار ستونی جمع ماهانه"></canvas>
                 </div>
             </div>
@@ -117,7 +116,7 @@
             <div>
                 <h3 class="text-sm font-semibold text-ink">سهم هر نوع بازدید (بازهٔ انتخابی)</h3>
                 <p class="mt-0.5 text-[11px] text-hint">صفحه چالش، باز شدن کارت روز، داشبورد و صفحه اصلی.</p>
-                <div class="mt-3" style="height: 13rem">
+                <div class="mt-3 chart-box" style="height: 13rem">
                     <canvas id="chart-types" role="img" aria-label="نمودار دونات سهم انواع بازدید"></canvas>
                 </div>
             </div>
@@ -126,7 +125,7 @@
         @if (! $selected && $perChallenge->isNotEmpty())
             <div class="mt-6">
                 <h3 class="text-sm font-semibold text-ink">پربازدیدترین چالش‌ها (۳۰ روز اخیر)</h3>
-                <div class="mt-3" style="height: 15rem">
+                <div class="mt-3 chart-box" style="height: 15rem">
                     <canvas id="chart-challenges" role="img" aria-label="نمودار ستونی بازدید چالش‌ها"></canvas>
                 </div>
             </div>

@@ -13,6 +13,9 @@ const app = {
         this.initCardEntrance();
         this.initDayCardAnimation();
         this.initPageLoader();
+        this.initSidebarTransition();
+        this.initPageReadyChip();
+        this.initActionMenus();
         this.initCopy();
         this.initMenus();
         this.initConfirm();
@@ -583,11 +586,30 @@ const app = {
             Array.from(document.querySelectorAll('details[open][id]')).map((details) => details.id)
         );
 
-        const response = await fetch(window.location.href, {
-            headers: { 'X-Panel-Refresh': '1' },
+        const overlays = [];
+
+        ['challenge-stats', 'tasks', 'tips'].forEach((id) => {
+            const section = document.getElementById(id);
+            if (!section) return;
+            section.style.position = 'relative';
+            const overlay = document.createElement('div');
+            overlay.className = 'section-loading';
+            overlay.textContent = 'در حال بارگذاری…';
+            section.appendChild(overlay);
+            overlays.push(overlay);
         });
 
-        const parsed = new DOMParser().parseFromString(await response.text(), 'text/html');
+        let parsed;
+
+        try {
+            const response = await fetch(window.location.href, {
+                headers: { 'X-Panel-Refresh': '1' },
+            });
+
+            parsed = new DOMParser().parseFromString(await response.text(), 'text/html');
+        } finally {
+            overlays.forEach((overlay) => overlay.remove());
+        }
 
         const flash = parsed.querySelector('[data-flash]');
         const message = flash
@@ -631,6 +653,8 @@ const app = {
             if (el.dataset.entered) return;
             el.dataset.entered = '1';
             el.style.animationDelay = `${Math.min(index, 10) * 45}ms`;
+            // انیمیشن از ابتدا «مکث» بود؛ حالا با تأخیر درست پخش می‌شود
+            el.style.animationPlayState = 'running';
         });
     },
 
@@ -638,6 +662,8 @@ const app = {
     initAnalyticsCharts() {
         const dataTag = document.getElementById('analytics-data');
         if (!dataTag) return;
+
+        const chartReady = () => document.querySelectorAll('.chart-box').forEach((box) => box.classList.add('is-ready'));
 
         import('chart.js/auto').then(({ default: Chart }) => {
             const data = JSON.parse(dataTag.textContent);
@@ -655,6 +681,7 @@ const app = {
             Chart.defaults.plugins.tooltip.displayColors = true;
             Chart.defaults.plugins.tooltip.boxPadding = 4;
             Chart.defaults.animation = { duration: 700, easing: 'easeOutQuart' };
+            chartReady();
 
             const grid = { color: 'rgba(202, 220, 193, 0.5)' };
 
@@ -743,6 +770,91 @@ const app = {
 
     /* آمار بازدید: وقتی کارت روز باز می‌شود، یک beacon کوچک «دیده‌شدن روز»
        می‌فرستد (یک‌بار در هر نشست مرورگر، برای هر روز و هر چالش). */
+    /* جابه‌جانی انتخاب سایدبار: نشانگر از جای قبلی به آیتم تازه سُر می‌خورد */
+    initSidebarTransition() {
+        const links = Array.from(document.querySelectorAll('.sidebar-link'));
+        if (!links.length) return;
+
+        const active = document.querySelector('.sidebar-link.is-active');
+        const key = 'sidebar-nav-from';
+
+        links.forEach((link) => {
+            link.addEventListener('click', (event) => {
+                if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+                const href = link.getAttribute('href') || '';
+                if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
+
+                const source = active || link;
+                const rect = source.getBoundingClientRect();
+                sessionStorage.setItem(key, JSON.stringify({
+                    top: rect.top + window.scrollY,
+                    height: rect.height,
+                }));
+            });
+        });
+
+        const savedRaw = sessionStorage.getItem(key);
+        if (!savedRaw || !active) return;
+        sessionStorage.removeItem(key);
+
+        let saved;
+        try {
+            saved = JSON.parse(savedRaw);
+        } catch {
+            return;
+        }
+
+        const rect = active.getBoundingClientRect();
+        const offset = saved.top - (rect.top + window.scrollY);
+        if (!offset || Math.abs(offset) < 4 || typeof active.animate !== 'function') return;
+
+        active.animate(
+            [
+                { transform: `translateY(${offset}px)`, boxShadow: 'none', offset: 0 },
+                { transform: 'translateY(0)', offset: 1 },
+            ],
+            { duration: 420, easing: 'cubic-bezier(0.22, 0.8, 0.36, 1)' }
+        );
+    },
+
+    /* چیپ «در حال بارگذاری…» در صفحه نمایش اطلاعات (صفحه عمومی چالش) */
+    initPageReadyChip() {
+        const chip = document.getElementById('page-loading-chip');
+        if (!chip) return;
+
+        const hide = () => {
+            chip.classList.add('is-out');
+            setTimeout(() => chip.remove(), 320);
+        };
+
+        if (document.readyState === 'complete') {
+            hide();
+            return;
+        }
+
+        chip.hidden = false;
+        window.addEventListener('load', hide, { once: true });
+        // اطمینان: حتی اگر منبعی گیر کرد، چیپ برای همیشه نماند
+        setTimeout(hide, 8000);
+    },
+
+    /* منوی عملیات: با کلیک بیرون بسته می‌شود */
+    initActionMenus() {
+        document.addEventListener('click', (event) => {
+            document.querySelectorAll('details.action-menu[open]').forEach((menu) => {
+                if (!menu.contains(event.target)) menu.open = false;
+            });
+        });
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') {
+                document.querySelectorAll('details.action-menu[open]').forEach((menu) => {
+                    menu.open = false;
+                });
+            }
+        });
+    },
+
     /* نوار بارگذاری هنگام جابه‌جایی بین صفحات (لینک‌ها و فرم‌های غیر AJAX) */
     initPageLoader() {
         let showTimer = null;

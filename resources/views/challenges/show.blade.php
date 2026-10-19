@@ -28,6 +28,8 @@
 @section('description', $challenge->tagline ?: $challenge->title)
 
 @section('content')
+    {{-- تا کامل بارگذاری شدن صفحه (تصویرها و صوت‌ها) این چیپ دیده می‌شود --}}
+    <div id="page-loading-chip" class="page-chip" hidden>در حال بارگذاری…</div>
     <section class="mx-auto max-w-6xl px-4 pt-8 sm:px-6">
         <nav class="no-print text-xs text-hint">
             <a href="{{ route('home') }}" class="hover:text-brand-700">خانه</a>

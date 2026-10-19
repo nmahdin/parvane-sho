@@ -11,8 +11,7 @@
     <meta name="robots" content="noindex, nofollow">
     <meta name="theme-color" content="#659287">
 
-    <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
-    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="16x16 32x32 48x48">
+    <x-head-extras />
     <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
 
     <title>{{ $title }} — {{ config('panel.site_name') }}</title>
@@ -22,7 +21,7 @@
 <body class="grid min-h-screen place-items-center bg-canvas px-4 py-10">
     <div class="w-full max-w-lg text-center">
         <a href="{{ route('home') }}" class="inline-flex items-center gap-3">
-            <img src="{{ asset('favicon.svg') }}" alt="{{ config('panel.site_name') }}" class="size-12 rounded-2xl bg-white p-2 shadow-sm" loading="lazy" decoding="async">
+            <img src="{{ \App\Models\Setting::get('site_logo') ? route('branding', 'logo') : asset('favicon.svg') }}" alt="{{ config('panel.site_name') }}" class="size-12 rounded-2xl bg-white p-2 shadow-sm" loading="lazy" decoding="async">
             <span class="text-base font-semibold text-ink">{{ config('panel.site_name') }}</span>
         </a>
 

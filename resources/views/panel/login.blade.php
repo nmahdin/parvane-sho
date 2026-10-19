@@ -7,8 +7,7 @@
     <meta name="robots" content="noindex, nofollow">
     <meta name="theme-color" content="#659287">
 
-    <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
-    <link rel="icon" href="{{ asset('favicon.ico') }}" sizes="16x16 32x32 48x48">
+    <x-head-extras />
     <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
 
     <title>ورود به پنل مدیریت — {{ $site['site_name'] ?? config('panel.site_name') }}</title>
@@ -18,7 +17,7 @@
 <body class="grid min-h-screen place-items-center bg-gradient-to-tl from-forest via-jade to-leaf px-4 py-10">
     <div class="w-full max-w-md">
         <div class="mb-6 text-center text-white">
-            <span class="mx-auto grid size-16 place-items-center rounded-3xl bg-white shadow-lg"><img src="{{ asset('favicon.svg') }}" alt="{{ $site['site_name'] ?? config('panel.site_name') }}" class="size-11" loading="lazy" decoding="async"></span>
+            <span class="mx-auto grid size-16 place-items-center rounded-3xl bg-white shadow-lg"><img src="{{ \App\Models\Setting::get('site_logo') ? route('branding', 'logo') : asset('favicon.svg') }}" alt="{{ $site['site_name'] ?? config('panel.site_name') }}" class="size-11" loading="lazy" decoding="async"></span>
             <h1 class="mt-4 text-xl text-white">ورود به پنل {{ $site['site_name'] ?? config('panel.site_name') }}</h1>
         </div>
 

@@ -144,6 +144,97 @@
                 </form>
             </section>
 
+            {{-- لوگو و فاوآیکون --}}
+            <section class="card space-y-5">
+                <div>
+                    <h2 class="text-base">لوگو و فاوآیکون</h2>
+                    <p class="mt-1 text-xs text-muted">لوگو در سربرگ سایت، پنل و صفحه ورود نشان داده می‌شود؛ فاوآیکون همان آیکون تب مرورگر است.</p>
+                </div>
+
+                <form method="POST" action="{{ route('panel.settings.branding') }}" enctype="multipart/form-data" class="space-y-4">
+                    @csrf
+
+                    <div class="grid gap-4 sm:grid-cols-2">
+                        <div class="rounded-2xl bg-cream/70 p-4">
+                            <div class="flex items-center gap-4">
+                                <img src="{{ $branding['logo'] ? route('branding', 'logo').'?v='.urlencode($branding['logo']) : asset('favicon.svg') }}" alt="لوگوی فعلی" class="size-14 rounded-2xl bg-white p-1.5 shadow-sm">
+                                <div>
+                                    <p class="text-xs font-semibold text-ink">لوگو</p>
+                                    <p class="mt-0.5 text-[11px] text-muted">{{ $branding['logo'] ? 'فایل فعلی: '.$branding['logo'] : 'پیش‌فرض (پروانه)' }}</p>
+                                </div>
+                            </div>
+
+                            <label class="label mt-3" for="branding_logo">فایل تازه (png، jpg، webp یا svg — حداکثر ۲ مگابایت)</label>
+                            <input id="branding_logo" type="file" name="logo" accept="image/*" class="input">
+
+                            @if ($branding['logo'])
+                                <label class="mt-2 flex items-center gap-2 text-[11px] text-muted">
+                                    <input type="checkbox" name="remove_logo" value="1" class="size-4 rounded">
+                                    حذف لوگوی سفارشی و بازگشت به پروانهٔ پیش‌فرض
+                                </label>
+                            @endif
+                        </div>
+
+                        <div class="rounded-2xl bg-cream/70 p-4">
+                            <div class="flex items-center gap-4">
+                                <img src="{{ $branding['favicon'] ? route('branding', 'favicon').'?v='.urlencode($branding['favicon']) : asset('favicon.svg') }}" alt="فاوآیکون فعلی" class="size-14 rounded-2xl bg-white p-1.5 shadow-sm">
+                                <div>
+                                    <p class="text-xs font-semibold text-ink">فاوآیکون</p>
+                                    <p class="mt-0.5 text-[11px] text-muted">{{ $branding['favicon'] ? 'فایل فعلی: '.$branding['favicon'] : 'پیش‌فرض (پروانه)' }}</p>
+                                </div>
+                            </div>
+
+                            <label class="label mt-3" for="branding_favicon">فایل تازه (svg، png یا ico — حداکثر ۵۱۲ کیلوبایت)</label>
+                            <input id="branding_favicon" type="file" name="favicon" accept=".svg,.png,.ico,.webp,.jpg" class="input">
+
+                            @if ($branding['favicon'])
+                                <label class="mt-2 flex items-center gap-2 text-[11px] text-muted">
+                                    <input type="checkbox" name="remove_favicon" value="1" class="size-4 rounded">
+                                    حذف فاوآیکون سفارشی
+                                </label>
+                            @endif
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">ذخیره لوگو و فاوآیکون</button>
+                </form>
+            </section>
+
+            {{-- محتوای صفحه اصلی --}}
+            <section class="card space-y-5">
+                <div>
+                    <h2 class="text-base">محتوای صفحه اصلی</h2>
+                    <p class="mt-1 text-xs text-muted">این متن‌ها در صفحهٔ اول سایت نشان داده می‌شوند؛ خالی بگذاری، متن پیش‌فرض برمی‌گردد.</p>
+                </div>
+
+                <form method="POST" action="{{ route('panel.settings.home') }}" class="space-y-4">
+                    @csrf
+                    @method('PUT')
+
+                    @php
+                        $homeLabels = [
+                            'home_hero_line' => 'خط دوم تیتر بزرگ صفحه اول',
+                            'home_cta_primary' => 'دکمهٔ اصلی هیرو',
+                            'home_cta_secondary' => 'دکمهٔ دوم هیرو',
+                            'home_why_title' => 'تیتر بخش «چرا با هم»',
+                            'home_banner_title' => 'تیتر بنر پایانی',
+                            'home_banner_text' => 'متن بنر پایانی',
+                        ];
+                    @endphp
+
+                    @foreach ($homeLabels as $key => $label)
+                        <div>
+                            <label class="label" for="{{ $key }}">{{ $label }}</label>
+                            <input id="{{ $key }}" name="{{ $key }}" type="text" maxlength="500"
+                                   value="{{ old($key, $home[$key]) }}" class="input"
+                                   placeholder="{{ \App\Models\Setting::HOME_DEFAULTS[$key] }}">
+                        </div>
+                    @endforeach
+
+                    <button type="submit" class="btn btn-primary">ذخیره محتوای صفحه اصلی</button>
+                </form>
+            </section>
+
             {{-- حالت تعمیر سایت --}}
             <section class="card space-y-4 {{ $maintenanceMode ? 'ring-2 ring-gold' : '' }}">
                 <div class="flex flex-wrap items-start justify-between gap-4">

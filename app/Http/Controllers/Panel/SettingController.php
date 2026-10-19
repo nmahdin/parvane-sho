@@ -10,6 +10,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 
 class SettingController extends Controller
@@ -22,6 +23,11 @@ class SettingController extends Controller
             'site_name' => Setting::get('site_name', config('panel.site_name')),
             'site_tagline' => Setting::get('site_tagline', config('panel.site_tagline')),
             'site_about' => Setting::get('site_about', config('panel.site_about')),
+            'branding' => [
+                'logo' => Setting::get('site_logo'),
+                'favicon' => Setting::get('site_favicon'),
+            ],
+            'home' => Setting::home(),
             'themeColors' => Setting::themeColors(),
             'themeDefaults' => Setting::THEME_DEFAULTS,
             'maintenanceMode' => Setting::maintenanceMode(),
@@ -51,6 +57,90 @@ class SettingController extends Controller
         Setting::put('maintenance_message', trim((string) ($validated['maintenance_message'] ?? '')));
 
         return back()->with('status', 'تنظیمات سایت ذخیره شد.');
+    }
+
+    /**
+     * آپلود لوگو و فاوآیکون سایت (فقط مدیر اصلی).
+     */
+    public function updateBranding(Request $request): RedirectResponse
+    {
+        abort_unless($this->currentAdmin()->isSuper(), 403);
+
+        $validated = $request->validate([
+            'logo' => ['nullable', 'image', 'max:2048'],
+            'favicon' => ['nullable', 'file', 'mimes:svg,png,ico,x-icon,webp,jpg,jpeg', 'max:512'],
+            'remove_logo' => ['nullable', 'boolean'],
+            'remove_favicon' => ['nullable', 'boolean'],
+        ], [
+            'logo.image' => 'لوگو باید یک فایل تصویری باشد.',
+            'logo.max' => 'حجم لوگو حداکثر ۲ مگابایت است.',
+            'favicon.mimes' => 'فاوآیکون باید svg، png، ico، webp یا jpg باشد.',
+            'favicon.max' => 'حجم فاوآیکون حداکثر ۵۱۲ کیلوبایت است.',
+        ]);
+
+        foreach (['logo', 'favicon'] as $kind) {
+            if ($request->boolean('remove_'.$kind)) {
+                $old = Setting::get('site_'.$kind);
+
+                if (is_string($old) && $old !== '') {
+                    Storage::disk('local')->delete('branding/'.$old);
+                }
+
+                Setting::put('site_'.$kind, null);
+
+                continue;
+            }
+
+            $file = $request->file($kind);
+
+            if (! $file) {
+                continue;
+            }
+
+            $old = Setting::get('site_'.$kind);
+
+            if (is_string($old) && $old !== '') {
+                Storage::disk('local')->delete('branding/'.$old);
+            }
+
+            $name = $kind.'-'.now()->timestamp.'.'.$file->getClientOriginalExtension();
+            Storage::disk('local')->putFileAs('branding', $file, $name);
+            Setting::put('site_'.$kind, $name);
+        }
+
+        unset($validated);
+
+        return back()->with('status', 'لوگو و فاوآیکون به‌روزرسانی شد.');
+    }
+
+    /**
+     * مدیریت محتوای صفحه اصلی (فقط مدیر اصلی).
+     */
+    public function updateHome(Request $request): RedirectResponse
+    {
+        abort_unless($this->currentAdmin()->isSuper(), 403);
+
+        $rules = [];
+
+        foreach (array_keys(Setting::HOME_DEFAULTS) as $key) {
+            $rules[$key] = ['nullable', 'string', 'max:500'];
+        }
+
+        $validated = $request->validate($rules);
+
+        foreach (array_keys(Setting::HOME_DEFAULTS) as $key) {
+            $value = trim((string) ($validated[$key] ?? ''));
+
+            if ($value === '' || $value === Setting::HOME_DEFAULTS[$key]) {
+                Setting::put($key, null);
+
+                continue;
+            }
+
+            Setting::put($key, $value);
+        }
+
+        return back()->with('status', 'محتوای صفحه اصلی ذخیره شد.');
     }
 
     /**

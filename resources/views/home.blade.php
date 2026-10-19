@@ -8,6 +8,9 @@
 @section('title', $siteName.' — چالش‌های گروهی')
 
 @section('content')
+    @php
+        $homeContent = \App\Models\Setting::home();
+    @endphp
     {{-- قهرمان صفحه --}}
     <section class="relative overflow-hidden">
         <div class="pointer-events-none absolute -top-24 end-0 size-72 rounded-full bg-jade/15 blur-3xl"></div>
@@ -25,7 +28,7 @@
                         با
                         <span class="bg-gradient-to-l from-forest to-leaf bg-clip-text text-transparent">{{ $siteName }}</span>
                         <br>
-                        هر روز یک قدم کوچک، یک تغییر واقعی
+                        {{ $homeContent['home_hero_line'] }}
                     </h1>
 
                     <p class="mt-6 max-w-xl text-base leading-8 text-ink/80">
@@ -33,8 +36,8 @@
                     </p>
 
                     <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-                        <a href="{{ route('challenges.index') }}" class="btn btn-primary px-5 py-3">دیدن چالش‌ها</a>
-                        <a href="{{ route('participant.lookup') }}" class="btn btn-white px-5 py-3">کد اختصاصی من را دارم</a>
+                        <a href="{{ route('challenges.index') }}" class="btn btn-primary px-5 py-3">{{ $homeContent['home_cta_primary'] }}</a>
+                        <a href="{{ route('participant.lookup') }}" class="btn btn-white px-5 py-3">{{ $homeContent['home_cta_secondary'] }}</a>
                     </div>
 
                     <dl class="mt-10 grid max-w-lg grid-cols-3 gap-4 border-t border-line pt-6">
@@ -188,7 +191,7 @@
     {{-- چرا اینجا؟ --}}
     <section class="mx-auto max-w-6xl px-4 py-12 sm:px-6">
         <div class="max-w-2xl">
-            <h2 class="text-2xl">چرا با هم و در چالش؟</h2>
+            <h2 class="text-2xl">{{ $homeContent['home_why_title'] }}</h2>
             <p class="mt-3 text-sm leading-8 text-ink/80">
                 تغییرهای بزرگ از قدم‌های کوچک روزانه ساخته می‌شوند؛ وقتی در یک چالش گروهی همراه می‌شوی، ادامه دادن ساده‌تر است.
             </p>
@@ -292,9 +295,9 @@
 
             <div class="relative flex flex-wrap items-center justify-between gap-6">
                 <div class="max-w-2xl">
-                    <h2 class="text-2xl text-white">آماده‌ای امروز شروع کنی؟</h2>
+                    <h2 class="text-2xl text-white">{{ $homeContent['home_banner_title'] }}</h2>
                     <p class="mt-3 text-sm leading-8 text-white/80">
-                        چالش‌ها را ببین، چالشی که به تو نزدیک است را انتخاب کن و همان امروز اولین قدم را بردار.
+                        {{ $homeContent['home_banner_text'] }}
                     </p>
                 </div>
 

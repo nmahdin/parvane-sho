@@ -4,7 +4,7 @@
     <div class="mx-auto grid max-w-6xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-3">
         <div>
             <div class="flex items-center gap-3">
-                <img src="{{ asset('favicon.svg') }}" alt="{{ $site['site_name'] ?? config('panel.site_name') }}" class="size-10 rounded-2xl bg-white p-1.5 shadow-sm" loading="lazy" decoding="async">
+                <img src="{{ \App\Models\Setting::get('site_logo') ? route('branding', 'logo') : asset('favicon.svg') }}" alt="{{ $site['site_name'] ?? config('panel.site_name') }}" class="size-10 rounded-2xl bg-white p-1.5 shadow-sm" loading="lazy" decoding="async">
                 <span class="text-base font-semibold text-ink">{{ $siteName }}</span>
             </div>
             <p class="mt-4 max-w-sm text-sm leading-7 text-muted">

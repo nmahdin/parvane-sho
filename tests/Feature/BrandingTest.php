@@ -2,112 +2,82 @@
 
 namespace Tests\Feature;
 
-use App\Models\Challenge;
-use App\Models\Participant;
+use App\Models\Setting;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 /**
- * نشان پروانه سبز (لوگو): خودِ پروانه سبز است، پس پس‌زمینه‌اش هیچ‌جا سبز
- * نیست؛ همه‌جا چیپ سفید با حاشیه روشن است — هم در نوار کناری پنل، هم در
- * هدر و پابرگ سایت، هم در صفحه ورود به پنل و صفحه‌های خطا.
+ * آپلود لوگو و فاوآیکون از بخش مدیریت کل:
+ * - فقط مدیر اصلی
+ * - فایل‌ها ذخیره و از /branding/{kind} سرو می‌شوند
+ * - تا آپلود نشده، پروانهٔ پیش‌فرض نشان داده می‌شود
  */
 class BrandingTest extends TestCase
 {
     use RefreshDatabase;
 
-    /**
-     * آیا این تکه HTML نشان پروانه را با پس‌زمینه سبز نشان می‌دهد؟
-     */
-    private function hasGreenLogoBackground(string $html): bool
+    public function test_super_admin_can_upload_logo_and_favicon(): void
     {
-        preg_match_all('/<(?:img|span)[^>]*favicon\.svg[^>]*>|<span[^>]*>\s*<img[^>]*favicon\.svg[^>]*>/s', $html, $matches);
+        Storage::fake('local');
+        $this->loginAsAdmin();
 
-        foreach ($matches[0] as $snippet) {
-            if (preg_match('/from-forest|to-leaf|from-jade|bg-forest|bg-jade|bg-leaf|bg-white\/\d/', $snippet)) {
-                return true;
-            }
-        }
+        $this->post(route('panel.settings.branding'), [
+            'logo' => UploadedFile::fake()->image('logo.png', 200, 60),
+            'favicon' => UploadedFile::fake()->image('fav.png', 64, 64),
+        ])->assertRedirect()->assertSessionHas('status');
 
-        return false;
+        $logo = Setting::get('site_logo');
+        $favicon = Setting::get('site_favicon');
+        $this->assertNotNull($logo);
+        $this->assertNotNull($favicon);
+        Storage::disk('local')->assertExists('branding/'.$logo);
+        Storage::disk('local')->assertExists('branding/'.$favicon);
+
+        // فایل‌ها از مسیر عمومی سرو می‌شوند و در صفحه دیده می‌شوند
+        $this->get(route('branding', 'logo'))->assertOk();
+        $this->get(route('branding', 'favicon'))->assertOk();
+        $this->get(route('home'))->assertOk()->assertSee('/branding/logo', false);
     }
 
-    /**
-     * تکه‌های HTML که نشان پروانه در آن‌ها آمده است.
-     *
-     * @return list<string>
-     */
-    private function logoMarkup(string $html): array
+    public function test_branding_falls_back_to_default_butterfly(): void
     {
-        preg_match_all('/<(?:img|span)[^>]*favicon\.svg[^>]*>|<span[^>]*>\s*<img[^>]*favicon\.svg[^>]*>/s', $html, $matches);
-
-        return $matches[0];
+        $this->get(route('branding', 'logo'))->assertNotFound();
+        $this->get(route('home'))->assertOk()->assertSee('favicon.svg', false);
     }
 
-    private function makeChallenge(): Challenge
+    public function test_non_image_logo_is_rejected(): void
     {
-        return Challenge::create([
-            'title' => 'چالش پروانه',
-            'slug' => 'parvane-logo',
-            'is_published' => true,
-            'starts_on' => today(),
-        ]);
+        $this->loginAsAdmin();
+
+        $this->post(route('panel.settings.branding'), [
+            'logo' => UploadedFile::fake()->create('evil.php', 10, 'application/x-php'),
+        ])->assertSessionHasErrors('logo');
+
+        $this->assertNull(Setting::get('site_logo'));
     }
 
-    public function test_the_public_header_and_footer_show_the_butterfly_on_a_white_chip(): void
+    public function test_logo_can_be_removed(): void
     {
-        $html = $this->get('/')->assertOk()->getContent();
+        Storage::fake('local');
+        $this->loginAsAdmin();
 
-        $logos = $this->logoMarkup($html);
+        $this->post(route('panel.settings.branding'), [
+            'logo' => UploadedFile::fake()->image('logo.png'),
+        ])->assertRedirect();
+        $this->assertNotNull(Setting::get('site_logo'));
 
-        $this->assertNotEmpty($logos, 'نشان پروانه در هدر/پابرگ سایت پیدا نشد.');
-        $this->assertFalse($this->hasGreenLogoBackground($html), 'پس‌زمینه نشان پروانه در سایت هنوز سبز است.');
-        $this->assertStringContainsString('bg-white', $logos[0]);
+        $this->post(route('panel.settings.branding'), ['remove_logo' => '1'])->assertRedirect();
+        $this->assertNull(Setting::get('site_logo'));
     }
 
-    public function test_the_panel_sidebar_shows_the_butterfly_on_a_white_chip(): void
+    public function test_regular_admin_cannot_change_branding(): void
     {
-        $this->loginAsAdmin($this->superAdmin());
+        $this->loginAsAdmin($this->makeChallengeAdmin(['username' => 'helper-admin']));
 
-        $html = $this->get(route('panel.dashboard'))->assertOk()->getContent();
-
-        $logos = $this->logoMarkup($html);
-
-        $this->assertNotEmpty($logos, 'نشان پروانه در نوار کناری پنل پیدا نشد.');
-        $this->assertFalse($this->hasGreenLogoBackground($html), 'پس‌زمینه نشان پروانه در پنل هنوز سبز است.');
-        $this->assertStringContainsString('bg-white', $logos[0]);
-    }
-
-    public function test_the_login_page_shows_the_butterfly_on_a_white_chip(): void
-    {
-        $html = $this->get(route('panel.login'))->assertOk()->getContent();
-
-        $this->assertFalse($this->hasGreenLogoBackground($html), 'پس‌زمینه نشان پروانه در صفحه ورود سبز است.');
-
-        // چیپ سفید دور نشان (قبلاً bg-white/15 سبزِ نیمه‌شفاف بود)
-        $this->assertStringContainsString('rounded-3xl bg-white shadow-lg', $html);
-        $this->assertStringNotContainsString('bg-white/15', $html);
-    }
-
-    public function test_the_error_page_shows_the_butterfly_on_a_white_chip(): void
-    {
-        $html = $this->get('/this-page-does-not-exist')->assertNotFound()->getContent();
-
-        $logos = $this->logoMarkup($html);
-
-        $this->assertNotEmpty($logos, 'نشان پروانه در صفحه خطا پیدا نشد.');
-        $this->assertFalse($this->hasGreenLogoBackground($html), 'پس‌زمینه نشان پروانه در صفحه خطا سبز است.');
-    }
-
-    public function test_the_participant_and_public_challenge_pages_keep_the_logo_light(): void
-    {
-        $challenge = $this->makeChallenge();
-        $participant = Participant::create(['challenge_id' => $challenge->id, 'name' => 'زهرا']);
-
-        foreach ([$challenge->publicUrl(), route('participant.show', $participant)] as $url) {
-            $html = $this->get($url)->assertOk()->getContent();
-
-            $this->assertFalse($this->hasGreenLogoBackground($html), 'پس‌زمینه نشان پروانه در '.$url.' سبز است.');
-        }
+        $this->post(route('panel.settings.branding'), [
+            'logo' => UploadedFile::fake()->image('logo.png'),
+        ])->assertForbidden();
     }
 }
