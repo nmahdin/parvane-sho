@@ -75,5 +75,11 @@ class PanelChromeTest extends TestCase
         $this->assertStringContainsString('initPageReadyChip', $js);
         $this->assertStringContainsString('initActionMenus', $js);
         $this->assertStringContainsString('animationPlayState', $js);
+        // انتخابگر اختصاصی به‌جای منوی پیش‌فرض مرورگر
+        $this->assertStringContainsString('initCustomSelects', $js);
+        $this->assertStringContainsString('csel-list', $css);
+        $this->assertStringContainsString('csel-native', $css);
+        // تولتیپ دقیق نمودارها
+        $this->assertStringContainsString('مجموع روز', $js);
     }
 }

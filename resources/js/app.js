@@ -16,6 +16,7 @@ const app = {
         this.initSidebarTransition();
         this.initPageReadyChip();
         this.initActionMenus();
+        this.initCustomSelects();
         this.initCopy();
         this.initMenus();
         this.initConfirm();
@@ -676,10 +677,15 @@ const app = {
                 label: (item) => ` ${item.dataset.label || item.label}: ${fa(item.parsed.y ?? item.parsed)}`,
             };
             Chart.defaults.plugins.tooltip.backgroundColor = '#2F3E38';
-            Chart.defaults.plugins.tooltip.padding = 10;
+            Chart.defaults.plugins.tooltip.padding = 12;
             Chart.defaults.plugins.tooltip.cornerRadius = 12;
             Chart.defaults.plugins.tooltip.displayColors = true;
-            Chart.defaults.plugins.tooltip.boxPadding = 4;
+            Chart.defaults.plugins.tooltip.boxPadding = 5;
+            Chart.defaults.plugins.tooltip.usePointStyle = true;
+            Chart.defaults.plugins.tooltip.titleFont = { weight: '700', size: 12 };
+            Chart.defaults.plugins.tooltip.bodyFont = { size: 12 };
+            Chart.defaults.plugins.tooltip.footerFont = { size: 11, weight: '400' };
+            Chart.defaults.plugins.tooltip.footerColor = '#B8C9A3';
             Chart.defaults.animation = { duration: 700, easing: 'easeOutQuart' };
             chartReady();
 
@@ -701,6 +707,14 @@ const app = {
                     responsive: true,
                     maintainAspectRatio: false,
                     interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: (item) => ` ${item.dataset.label}: ${fa(item.parsed.y)} بازدید`,
+                                footer: (items) => 'مجموع روز: ' + fa(items.reduce((sum, i) => sum + (i.parsed.y || 0), 0)),
+                            },
+                        },
+                    },
                     scales: {
                         y: { beginAtZero: true, ticks: { precision: 0, callback: (v) => fa(v) }, grid },
                         x: { grid: { display: false }, ticks: { maxRotation: 0, autoSkipPadding: 12 } },
@@ -739,7 +753,11 @@ const app = {
                     plugins: {
                         tooltip: {
                             callbacks: {
-                                label: (item) => `${item.label}: ${fa(item.parsed)}`,
+                                label: (item) => {
+                                    const total = item.dataset.data.reduce((sum, value) => sum + value, 0);
+                                    const percent = total ? Math.round((item.parsed / total) * 100) : 0;
+                                    return ` ${item.label}: ${fa(item.parsed)} (${fa(percent)}٪)`;
+                                },
                             },
                         },
                     },
@@ -770,6 +788,113 @@ const app = {
 
     /* آمار بازدید: وقتی کارت روز باز می‌شود، یک beacon کوچک «دیده‌شدن روز»
        می‌فرستد (یک‌بار در هر نشست مرورگر، برای هر روز و هر چالش). */
+    /* انتخابگر اختصاصی: منوی پیش‌فرض مرورگر با فهرست سبک سایت جایگزین
+       می‌شود؛ خود <select> پنهان می‌ماند تا فرم‌ها مثل قبل کار کنند. */
+    initCustomSelects() {
+        const chevron = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="size-4"><path d="M6 9l6 6 6-6"/></svg>';
+        const check = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="csel-check size-3.5"><path d="M5 12l5 5 9-11"/></svg>';
+
+        document.querySelectorAll('select.input').forEach((select) => {
+            if (select.dataset.cselBound) return;
+            select.dataset.cselBound = '1';
+
+            const wrap = document.createElement('div');
+            wrap.className = 'csel';
+            select.after(wrap);
+            wrap.appendChild(select);
+            select.classList.add('csel-native');
+
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'csel-btn';
+            button.setAttribute('aria-haspopup', 'listbox');
+            button.setAttribute('aria-expanded', 'false');
+            button.innerHTML = '<span class="csel-label"></span>' + chevron;
+
+            const label = button.querySelector('.csel-label');
+            const syncLabel = () => {
+                label.textContent = select.options[select.selectedIndex]?.textContent.trim() || '';
+            };
+            syncLabel();
+
+            const list = document.createElement('div');
+            list.className = 'csel-list';
+            list.setAttribute('role', 'listbox');
+
+            wrap.append(button, list);
+
+            const close = () => {
+                wrap.classList.remove('is-open');
+                button.setAttribute('aria-expanded', 'false');
+            };
+
+            const open = () => {
+                document.querySelectorAll('.csel.is-open').forEach((other) => {
+                    if (other !== wrap) other.classList.remove('is-open');
+                });
+
+                list.innerHTML = '';
+
+                Array.from(select.options).forEach((option) => {
+                    const item = document.createElement('button');
+                    item.type = 'button';
+                    item.className = 'csel-option' + (option.value === select.value ? ' is-selected' : '');
+                    item.setAttribute('role', 'option');
+                    item.innerHTML = '<span></span>' + (option.value === select.value ? check : '');
+                    item.querySelector('span').textContent = option.textContent.trim();
+
+                    item.addEventListener('click', () => {
+                        select.value = option.value;
+                        syncLabel();
+                        close();
+                        select.dispatchEvent(new Event('change', { bubbles: true }));
+                    });
+
+                    item.addEventListener('keydown', (event) => {
+                        if (event.key === 'ArrowDown') {
+                            event.preventDefault();
+                            item.nextElementSibling?.focus();
+                        } else if (event.key === 'ArrowUp') {
+                            event.preventDefault();
+                            (item.previousElementSibling || button).focus();
+                        }
+                    });
+
+                    list.appendChild(item);
+                });
+
+                wrap.classList.add('is-open');
+                button.setAttribute('aria-expanded', 'true');
+                list.querySelector('.csel-option')?.focus();
+            };
+
+            button.addEventListener('click', (event) => {
+                event.stopPropagation();
+
+                if (wrap.classList.contains('is-open')) {
+                    close();
+                } else {
+                    open();
+                }
+            });
+
+            button.addEventListener('keydown', (event) => {
+                if (['Enter', ' ', 'ArrowDown'].includes(event.key)) {
+                    event.preventDefault();
+                    open();
+                }
+            });
+
+            document.addEventListener('click', (event) => {
+                if (!wrap.contains(event.target)) close();
+            });
+
+            document.addEventListener('keydown', (event) => {
+                if (event.key === 'Escape') close();
+            });
+        });
+    },
+
     /* جابه‌جانی انتخاب سایدبار: نشانگر از جای قبلی به آیتم تازه سُر می‌خورد */
     initSidebarTransition() {
         const links = Array.from(document.querySelectorAll('.sidebar-link'));
