@@ -29,6 +29,14 @@ class Setting extends Model
     }
 
     /**
+     * نام مدیر برگزارکنندهٔ چالش در صفحهٔ عمومی چالش نشان داده شود؟
+     */
+    public static function showAdminName(): bool
+    {
+        return static::get('show_admin_name', '1') === '1';
+    }
+
+    /**
      * پیام صفحه «در حال تعمیر».
      */
     public static function maintenanceMessage(): string

@@ -43,7 +43,7 @@
         <x-flash />
 
         {{-- سرصفحه اختصاصی --}}
-        <div class="mt-4 overflow-hidden rounded-[2rem] bg-paper shadow-sm ring-1 ring-line">
+        <div class="mt-4 overflow-hidden rounded-[2rem] bg-paper shadow-sm">
             <div class="flex flex-wrap items-center justify-between gap-5 bg-gradient-to-tl {{ $style['gradient'] }} px-5 py-6 text-white sm:gap-6 sm:px-10 sm:py-8">
                 <div class="flex items-center gap-4">
                     <span class="grid size-12 place-items-center rounded-2xl bg-white/15 text-lg font-bold backdrop-blur sm:size-14 sm:rounded-3xl sm:text-xl">{{ $initial }}</span>
@@ -69,7 +69,7 @@
     @if ($pledgeRequired)
         {{-- تعهدنامه: اولین ورود با لینک اختصاصی --}}
         <section class="mx-auto max-w-3xl px-4 py-8 sm:px-6" id="pledge">
-            <div class="overflow-hidden rounded-[2rem] bg-paper shadow-sm ring-1 ring-line">
+            <div class="overflow-hidden rounded-[2rem] bg-paper shadow-sm">
                 <div class="bg-gradient-to-tl {{ $style['gradient'] }} px-6 py-7 text-white sm:px-10">
                     <span class="grid size-12 place-items-center rounded-2xl bg-white/15 text-xl backdrop-blur">🤝</span>
                     <h2 class="mt-4 text-lg text-white">{{ $challenge->pledgeTitle() }}</h2>
@@ -451,10 +451,7 @@
                     <div class="mt-4 space-y-2">
                         <input id="my-link" type="text" readonly value="{{ $participant->dashboardUrl() }}" class="input text-xs" dir="ltr">
 
-                        <div class="flex gap-2">
-                            <button type="button" class="btn btn-primary flex-1" data-copy-target="#my-link">کپی لینک</button>
-                            <button type="button" class="btn btn-white" data-print>چاپ</button>
-                        </div>
+                        <button type="button" class="btn btn-primary w-full" data-copy-target="#my-link">کپی لینک</button>
                     </div>
                 </div>
 

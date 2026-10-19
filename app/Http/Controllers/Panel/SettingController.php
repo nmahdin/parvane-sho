@@ -55,6 +55,7 @@ class SettingController extends Controller
         Setting::put('site_tagline', $validated['site_tagline'] ?? '');
         Setting::put('site_about', $validated['site_about'] ?? '');
         Setting::put('maintenance_message', trim((string) ($validated['maintenance_message'] ?? '')));
+        Setting::put('show_admin_name', $request->boolean('show_admin_name') ? '1' : '0');
 
         return back()->with('status', 'تنظیمات سایت ذخیره شد.');
     }

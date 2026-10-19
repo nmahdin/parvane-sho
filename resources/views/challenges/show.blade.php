@@ -67,6 +67,13 @@
                         <dt class="text-white/70">شرکت‌کننده‌ها:</dt>
                         <dd class="font-medium">{{ fa_num($challenge->participants_count) }} نفر</dd>
                     </div>
+
+                    @if (\App\Models\Setting::showAdminName() && $challenge->admin)
+                        <div class="flex items-center gap-1.5 rounded-full bg-white/10 px-3 py-1.5">
+                            <dt class="text-white/70">برگزارکننده:</dt>
+                            <dd class="font-medium">{{ $challenge->admin->name }}</dd>
+                        </div>
+                    @endif
                 </dl>
 
                 <div class="mt-5 flex flex-wrap gap-2">

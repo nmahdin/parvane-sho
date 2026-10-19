@@ -1292,6 +1292,10 @@ const app = {
             };
 
             summary.addEventListener('click', (event) => {
+                // کلیک روی دکمه/لینک/فیلد داخل سرِ ردیف (مثل دکمه‌های افزودن)
+                // کار خودش را بکند؛ اینجا فقط باز/بستهٔ خودِ ردیف انیمیشن می‌گیرد
+                if (event.target.closest('button, a, input, select, textarea, label')) return;
+
                 event.preventDefault();
 
                 const currentHeight = card.getBoundingClientRect().height;

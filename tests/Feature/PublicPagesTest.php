@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\Admin;
 use App\Models\Challenge;
+use App\Models\Setting;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -64,5 +66,37 @@ class PublicPagesTest extends TestCase
             ->assertOk()
             ->assertSee('کار روز اول')
             ->assertSee('روز ۱');
+    }
+
+    public function test_organizer_name_shows_on_challenge_page_and_can_be_hidden(): void
+    {
+        $admin = Admin::create([
+            'name' => 'مریم برگزارکننده',
+            'username' => 'organizer',
+            'password' => 'organizer-pass',
+            'is_super' => false,
+            'is_active' => true,
+        ]);
+
+        $challenge = Challenge::create([
+            'title' => 'چالش نام مدیر',
+            'slug' => 'organizer-challenge',
+            'is_published' => true,
+            'admin_id' => $admin->id,
+        ]);
+
+        // به‌صورت پیش‌فرض نام برگزارکننده دیده می‌شود
+        $this->get(route('challenges.show', $challenge))
+            ->assertOk()
+            ->assertSee('برگزارکننده:')
+            ->assertSee('مریم برگزارکننده');
+
+        // با خاموش کردن کلید، پنهان می‌شود
+        Setting::put('show_admin_name', '0');
+
+        $this->get(route('challenges.show', $challenge))
+            ->assertOk()
+            ->assertDontSee('برگزارکننده:')
+            ->assertDontSee('مریم برگزارکننده');
     }
 }

@@ -83,6 +83,12 @@
                         <textarea id="site_about" name="site_about" rows="5" class="input resize-y">{{ old('site_about', $site_about) }}</textarea>
                     </div>
 
+                    <label class="flex cursor-pointer items-center gap-2 rounded-2xl bg-cream/70 px-4 py-3 text-xs text-ink/80">
+                        <input type="hidden" name="show_admin_name" value="0">
+                        <input type="checkbox" name="show_admin_name" value="1" @checked(old('show_admin_name', \App\Models\Setting::showAdminName()))>
+                        نام برگزارکنندهٔ چالش در صفحهٔ عمومی چالش نشان داده شود
+                    </label>
+
                     <button type="submit" class="btn btn-primary">ذخیره تنظیمات</button>
                 </form>
             </section>
