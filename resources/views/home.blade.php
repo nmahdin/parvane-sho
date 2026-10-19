@@ -1,0 +1,311 @@
+@extends('layouts.public')
+
+@php
+    $siteName = $site['site_name'] ?? config('panel.site_name');
+    $activeChallenge = $challenges->first(fn ($challenge) => $challenge->status() === 'active') ?? $challenges->first();
+@endphp
+
+@section('title', $siteName.' — چالش‌های گروهی')
+
+@section('content')
+    @php
+        $homeContent = \App\Models\Setting::home();
+    @endphp
+    {{-- قهرمان صفحه --}}
+    <section class="relative overflow-hidden">
+        <div class="pointer-events-none absolute -top-24 end-0 size-72 rounded-full bg-jade/15 blur-3xl"></div>
+        <div class="pointer-events-none absolute top-24 start-0 size-72 rounded-full bg-leaf/15 blur-3xl"></div>
+
+        <div class="relative mx-auto max-w-6xl px-4 pt-10 pb-10 sm:px-6 sm:pt-16 lg:pt-24">
+            <div class="grid items-center gap-12 lg:grid-cols-[1.1fr_0.9fr]">
+                <div>
+                    <span class="badge bg-paper text-brand-700 ring-brand-200">
+                        <span class="size-1.5 rounded-full bg-brand-500"></span>
+                        {{ $stats['challenges'] > 0 ? fa_num($stats['challenges']).' چالش در جریان' : 'چالش‌های گروهی' }}
+                    </span>
+
+                    <h1 class="mt-5 text-3xl leading-[1.35] sm:text-4xl sm:leading-[1.35] lg:text-5xl lg:leading-[1.3]">
+                        با
+                        <span class="bg-gradient-to-l from-forest to-leaf bg-clip-text text-transparent">{{ $siteName }}</span>
+                        <br>
+                        {{ $homeContent['home_hero_line'] }}
+                    </h1>
+
+                    <p class="mt-6 max-w-xl text-base leading-8 text-ink/80">
+                        {{ $site['site_tagline'] ?? config('panel.site_tagline') }}
+                    </p>
+
+                    <div class="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+                        <a href="{{ route('challenges.index') }}" class="btn btn-primary px-5 py-3">{{ $homeContent['home_cta_primary'] }}</a>
+                        <a href="{{ route('participant.lookup') }}" class="btn btn-white px-5 py-3">{{ $homeContent['home_cta_secondary'] }}</a>
+                    </div>
+
+                    <dl class="mt-10 grid max-w-lg grid-cols-3 gap-4 border-t border-line pt-6">
+                        <div>
+                            <dt class="text-xs text-muted">چالش‌های فعال</dt>
+                            <dd class="mt-1 text-2xl font-bold text-ink">{{ fa_num($stats['challenges']) }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-xs text-muted">شرکت‌کننده</dt>
+                            <dd class="mt-1 text-2xl font-bold text-ink">{{ fa_num($stats['participants']) }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-xs text-muted">کار انجام‌شده</dt>
+                            <dd class="mt-1 text-2xl font-bold text-ink">{{ fa_num($stats['done']) }}</dd>
+                        </div>
+                    </dl>
+                </div>
+
+                {{-- پیش‌نمایش داشبورد شرکت‌کننده — با داده‌های واقعی همین سایت --}}
+                <div class="relative">
+                    @if ($hero)
+                        @php
+                            $heroChallenge = $hero['challenge'];
+                            $heroParticipant = $hero['participant'];
+                        @endphp
+
+                        <div class="card animate-rise space-y-5 p-7">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-3">
+                                    <span class="grid size-11 place-items-center rounded-2xl bg-gradient-to-tl {{ $heroChallenge->style()['gradient'] }} text-white">
+                                        <x-challenge-icon :value="$heroChallenge->emoji" size="size-6" />
+                                    </span>
+                                    <div>
+                                        <p class="text-sm font-semibold text-ink">داشبورد اختصاصی شرکت‌کننده</p>
+                                        <p class="text-xs text-muted">{{ $heroChallenge->title }}</p>
+                                    </div>
+                                </div>
+                                <span class="badge {{ $heroChallenge->statusClasses() }}">{{ $heroChallenge->statusLabel() }}</span>
+                            </div>
+
+                            <div class="flex items-center gap-5">
+                                <x-progress-ring :percent="$hero['progress']" :size="112" :stroke-width="10" :class="$heroChallenge->styleValue('stroke')" caption="پیشرفت" />
+
+                                <div class="space-y-3 text-sm">
+                                    <p class="flex items-center gap-2 text-ink/80"><span>🔥</span> {{ fa_num($hero['streak']) }} روز پیوسته</p>
+                                    <p class="flex items-center gap-2 text-ink/80"><span>✅</span> {{ fa_num($hero['completed']) }} مورد انجام‌شده</p>
+                                    <p class="flex items-center gap-2 text-ink/80"><span>🎯</span> {{ fa_num(max(0, $hero['total'] - $hero['completed'])) }} مورد باقی‌مانده</p>
+                                </div>
+                            </div>
+
+                            @if ($hero['tasks']->isNotEmpty())
+                                <div class="space-y-2">
+                                    @foreach ($hero['tasks'] as $heroTask)
+                                        @php($heroDone = $heroParticipant->isTaskDone($heroTask))
+
+                                        <div class="flex items-center gap-3 rounded-2xl bg-cream px-4 py-3 text-sm">
+                                            <span class="grid size-6 place-items-center rounded-lg text-xs {{ $heroDone ? 'bg-leaf text-white' : 'bg-line text-muted' }}">
+                                                {{ $heroDone ? '✓' : '' }}
+                                            </span>
+                                            <span class="{{ $heroDone ? 'text-muted line-through' : 'text-ink' }}">{{ $heroTask->title }}</span>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+
+                            <div class="flex items-center gap-3 rounded-2xl bg-brand-50 px-4 py-3 text-xs text-brand-700">
+                                <span>🌿</span>
+                                <span class="font-medium">
+                                    {{ fa_num($hero['completed']) }} از {{ fa_num($hero['total']) }} مورد
+                                    @if ($hero['questions'] > 0)
+                                        · {{ fa_num($hero['answered']) }} پرسش پاسخ داده
+                                    @endif
+                                </span>
+                                <span class="ms-auto h-1.5 w-24 overflow-hidden rounded-full bg-white">
+                                    <span class="block h-full rounded-full bg-leaf" style="width: {{ $hero['progress'] }}%"></span>
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="pointer-events-none absolute -bottom-6 -start-6 hidden rounded-2xl bg-paper px-4 py-3 text-xs shadow-lg ring-1 ring-line sm:block">
+                            پیشرفت هر نفر همین‌جا زنده به‌روز می‌شود ✨
+                        </div>
+                    @else
+                        <div class="card animate-rise p-7 text-center">
+                            <p class="text-3xl">🌱</p>
+                            <p class="mt-3 text-sm font-semibold text-ink">هنوز کسی در چالشی ثبت نشده است</p>
+                            <p class="mt-2 text-xs leading-6 text-muted">
+                                به‌محض این‌که اولین چالش را بسازی و نام شرکت‌کننده‌ها را وارد کنی،
+                                پیشرفت واقعی‌شان همین‌جا نمایش داده می‌شود.
+                            </p>
+                            <a href="{{ route('challenges.index') }}" class="btn btn-soft mt-4">دیدن چالش‌ها</a>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {{-- ورود سریع با کد اختصاصی --}}
+    <section class="mx-auto max-w-6xl px-4 pb-4 sm:px-6">
+        <div class="rounded-[2rem] bg-paper p-6 surface sm:p-8">
+            <div class="grid items-center gap-6 lg:grid-cols-[1.2fr_1fr]">
+                <div>
+                    <h2 class="text-xl">کد اختصاصی داری؟</h2>
+                    <p class="mt-2 text-sm leading-7 text-ink/80">
+                        کد کوتاهی که مسئول چالش برایت فرستاده را وارد کن تا داشبورد خودت باز شود؛ بدون ثبت‌نام، بدون رمز.
+                    </p>
+                </div>
+
+                <form method="POST" action="{{ route('participant.lookup.attempt') }}" class="flex flex-col items-stretch gap-3 sm:flex-row sm:flex-nowrap sm:items-center">
+                    @csrf
+
+                    <input name="code" type="text" required dir="ltr" class="input flex-1 text-center tracking-[0.3em]"
+                           placeholder="کد اختصاصی خودت" value="{{ old('code') }}" autocomplete="off" spellcheck="false">
+
+                    <button type="submit" class="btn btn-primary w-full shrink-0 sm:w-auto">باز کردن داشبورد</button>
+                </form>
+            </div>
+
+            @error('code')
+                <p class="mt-3 text-xs text-danger">{{ $message }}</p>
+            @enderror
+        </div>
+    </section>
+
+    {{-- چالش‌ها --}}
+    <section id="challenges" class="mx-auto max-w-6xl px-4 py-12 sm:px-6">
+        <div class="flex flex-wrap items-end justify-between gap-4">
+            <div>
+                <h2 class="text-2xl">چالش‌های در جریان</h2>
+                <p class="mt-2 text-sm text-muted">روی هر چالش بزن تا روزها، نکته‌ها و کارهایش را ببینی.</p>
+            </div>
+
+            <a href="{{ route('challenges.index') }}" class="btn btn-soft">همه چالش‌ها</a>
+        </div>
+
+        @if ($featured->isEmpty())
+            <div class="card mt-8 text-center">
+                <p class="text-3xl">🌱</p>
+                <p class="mt-3 text-sm text-ink/80">به‌زودی اولین چالش اینجا منتشر می‌شود.</p>
+            </div>
+        @else
+            <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                @foreach ($featured as $challenge)
+                    <x-challenge-card :challenge="$challenge" />
+                @endforeach
+            </div>
+        @endif
+    </section>
+
+    {{-- چرا اینجا؟ --}}
+    <section class="mx-auto max-w-6xl px-4 py-12 sm:px-6">
+        <div class="max-w-2xl">
+            <h2 class="text-2xl">{{ $homeContent['home_why_title'] }}</h2>
+            <p class="mt-3 text-sm leading-8 text-ink/80">
+                تغییرهای بزرگ از قدم‌های کوچک روزانه ساخته می‌شوند؛ وقتی در یک چالش گروهی همراه می‌شوی، ادامه دادن ساده‌تر است.
+            </p>
+        </div>
+
+        <div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            @foreach ([
+                ['🗓️', 'مسیر روزانه روشن', 'هر روز بدان دقیقاً چه کاری باید انجام دهی؛ بدون سردرگمی و بدون برنامه‌ریزی پیچیده.'],
+                ['📈', 'پیشرفت زنده', 'وقتی کاری را تیک می‌زنی، درصد پیشرفت و روزهای پیوسته‌ات بلافاصله به‌روز می‌شود.'],
+                ['🙌', 'همراهی گروه', 'دیدن اینکه بقیه هم در همان مسیر قدم برمی‌دارند، انگیزه را زنده نگه می‌دارد.'],
+                ['🔓', 'بدون ثبت‌نام', 'نه حساب کاربری، نه رمز، نه ایمیل؛ فقط یک کد کوتاه اختصاصی که همیشه در دستت است.'],
+            ] as [$icon, $title, $text])
+                <div class="card p-6">
+                    <span class="grid size-11 place-items-center rounded-2xl bg-brand-50 text-lg">{{ $icon }}</span>
+                    <h3 class="mt-4 text-base">{{ $title }}</h3>
+                    <p class="mt-2 text-sm leading-7 text-ink/80">{{ $text }}</p>
+                </div>
+            @endforeach
+        </div>
+    </section>
+
+    {{-- چطور کار می‌کند --}}
+    <section id="how" class="mx-auto max-w-6xl px-4 py-12 sm:px-6">
+        <div class="rounded-[2rem] bg-paper p-8 surface sm:p-12">
+            <div class="max-w-2xl">
+                <h2 class="text-2xl">چالش چطور اجرا می‌شود؟</h2>
+                <p class="mt-3 text-sm leading-8 text-ink/80">
+                    {{ $site['site_about'] ?? config('panel.site_about') }}
+                </p>
+            </div>
+
+            <div class="mt-10 grid gap-6 md:grid-cols-3">
+                @foreach ([
+                    ['۱', 'در فهرست چالش ثبت می‌شوی', 'نامت را به مسئول چالش می‌گویی و در فهرست شرکت‌کننده‌ها ثبت می‌شوی.'],
+                    ['۲', 'یک کد کوتاه می‌گیری', 'برای هر نفر یک کد و لینک اختصاصی ساخته می‌شود؛ همان کد کلید داشبورد توست.'],
+                    ['۳', 'هر روز تیک می‌زنی', 'کارهای روزت را انجام می‌دهی و در داشبورد خودت تیک می‌زنی؛ پیشرفتت همان لحظه ثبت می‌شود.'],
+                ] as [$number, $title, $text])
+                    <div class="rounded-3xl bg-cream/70 p-6">
+                        <span class="grid size-10 place-items-center rounded-2xl bg-paper text-sm font-bold text-brand-700 shadow-sm ring-1 ring-line">{{ $number }}</span>
+                        <h3 class="mt-4 text-base">{{ $title }}</h3>
+                        <p class="mt-2 text-sm leading-7 text-ink/80">{{ $text }}</p>
+                    </div>
+                @endforeach
+            </div>
+
+            @if ($activeChallenge)
+                <div class="mt-8 flex flex-wrap items-center justify-between gap-4 rounded-3xl {{ $activeChallenge->styleValue('bg') }} px-6 py-5">
+                    <div class="flex items-center gap-4">
+                        <span class="grid size-11 place-items-center rounded-2xl bg-paper text-lg text-forest shadow-sm"><x-challenge-icon :value="$activeChallenge->emoji" size="size-5" /></span>
+                        <div>
+                            <p class="text-sm font-semibold text-ink">{{ $activeChallenge->title }}</p>
+                            <p class="mt-0.5 text-xs text-ink/80">
+                                {{ $activeChallenge->dateRangeLabel() }}
+                                @if ($activeChallenge->currentDayNumber())
+                                    · امروز روز {{ fa_num($activeChallenge->currentDayNumber()) }} از {{ fa_num($activeChallenge->totalDays()) }}
+                                @endif
+                            </p>
+                        </div>
+                    </div>
+
+                    <a href="{{ $activeChallenge->publicUrl() }}" class="btn btn-white">دیدن این چالش</a>
+                </div>
+            @endif
+        </div>
+    </section>
+
+    {{-- سوال‌های پرتکرار --}}
+    <section id="faq" class="mx-auto max-w-4xl px-4 py-12 sm:px-6">
+        <div class="text-center">
+            <h2 class="text-2xl">سوال‌های پرتکرار</h2>
+            <p class="mt-3 text-sm text-ink/80">اگر جواب سوالت را پیدا نکردی، از مسئول چالش بپرس.</p>
+        </div>
+
+        <div class="mt-8 space-y-3">
+            @foreach ([
+                ['برای شرکت در چالش باید ثبت‌نام کنم؟', 'نه. کافی است نامت در فهرست شرکت‌کننده‌های چالش ثبت شود؛ بعد از آن یک کد کوتاه اختصاصی می‌گیری و با همان داشبورد خودت را باز می‌کنی.'],
+                ['کدم را گم کرده‌ام، چه کار کنم؟', 'از مسئول چالش بخواه لینک یا کد را دوباره برایت بفرستد یا برایت کد جدید بسازد. کد قبلی در آن حالت از کار می‌افتد.'],
+                ['چطور کارهایم را تیک بزنم؟', 'در داشبورد خودت، فهرست کارهای هر روز را می‌بینی؛ روی هر کار بزن تا انجام‌شده شود. هر تیک بلافاصله در پیشرفتت حساب می‌شود.'],
+                ['پیشرفت من را چه کسی می‌بیند؟', 'تنها مسئول چالش می‌تواند وضعیت شرکت‌کننده‌ها را ببیند. لینک تو هم مثل یک کلید شخصی است؛ آن را جایی منتشر نکن.'],
+                ['اگر یک روز را از دست بدهم چه می‌شود؟', 'هیچ چیز از بین نمی‌رود. همان روز را می‌توانی بعداً هم کامل کنی و زنجیره‌ات را ادامه بدهی.'],
+            ] as [$question, $answer])
+                <details class="group overflow-hidden rounded-3xl bg-paper surface">
+                    <summary class="flex cursor-pointer items-center gap-3 px-6 py-5">
+                        <span class="grid size-7 shrink-0 place-items-center rounded-xl bg-brand-50 text-xs font-bold text-brand-700">؟</span>
+                        <span class="min-w-0 flex-1 text-sm font-medium text-ink">{{ $question }}</span>
+                        <span class="icon-btn transition-transform group-open:rotate-180" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="size-4"><path d="M6 9l6 6 6-6"/></svg></span>
+                    </summary>
+
+                    <div class="border-t border-line bg-cream/70 px-6 py-4 text-xs leading-7 text-ink/80">
+                        {{ $answer }}
+                    </div>
+                </details>
+            @endforeach
+        </div>
+    </section>
+
+    {{-- فراخوان پایانی --}}
+    <section class="mx-auto max-w-6xl px-4 py-12 sm:px-6">
+        <div class="relative overflow-hidden rounded-[2rem] bg-gradient-to-tl from-forest via-jade to-leaf p-10 text-white sm:p-14">
+            <div class="pointer-events-none absolute -top-16 start-10 size-48 rounded-full bg-white/10 blur-2xl"></div>
+
+            <div class="relative flex flex-wrap items-center justify-between gap-6">
+                <div class="max-w-2xl">
+                    <h2 class="text-2xl text-white">{{ $homeContent['home_banner_title'] }}</h2>
+                    <p class="mt-3 text-sm leading-8 text-white/80">
+                        {{ $homeContent['home_banner_text'] }}
+                    </p>
+                </div>
+
+                <div class="flex flex-wrap gap-3">
+                    <a href="{{ route('challenges.index') }}" class="btn bg-paper px-5 py-3 text-brand-700 hover:bg-white/90">دیدن چالش‌ها</a>
+                    <a href="{{ route('participant.lookup') }}" class="btn bg-white/10 px-5 py-3 text-white hover:bg-white/20">کد اختصاصی من</a>
+                </div>
+            </div>
+        </div>
+    </section>
+@endsection

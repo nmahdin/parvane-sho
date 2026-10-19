@@ -1,9 +1,1513 @@
 @import 'tailwindcss';
+@import '@fontsource-variable/vazirmatn';
 
+@source '../../app';
+@source '../../resources/js';
+@source '../../resources/views/**/*.blade.php';
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 
 @theme {
-    --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
-        'Segoe UI Symbol', 'Noto Color Emoji';
+    /* ------------------------------------------------------------------
+       پالت رنگی پروانه شو — رنگ اصلی #659287 با ثانویه‌های
+       #D6DAC8، #D2DCB6 و #FAEDCE
+       ------------------------------------------------------------------ */
+    --color-forest: #4E7268;
+    --color-jade: #659287;
+    --color-leaf: #B8C9A3;
+    /* بوم صفحه: سبز-کرم بسیار کم‌رنگ؛ cream برای سطح‌های داخلی؛
+       shell پس‌زمینه خود پنل مدیریت است */
+    --color-cream: #F6F6F2;
+    --color-shell: #EFF1E6;
+    --color-canvas: #F6F7F1;
+    --color-gold: #F2DDA8;
+    --color-line: #C9D2B9;
+    --color-ink: #2F3E38;
+    --color-muted: #5A6B62;
+    --color-hint: #71817A;
+    --color-gold-ink: #8a6a26;
+    --color-paper: #FFFFFF;
+
+    /* تنها رنگ خارج از پالت: وضعیت خطر و پیام خطا (حذف/اعتبارسنجی) */
+    --color-danger: #a2463a;
+    --color-danger-soft: #f8ece7;
+
+    /* مقیاس «برند» از دل رنگ اصلی #659287 */
+    --color-brand-50: #F2F6F4;
+    --color-brand-100: #DCE7E2;
+    --color-brand-200: #BCCFC7;
+    --color-brand-300: #93B0A5;
+    --color-brand-400: #82A398;
+    --color-brand-500: #659287;
+    --color-brand-600: #5B857B;
+    --color-brand-700: #4E7268;
+    --color-brand-800: #405E56;
+    --color-brand-900: #354D46;
+
+    --font-sans: 'Vazirmatn Variable', ui-sans-serif, system-ui, 'Segoe UI', sans-serif;
+}
+
+@layer base {
+    html {
+        scroll-behavior: smooth;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+        @apply bg-canvas font-sans text-ink antialiased;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4 {
+        @apply font-semibold tracking-tight text-forest;
+    }
+
+    ::selection {
+        @apply bg-leaf/30;
+    }
+
+    :focus-visible {
+        @apply outline-2 outline-offset-2 outline-jade;
+    }
+}
+
+/* ----------------------------------------------------------------------
+   کلاس‌های ترکیبی پرتکرار (همه بر پایه ابزارهای Tailwind ساخته شده‌اند)
+   ---------------------------------------------------------------------- */
+@layer components {
+    .btn {
+        @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-1.5 text-sm font-medium disabled:cursor-not-allowed disabled:opacity-60;
+
+        /* ارتفاع یکسان همهٔ دکمه‌ها و فیلدها: ۳۶ پیکسل */
+        min-height: 2.25rem;
+        transition: background-color 0.15s ease, color 0.15s ease, box-shadow 0.15s ease, transform 0.12s ease;
+    }
+
+    /* حس لمسی: همهٔ دکمه‌ها و کنترل‌های کلیک‌شدنی کمی فرو می‌روند */
+    .btn:active,
+    .sidebar-link:active,
+    .day-chev:active,
+    .audio-play:active,
+    .audio-download:active,
+    .action-menu > summary:active,
+    .mobile-tab:active {
+        transform: translateY(1px) scale(0.97);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .btn:active,
+        .sidebar-link:active,
+        .day-chev:active,
+        .audio-play:active,
+        .audio-download:active,
+        .action-menu > summary:active,
+        .mobile-tab:active {
+            transform: none;
+        }
+    }
+
+    .btn-primary {
+        @apply bg-jade text-white hover:bg-forest;
+    }
+
+    .btn-soft {
+        @apply bg-brand-50 text-brand-700 hover:bg-brand-100;
+    }
+
+    .btn-white {
+        @apply bg-paper text-ink ring-1 ring-line hover:bg-cream;
+    }
+
+    .btn-ghost {
+        @apply text-muted hover:bg-cream hover:text-forest;
+    }
+
+    .btn-danger {
+        @apply bg-danger-soft text-danger hover:bg-danger/15;
+    }
+
+    .btn-gold {
+        @apply bg-gold/20 text-ink hover:bg-gold/30;
+    }
+
+    .btn-sm {
+        @apply rounded-lg px-3 py-1.5 text-xs;
+    }
+
+    .card {
+        @apply relative rounded-3xl bg-paper p-5 sm:p-6;
+        box-shadow: 0 1px 2px rgb(78 114 104 / 0.05), 0 16px 32px -24px rgb(78 114 104 / 0.30);
+    }
+
+    /* انیمیشن ورود کارت‌ها — تأخیر پله‌ای را جاوااسکریپت می‌گذارد */
+    @keyframes card-in {
+        from {
+            opacity: 0;
+            transform: translateY(14px) scale(0.985);
+        }
+
+        to {
+            opacity: 1;
+            transform: none;
+        }
+    }
+
+    .surface {
+        box-shadow: 0 1px 2px rgb(78 114 104 / 0.05), 0 16px 32px -24px rgb(78 114 104 / 0.30);
+    }
+
+    /* فقط کارتی که تولتیپ دارد هنگام هاور روی کارت‌های کناری بماند؛
+       کارت‌های بزرگ (مثل بخش روزها) نباید روی هدر چسبان بروند */
+    .card:has(.tip-anchor):hover,
+    .card:has(.tip-anchor):focus-within {
+        z-index: 45;
+    }
+
+    /* نوار ناوبری چسبان: دقیقاً زیر هدر چسبان می‌نشیند (جاوااسکریپت
+       متغیر را از ارتفاع واقعی هدر پر می‌کند) */
+    .sticky-nav {
+        top: var(--sticky-nav-top, 6rem);
+    }
+
+    /* هدر پنل: نیمه‌شفاف؛ با اسکرول کاملاً مات و سایه‌دار می‌شود */
+    #panel-header {
+        transition: background-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    #panel-header.is-stuck {
+        background-color: var(--color-paper);
+        box-shadow: 0 10px 26px -20px rgb(47 62 56 / 0.5);
+    }
+
+    /* بدون جاوااسکریپت هم کارت‌ها یک‌بار آرام ظاهر می‌شوند */
+    .card,
+    .day-card,
+    .day-group,
+    .surface {
+        animation: card-in 0.5s cubic-bezier(0.22, 0.8, 0.36, 1) both;
+    }
+
+    /* با جاوااسکریپت: انیمیشن «مکث» شروع می‌شود تا تأخیر پله‌ای بدون پرش
+       اعمال شود — کارت هرگز پیش از انیمیشن دیده نمی‌شود. */
+    .has-js .card,
+    .has-js .day-card,
+    .has-js .day-group,
+    .has-js .surface {
+        animation-play-state: paused;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .card,
+        .day-card,
+        .day-group,
+        .surface {
+            animation: none;
+        }
+    }
+
+    .input {
+        @apply block w-full rounded-xl border-0 bg-paper px-4 py-3 text-sm text-ink ring-1 ring-line transition placeholder:text-muted/70 focus:ring-2 focus:ring-jade;
+    }
+
+    /* فیلدهای یک‌خطی و انتخابگر هم‌قد دکمه‌ها (۳۶ پیکسل)؛
+       textarea با rows خودش بلند می‌ماند */
+    input.input,
+    select.input,
+    .csel-btn {
+        min-height: 2.25rem;
+        padding-block: 0.375rem;
+    }
+
+    /* ------------------------------------------------------------------
+       سطح‌ها و ریل‌های رنگی: هر نوع محتوا یک ریل و یک سطح، نه چند کرم تودرتو
+       ------------------------------------------------------------------ */
+    .rail {
+        @apply rounded-2xl px-4 py-3.5;
+    }
+
+    .rail-tips {
+        @apply bg-gold/25;
+    }
+
+    .rail-questions {
+        @apply bg-jade/10;
+    }
+
+    .rail-tasks {
+        @apply bg-leaf/25;
+    }
+
+    .rail-about {
+        @apply bg-cream;
+    }
+
+    .rail-label {
+        @apply flex flex-wrap items-center gap-2 text-xs font-semibold;
+    }
+
+    /* ذخیره بدون رفرش: حالت لودینگ دکمه و پیام توست ------------------------ */
+    .btn.is-loading {
+        @apply pointer-events-none opacity-75;
+    }
+
+    .btn-spinner {
+        @apply inline-block size-3.5 animate-spin rounded-full border-2 border-current border-t-transparent align-text-bottom;
+    }
+
+    .toast {
+        /* گوشهٔ بالا-چپ، با فاصلهٔ مناسب از حاشیه‌ها (بالای مودال هم دیده می‌شود) */
+        @apply fixed top-5 left-5 z-50 max-w-[90vw] rounded-2xl px-5 py-3 text-sm font-medium shadow-lg ring-1;
+        animation: toast-in 0.22s ease-out;
+    }
+
+    /* وقتی توست/نوار آپلود popover هستند، استایل پیش‌فرض مرورگر
+       (inset:0 و margin:auto و ...) خنثی می‌شود تا سر جای خودشان بمانند */
+    .toast[popover] {
+        inset: auto;
+
+        /* inset:auto جای top/left را خالی می‌کند؛ صریح برشان می‌گردانیم */
+        top: 1.25rem;
+        left: 1.25rem;
+        margin: 0;
+        border: 0;
+        overflow: visible;
+        height: auto;
+        width: auto;
+        max-width: 90vw;
+    }
+
+    .upload-progress[popover] {
+        inset: auto;
+        top: 0.9rem;
+        left: 50%;
+        margin: 0;
+        border: 0;
+        overflow: visible;
+        height: auto;
+        width: min(22rem, calc(100vw - 2rem));
+    }
+
+    .toast-success {
+        @apply bg-forest text-white ring-forest;
+    }
+
+    .toast-error {
+        @apply bg-danger text-white ring-danger;
+    }
+
+    .toast.is-out {
+        opacity: 0;
+        transition: opacity 0.35s ease-in;
+    }
+
+    /* گروه‌های جمع‌شو داخل باکس هر روز (کارها، نکته‌ها، فایل‌ها، ...) */
+    .day-group {
+        overflow: hidden;
+    }
+
+    .day-group-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem 0.75rem;
+        cursor: pointer;
+        list-style: none;
+        padding: 0.65rem 1rem;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--color-ink);
+    }
+
+    .day-group-head::-webkit-details-marker {
+        display: none;
+    }
+
+    .day-group[open] > .day-group-head {
+        border-bottom: 1px solid var(--color-line);
+    }
+
+    /* مودال افزودن (پنل) */
+    .panel-modal {
+        /* خود dialog پوشش تمام‌صفحه می‌شود و جعبهٔ داخلش با گرید دقیقاً وسط
+           (افقی و عمودی) می‌نشیند — مستقل از رفتار مرکزچینی مرورگرها. */
+        position: fixed;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        max-width: none;
+        max-height: none;
+        margin: 0;
+        padding: 1rem;
+        border: 0;
+        background: transparent;
+        overflow: hidden;
+    }
+
+    .panel-modal[open] {
+        display: grid;
+        place-items: center;
+    }
+
+    .panel-modal::backdrop {
+        background-color: #4E726880;
+        backdrop-filter: blur(3px);
+    }
+
+    .panel-modal-box {
+        width: min(36rem, 100%);
+        max-height: min(85vh, calc(100vh - 2rem));
+        overflow-y: auto;
+        padding: 1.25rem;
+        border: 1px solid var(--color-line);
+        border-radius: var(--radius-3xl);
+        background-color: var(--color-paper);
+        color: var(--color-ink);
+        box-shadow: 0 24px 60px -24px #4E726873;
+        animation: modal-in 0.18s ease-out;
+    }
+
+    .panel-modal-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        margin-bottom: 1rem;
+    }
+
+    @keyframes modal-in {
+        from {
+            opacity: 0;
+            transform: translateY(12px) scale(0.98);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    /* ------------------------------------------------------------------
+       انتخابگر اختصاصی (به‌جای منوی پیش‌فرض مرورگر)
+       ------------------------------------------------------------------ */
+    .csel {
+        position: relative;
+    }
+
+    .csel-native {
+        position: absolute;
+        inset: 0;
+        z-index: -1;
+        height: 100%;
+        width: 100%;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .csel-btn {
+        display: flex;
+        width: 100%;
+        cursor: pointer;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        border-radius: var(--radius-xl);
+        background-color: var(--color-paper);
+        padding: 0.75rem 1rem;
+        font-size: 0.875rem;
+        text-align: right;
+        color: var(--color-ink);
+        box-shadow: inset 0 0 0 1px var(--color-line);
+        transition: box-shadow 0.15s ease, transform 0.12s ease;
+    }
+
+    .csel-btn:hover {
+        box-shadow: inset 0 0 0 1px var(--color-jade);
+    }
+
+    .csel-btn:active {
+        transform: translateY(1px) scale(0.99);
+    }
+
+    .csel.is-open .csel-btn {
+        box-shadow: inset 0 0 0 2px var(--color-jade);
+    }
+
+    .csel-label {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .csel-btn svg {
+        flex-shrink: 0;
+        color: var(--color-muted);
+        transition: transform 0.15s ease;
+    }
+
+    .csel.is-open .csel-btn svg {
+        transform: rotate(180deg);
+    }
+
+    .csel-list {
+        position: absolute;
+        inset-inline: 0;
+        top: calc(100% + 6px);
+        z-index: 55;
+        display: none;
+        max-height: 16rem;
+        overflow-y: auto;
+        padding: 0.4rem;
+        border-radius: var(--radius-2xl);
+        background-color: var(--color-paper);
+        box-shadow: 0 1px 2px rgb(78 114 104 / 0.08), 0 18px 36px -18px rgb(78 114 104 / 0.45);
+        animation: menu-in 0.16s ease-out;
+    }
+
+    .csel.is-open .csel-list {
+        display: block;
+    }
+
+    .csel-option {
+        display: flex;
+        width: 100%;
+        cursor: pointer;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+        border-radius: var(--radius-xl);
+        padding: 0.5rem 0.7rem;
+        font-size: 12px;
+        text-align: right;
+        color: var(--color-ink);
+        transition: background-color 0.12s ease, color 0.12s ease;
+    }
+
+    .csel-option:hover,
+    .csel-option:focus-visible {
+        background-color: var(--color-cream);
+        color: var(--color-forest);
+        outline: none;
+    }
+
+    .csel-option.is-selected {
+        font-weight: 700;
+        color: var(--color-jade);
+    }
+
+    .csel-option .csel-check {
+        flex-shrink: 0;
+        color: var(--color-jade);
+    }
+
+    /* نمادهای برجستهٔ چالش: کاشی رنگی با رنگ‌بندی اصلی سایت */
+    .emoji-tile {
+        display: grid;
+        width: 2.6rem;
+        height: 2.6rem;
+        place-items: center;
+        border-radius: 0.95rem;
+        font-size: 1.2rem;
+        cursor: pointer;
+        box-shadow:
+            0 6px 14px -6px rgb(47 62 56 / 0.5),
+            inset 0 1.5px 0 rgb(255 255 255 / 0.4),
+            inset 0 -2.5px 5px rgb(0 0 0 / 0.14);
+        transition: transform 0.15s ease, filter 0.15s ease;
+    }
+
+    .emoji-tile:hover {
+        transform: translateY(-2px) scale(1.06);
+        filter: brightness(1.07);
+    }
+
+    .emoji-tile:active {
+        transform: scale(0.93);
+    }
+
+    .emoji-tile-jade {
+        background: linear-gradient(160deg, #7FA79B, #4E7268);
+    }
+
+    .emoji-tile-forest {
+        background: linear-gradient(160deg, #4E7268, #2F3E38);
+    }
+
+    .emoji-tile-leaf {
+        background: linear-gradient(160deg, #CBD9B8, #8FA87E);
+    }
+
+    .emoji-tile-gold {
+        background: linear-gradient(160deg, #F7E9C4, #D9B96E);
+    }
+
+    /* ارتفاع یکسان همهٔ ورودی‌ها و دکمه‌های بخش فیلتر آمار */
+    .analytics-filters .input,
+    .analytics-filters .csel-btn,
+    .analytics-filters .btn,
+    .analytics-filters .filter-chip {
+        height: 2.25rem;
+    }
+
+    .analytics-filters .filter-chip {
+        display: inline-flex;
+        align-items: center;
+    }
+
+    /* ------------------------------------------------------------------
+       نمودارهای اختصاصی آمار (بدون کتابخانهٔ خارجی)
+       ------------------------------------------------------------------ */
+    .xchart {
+        position: relative;
+    }
+
+    .xchart-svg {
+        width: 100%;
+        height: 100%;
+    }
+
+    .xchart-tip {
+        position: absolute;
+        top: 8px;
+        z-index: 12;
+        min-width: 9rem;
+        padding: 0.55rem 0.7rem;
+        border-radius: 0.9rem;
+        background-color: var(--color-ink);
+        color: #fff;
+        font-size: 11px;
+        line-height: 1.9;
+        pointer-events: none;
+        box-shadow: 0 14px 30px -14px rgb(47 62 56 / 0.55);
+    }
+
+    .xchart-tip b {
+        display: block;
+        font-size: 11.5px;
+    }
+
+    .xchart-tip span {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .xchart-tip i {
+        width: 0.55rem;
+        height: 0.55rem;
+        border-radius: 999px;
+        flex-shrink: 0;
+    }
+
+    .xchart-tip u {
+        display: block;
+        margin-top: 0.25rem;
+        padding-top: 0.25rem;
+        border-top: 1px solid rgb(255 255 255 / 0.15);
+        color: var(--color-leaf);
+        text-decoration: none;
+    }
+
+    /* ستون‌های ماهانه */
+    .xbars {
+        display: flex;
+        align-items: flex-end;
+        gap: 0.5rem;
+        height: 100%;
+    }
+
+    .xbar-col {
+        display: flex;
+        flex: 1;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.4rem;
+        height: 100%;
+        cursor: pointer;
+    }
+
+    .xbar {
+        width: 70%;
+        max-width: 3.2rem;
+        border-radius: 0.7rem 0.7rem 0.3rem 0.3rem;
+        transition: filter 0.15s ease;
+    }
+
+    .xbar-col:hover .xbar {
+        filter: brightness(1.07);
+    }
+
+    .xbar-label {
+        font-size: 10px;
+        color: var(--color-hint);
+        white-space: nowrap;
+    }
+
+    /* دونات */
+    .xdonut {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: center;
+        gap: 1.5rem;
+        height: 100%;
+    }
+
+    .xdonut-svg {
+        height: 100%;
+        max-height: 12rem;
+    }
+
+    .xdonut-seg {
+        cursor: pointer;
+        transition: opacity 0.15s ease;
+    }
+
+    .xdonut-legend {
+        display: grid;
+        gap: 0.55rem;
+        min-width: 12rem;
+        margin: 0;
+        padding: 0;
+        font-size: 11.5px;
+        list-style: none;
+    }
+
+    .xdonut-legend li {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        cursor: pointer;
+        color: var(--color-ink);
+    }
+
+    .xdonut-legend i {
+        width: 0.7rem;
+        height: 0.7rem;
+        border-radius: 0.35rem;
+        flex-shrink: 0;
+    }
+
+    .xdonut-legend b {
+        margin-inline-start: auto;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--color-muted);
+    }
+
+    /* میله‌های افقی چالش‌ها */
+    .xhbars {
+        display: grid;
+        gap: 0.7rem;
+        height: 100%;
+        align-content: center;
+    }
+
+    .xhbar-row {
+        display: grid;
+        grid-template-columns: minmax(6rem, 11rem) 1fr auto;
+        align-items: center;
+        gap: 0.75rem;
+        cursor: pointer;
+    }
+
+    .xhbar-title {
+        overflow: hidden;
+        font-size: 11.5px;
+        color: var(--color-ink);
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .xhbar-track {
+        height: 0.7rem;
+        overflow: hidden;
+        border-radius: 999px;
+        background-color: var(--color-cream);
+    }
+
+    .xhbar-fill {
+        display: block;
+        height: 100%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, #659287, #B8C9A3);
+        transition: width 0.6s cubic-bezier(0.22, 0.8, 0.36, 1);
+    }
+
+    .xhbar-row:hover .xhbar-fill {
+        filter: brightness(1.06);
+    }
+
+    .xhbar-value {
+        font-size: 11px;
+        color: var(--color-muted);
+    }
+
+    /* ------------------------------------------------------------------
+       چک‌باکس و رادیوی اختصاصی سایت (به‌جای کنترل پیش‌فرض مرورگر)
+       ------------------------------------------------------------------ */
+    input[type='checkbox'],
+    input[type='radio'] {
+        appearance: none;
+        display: inline-grid;
+        flex-shrink: 0;
+        place-content: center;
+        width: 1.2rem;
+        height: 1.2rem;
+        margin: 0;
+        vertical-align: middle;
+        background-color: var(--color-paper);
+        box-shadow: inset 0 0 0 1.5px var(--color-line);
+        cursor: pointer;
+        transition: box-shadow 0.15s ease, background-color 0.15s ease, transform 0.12s ease;
+    }
+
+    input[type='checkbox'] {
+        border-radius: 0.55rem;
+    }
+
+    input[type='radio'] {
+        border-radius: 999px;
+    }
+
+    input[type='checkbox']:hover,
+    input[type='radio']:hover {
+        box-shadow: inset 0 0 0 1.5px var(--color-jade);
+    }
+
+    input[type='checkbox']:active,
+    input[type='radio']:active {
+        transform: scale(0.92);
+    }
+
+    input[type='checkbox']:checked,
+    input[type='radio']:checked {
+        background-color: var(--color-jade);
+        box-shadow: inset 0 0 0 1.5px var(--color-jade);
+    }
+
+    input[type='checkbox']:checked::after {
+        content: '';
+        width: 0.7rem;
+        height: 0.7rem;
+        background: no-repeat center / contain url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5 9-11'/%3E%3C/svg%3E");
+    }
+
+    input[type='radio']::after {
+        content: '';
+        width: 0.5rem;
+        height: 0.5rem;
+        border-radius: 999px;
+        background-color: #ffffff;
+        opacity: 0;
+        transform: scale(0.4);
+        transition: opacity 0.15s ease, transform 0.15s ease;
+    }
+
+    input[type='radio']:checked::after {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    input[type='checkbox']:focus-visible,
+    input[type='radio']:focus-visible {
+        outline: 2px solid var(--color-jade);
+        outline-offset: 2px;
+    }
+
+    /* دکمهٔ آیکون استاندارد — هم‌خانوادهٔ فلش کارت روزها */
+    .icon-btn {
+        @apply grid size-9 shrink-0 cursor-pointer place-items-center rounded-xl bg-cream text-muted transition-all;
+    }
+
+    .icon-btn:hover {
+        @apply bg-line/60 text-forest;
+    }
+
+    .icon-btn:active {
+        transform: translateY(1px) scale(0.97);
+    }
+
+    /* تولتیپ اطلاعات — با هاور روی آیکون ℹ نمایش داده می‌شود */
+    .tip-anchor {
+        position: relative;
+        display: inline-grid;
+        place-items: center;
+        width: 1.15rem;
+        height: 1.15rem;
+        border-radius: 999px;
+        background-color: var(--color-line);
+        color: var(--color-ink);
+        font-size: 10px;
+        font-style: normal;
+        font-weight: 700;
+        cursor: help;
+    }
+
+    .tip-anchor .tip-bubble {
+        position: absolute;
+        bottom: calc(100% + 8px);
+        inset-inline-start: 50%;
+        transform: translateX(50%) translateY(4px);
+        z-index: 40;
+        width: max-content;
+        max-width: 15rem;
+        padding: 0.5rem 0.65rem;
+        border-radius: var(--radius-xl);
+        background-color: var(--color-ink);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 400;
+        line-height: 1.7;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.15s ease, transform 0.15s ease;
+    }
+
+    .tip-anchor:hover .tip-bubble,
+    .tip-anchor:focus-visible .tip-bubble {
+        opacity: 1;
+        transform: translateX(50%) translateY(0);
+    }
+
+    /* اسکلتون — جای خالی محتوایی که هنوز نرسیده */
+    .skeleton {
+        border-radius: var(--radius-xl);
+        background: linear-gradient(100deg, var(--color-cream) 40%, var(--color-line) 50%, var(--color-cream) 60%);
+        background-size: 200% 100%;
+        animation: skeleton-shimmer 1.4s ease-in-out infinite;
+    }
+
+    @keyframes skeleton-shimmer {
+        to {
+            background-position: -200% 0;
+        }
+    }
+
+    /* روکش «در حال بارگذاری» روی بخشی که با AJAX تازه می‌شود */
+    .section-loading {
+        position: absolute;
+        inset: 0;
+        z-index: 25;
+        display: grid;
+        place-items: center;
+        gap: 0.5rem;
+        border-radius: inherit;
+        background-color: rgb(255 255 255 / 0.72);
+        backdrop-filter: blur(2px);
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--color-forest);
+    }
+
+    .section-loading::before {
+        content: '';
+        width: 1.4rem;
+        height: 1.4rem;
+        border-radius: 999px;
+        border: 2.5px solid var(--color-line);
+        border-top-color: var(--color-jade);
+        animation: section-spin 0.8s linear infinite;
+    }
+
+    @keyframes section-spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+
+    /* جعبهٔ نمودار تا آماده شدن chart.js ضربان دارد */
+    .chart-box {
+        border-radius: var(--radius-2xl);
+        background: linear-gradient(100deg, var(--color-cream) 40%, var(--color-line) 50%, var(--color-cream) 60%);
+        background-size: 200% 100%;
+        animation: skeleton-shimmer 1.4s ease-in-out infinite;
+    }
+
+    .chart-box.is-ready {
+        animation: none;
+        background: none;
+    }
+
+    /* چیپ «در حال بارگذاری» صفحه نمایش اطلاعات */
+    .page-chip {
+        position: fixed;
+        bottom: 1.25rem;
+        inset-inline-start: 50%;
+        transform: translateX(50%);
+        z-index: 60;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.55rem 1rem;
+        border-radius: 999px;
+        background-color: var(--color-ink);
+        color: #fff;
+        font-size: 12px;
+        font-weight: 600;
+        box-shadow: 0 14px 30px -14px rgb(47 62 56 / 0.5);
+        transition: opacity 0.3s ease;
+    }
+
+    .page-chip::before {
+        content: '';
+        width: 0.9rem;
+        height: 0.9rem;
+        border-radius: 999px;
+        border: 2px solid rgb(255 255 255 / 0.35);
+        border-top-color: var(--color-leaf);
+        animation: section-spin 0.8s linear infinite;
+    }
+
+    .page-chip.is-out {
+        opacity: 0;
+    }
+
+    /* منوی عملیات (فهرست چالش‌ها) */
+    .action-menu {
+        position: relative;
+    }
+
+    .action-menu > summary {
+        list-style: none;
+        cursor: pointer;
+    }
+
+    .action-menu > summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .action-menu-panel {
+        position: absolute;
+        inset-inline-end: 0;
+        top: calc(100% + 6px);
+        z-index: 65;
+        min-width: 11rem;
+        padding: 0.4rem;
+        border-radius: var(--radius-2xl);
+        background-color: var(--color-paper);
+        box-shadow: 0 1px 2px rgb(78 114 104 / 0.08), 0 18px 36px -20px rgb(78 114 104 / 0.4);
+        animation: menu-in 0.16s ease-out;
+    }
+
+    @keyframes menu-in {
+        from {
+            opacity: 0;
+            transform: translateY(-4px);
+        }
+
+        to {
+            opacity: 1;
+            transform: none;
+        }
+    }
+
+    .action-menu-panel a,
+    .action-menu-panel button {
+        display: flex;
+        width: 100%;
+        align-items: center;
+        gap: 0.5rem;
+        border-radius: var(--radius-xl);
+        padding: 0.5rem 0.65rem;
+        font-size: 12px;
+        text-align: right;
+        color: var(--color-ink);
+        transition: background-color 0.12s ease, color 0.12s ease;
+    }
+
+    .action-menu-panel a:hover,
+    .action-menu-panel button:hover {
+        background-color: var(--color-cream);
+        color: var(--color-forest);
+    }
+
+    .action-menu-panel .is-danger,
+    .action-menu-panel .is-danger:hover {
+        color: var(--color-danger);
+    }
+
+    .action-menu-panel .is-danger:hover {
+        background-color: var(--color-danger-soft);
+    }
+
+    /* نوار بارگذاری صفحه — هنگام جابه‌جایی بین صفحات */
+    #page-loader {
+        position: fixed;
+        inset-inline: 0;
+        top: 0;
+        z-index: 90;
+        height: 3px;
+        overflow: hidden;
+        pointer-events: none;
+    }
+
+    #page-loader::before {
+        content: '';
+        display: block;
+        height: 100%;
+        width: 40%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, var(--color-jade), var(--color-leaf));
+        animation: page-loader-slide 1s ease-in-out infinite;
+    }
+
+    @keyframes page-loader-slide {
+        from {
+            transform: translateX(-100%);
+        }
+
+        to {
+            transform: translateX(250%);
+        }
+    }
+
+    /* نوار پیشرفت آپلود فایل (بالای صفحه) */
+    .upload-progress {
+        position: fixed;
+        top: 0.9rem;
+        left: 50%;
+
+        /* بدون این، لبهٔ چپ نوار روی ۵۰٪ می‌نشیند و کج به راست دیده می‌شود */
+        transform: translateX(-50%);
+        z-index: 60;
+        width: min(22rem, calc(100vw - 2rem));
+        padding: 0.85rem 1rem;
+        border-radius: var(--radius-2xl);
+        background-color: var(--color-paper);
+        box-shadow: 0 18px 40px -20px #4E726866, 0 1px 2px #2F3E381a;
+        border: 1px solid var(--color-line);
+        animation: upload-progress-in 0.22s ease-out;
+        transition: opacity 0.4s ease, transform 0.4s ease;
+    }
+
+    .upload-progress.is-out {
+        opacity: 0;
+        transform: translate(-50%, -0.6rem);
+    }
+
+    @keyframes upload-progress-in {
+        from {
+            opacity: 0;
+            transform: translate(-50%, -10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+    }
+
+    .upload-progress-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--color-ink);
+    }
+
+    .upload-progress-track {
+        margin-top: 0.5rem;
+        height: 0.5rem;
+        overflow: hidden;
+        border-radius: 999px;
+        background-color: var(--color-cream);
+        box-shadow: inset 0 0 0 1px var(--color-line);
+    }
+
+    .upload-progress-fill {
+        display: block;
+        height: 100%;
+        width: 0%;
+        border-radius: 999px;
+        background: linear-gradient(90deg, var(--color-jade), var(--color-leaf));
+        transition: width 0.2s ease;
+    }
+
+    @keyframes toast-in {
+        from {
+            opacity: 0;
+            transform: translate(-50%, -10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translate(-50%, 0);
+        }
+    }
+
+    /* سایدبار پنل: یک باکس واحد ------------------------------------------ */
+    .panel-sidebar {
+        @apply overflow-hidden rounded-3xl bg-paper;
+        box-shadow: 0 1px 2px rgb(78 114 104 / 0.05), 0 16px 32px -26px rgb(78 114 104 / 0.32);
+    }
+
+    .sidebar-link {
+        @apply flex w-full cursor-pointer items-center gap-2.5 rounded-2xl px-2 py-2 text-right text-[13px] text-ink/85 transition-colors hover:bg-cream hover:text-forest;
+    }
+
+    .sidebar-link.is-active {
+        @apply font-semibold text-white;
+        background-color: var(--color-jade);
+        box-shadow: 0 2px 4px rgb(78 114 104 / 0.10), 0 12px 24px -14px rgb(78 114 104 / 0.45);
+    }
+
+    /* پخش‌کننده اختصاصی فایل صوتی (هماهنگ با پالت سایت) ------------------ */
+    .audio-player {
+        @apply rounded-2xl bg-paper p-3 sm:p-3.5;
+    }
+
+    .audio-player.is-playing {
+        @apply ring-jade/40;
+        box-shadow: 0 1px 2px rgb(101 146 135 / 0.1), 0 14px 28px -22px rgb(101 146 135 / 0.4);
+    }
+
+    .audio-play {
+        @apply grid size-11 shrink-0 cursor-pointer place-items-center rounded-2xl bg-jade text-white transition-colors hover:bg-forest disabled:cursor-not-allowed disabled:opacity-60 sm:size-12;
+    }
+
+    .audio-track {
+        @apply relative h-2.5 w-full cursor-pointer appearance-none rounded-full bg-line outline-none;
+    }
+
+    /* پر شدن مسیر پخش از راست (راست‌به‌چپ) */
+    .audio-track::-webkit-slider-runnable-track {
+        height: 100%;
+        border-radius: 9999px;
+        background: linear-gradient(to left, var(--color-jade) var(--audio-progress, 0%), var(--color-line) var(--audio-progress, 0%));
+    }
+
+    .audio-track::-moz-range-track {
+        height: 100%;
+        border-radius: 9999px;
+        background: linear-gradient(to left, var(--color-jade) var(--audio-progress, 0%), var(--color-line) var(--audio-progress, 0%));
+    }
+
+    .audio-track::-webkit-slider-thumb {
+        @apply size-4 rounded-full bg-paper ring-2 ring-jade;
+        -webkit-appearance: none;
+        appearance: none;
+        margin-top: -3px;
+    }
+
+    .audio-track::-moz-range-thumb {
+        @apply size-4 rounded-full border-0 bg-paper ring-2 ring-jade;
+    }
+
+    .audio-time {
+        @apply font-medium tabular-nums text-muted;
+    }
+
+    .audio-speed {
+        @apply shrink-0 cursor-pointer rounded-xl bg-cream px-2.5 py-1.5 text-[11px] font-semibold text-muted ring-1 ring-line transition hover:bg-line/50 hover:text-forest;
+    }
+
+    /* عکس روز: کامل و به اندازه عرض باکس روز */
+    .day-image {
+        @apply block h-auto w-full max-h-[30rem] rounded-2xl bg-paper object-contain ring-1 ring-line;
+    }
+
+    .day-image-download {
+        @apply inline-flex shrink-0 cursor-pointer items-center gap-1 rounded-lg bg-jade/10 px-3 py-1.5 text-[11px] font-semibold text-jade no-underline ring-1 ring-jade/30 transition hover:bg-jade/20 hover:text-forest;
+    }
+
+    /* دکمه دانلود فایل صوتی: بزرگ‌تر و واضح‌تر از بقیه کنترل‌ها */
+    .audio-download {
+        @apply inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-xl bg-jade/10 px-4 py-2.5 text-xs font-semibold text-jade no-underline ring-1 ring-jade/30 transition hover:bg-jade/20 hover:text-forest;
+    }
+
+    /* ریل فایل‌های هر روز */
+    .rail-files {
+        @apply bg-jade/10;
+    }
+
+    .rail-audio {
+        @apply bg-gold/25;
+    }
+
+    /* کارت روز به‌صورت آکاردئون ---------------------------------------- */
+    .day-card {
+        @apply overflow-hidden rounded-3xl bg-paper;
+        box-shadow: 0 1px 2px rgb(78 114 104 / 0.05), 0 14px 28px -22px rgb(78 114 104 / 0.28);
+    }
+
+    /* روزی که هستیم: بدون حاشیه، با سایهٔ یشمی برجسته‌تر */
+    .day-card.is-today {
+        box-shadow: 0 2px 4px rgb(101 146 135 / 0.12), 0 20px 40px -22px rgb(101 146 135 / 0.55);
+    }
+
+    .day-card.is-today > summary {
+        @apply bg-jade/8;
+    }
+
+    .day-card > summary {
+        @apply flex cursor-pointer items-center gap-3 px-4 py-3 sm:px-5;
+    }
+
+    .day-card > summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .day-num {
+        @apply grid size-9 shrink-0 place-items-center rounded-xl text-xs font-bold;
+    }
+
+    .day-chev {
+        @apply grid size-10 shrink-0 place-items-center rounded-2xl bg-cream text-muted ring-1 ring-line transition-all;
+    }
+
+    .day-card > summary:hover .day-chev {
+        @apply bg-line/60 text-forest;
+    }
+
+    .day-card[open] .day-chev {
+        @apply bg-jade/10 text-jade ring-jade/30;
+    }
+
+    .day-card[open] .day-chev {
+        transform: rotate(180deg);
+    }
+
+    .day-body {
+        /* فاصله سرِ کارت روز تا اولین بخش (نکته‌ها) — قبلاً به هم چسبیده بودند */
+        @apply space-y-3 px-3 pb-3.5 pt-4 sm:px-4 sm:pb-4;
+    }
+
+    /* نوار پرش سریع ----------------------------------------------------- */
+    .jump-bar {
+        @apply sticky top-16 z-30 -mx-4 flex gap-2 overflow-x-auto border-b border-line bg-canvas/95 px-4 py-2.5 backdrop-blur sm:-mx-6 sm:px-6;
+    }
+
+    /* دکمه بازشوی داخل نوار قفل (هم‌شکل چیپ‌ها ولی مستقل از نوار پرش) */
+    .strip-toggle {
+        @apply w-full whitespace-nowrap rounded-2xl bg-cream px-4 py-2.5 text-xs font-medium text-muted ring-1 ring-line transition hover:bg-line/40 hover:text-forest sm:w-auto;
+    }
+
+    .jump-chip {
+        @apply flex shrink-0 items-center gap-1.5 rounded-full bg-paper px-3.5 py-1.5 text-xs text-ink ring-1 ring-line transition-colors hover:bg-line/50;
+    }
+
+    .jump-chip.is-active {
+        @apply bg-jade font-semibold text-white ring-jade;
+    }
+
+    .jump-chip.is-locked {
+        @apply bg-cream text-muted;
+    }
+
+    /* سرتیتر بخش‌ها: کوچک با خط مویی ----------------------------------- */
+    .section-title {
+        @apply flex items-center gap-2 text-sm font-semibold text-forest;
+    }
+
+    .section-title::after {
+        content: '';
+        @apply h-px flex-1 bg-line;
+    }
+
+    .label {
+        @apply mb-2 block text-sm font-medium text-ink;
+    }
+
+    .hint {
+        @apply mt-1.5 text-xs text-muted;
+    }
+
+    .badge {
+        @apply inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-medium ring-1;
+    }
+
+    .table-wrap {
+        @apply overflow-x-auto rounded-2xl ring-1 ring-line;
+    }
+
+    .table {
+        @apply w-full min-w-[40rem] border-collapse bg-paper text-right text-sm;
+    }
+
+    .table thead th {
+        @apply whitespace-nowrap bg-cream/80 px-4 py-3 text-xs font-semibold text-muted;
+    }
+
+    .table tbody td {
+        @apply border-t border-line px-4 py-3 align-middle;
+    }
+
+    .link {
+        @apply font-medium text-jade underline-offset-4 hover:underline;
+    }
+
+    /* کارت روز قفل‌شده در چالش‌های روزانه */
+    .locked-panel {
+        @apply rounded-3xl bg-cream/70 p-6 text-center;
+        box-shadow: 0 1px 2px rgb(78 114 104 / 0.05), 0 12px 24px -22px rgb(78 114 104 / 0.25);
+    }
+}
+
+/* انیمیشن نرم برای کارت‌ها و ردیف‌ها */
+@keyframes riseIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-rise {
+    animation: riseIn 0.4s ease both;
+}
+
+/* ----------------------------------------------------------------------
+   موبایل: دسترسی راحت‌تر و نمایش مناسب‌تر
+   ---------------------------------------------------------------------- */
+@media (max-width: 767px) {
+    /* تراشه‌های انتخاب روز و نوع محتوا در پنل: به اندازه انگشت */
+    label[data-day-type-label],
+    button[data-fill-target] {
+        display: inline-flex;
+        min-height: 2.25rem;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* فیلدها روی موبایل ۱۶ پیکسل باشند تا iOS صفحه را زوم نکند */
+    .input,
+    input.input,
+    textarea.input,
+    select.input {
+        font-size: 1rem;
+    }
+
+    /* همان ۳۶ پیکسل استاندارد، موبایل هم */
+    .btn {
+        min-height: 2.25rem;
+    }
+
+    .btn-sm {
+        min-height: 2.25rem;
+    }
+
+    /* ------------------------------------------------------------------
+       کارایی موبایل: محو (blur) و انیمیشن‌های ورود، گران‌ترین کارهای
+       رندر روی گوشی‌اند — اینجا هر دو حذف می‌شوند تا باز/بسته‌شدن
+       مدال‌ها و بارگذاری صفحه روان بماند.
+       ------------------------------------------------------------------ */
+    .backdrop-blur,
+    .panel-modal::backdrop {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
+
+    /* پس‌زمینه نیمه‌شفاف بدون محو خوانا نمی‌ماند؛ کمی کدرتر می‌شود */
+    .sticky.top-0.backdrop-blur,
+    .sticky.top-3.backdrop-blur,
+    .fixed.bottom-0.backdrop-blur,
+    .jump-bar {
+        background-color: var(--color-paper);
+    }
+
+    .section-loading::before {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
+
+    .card,
+    .day-card,
+    .day-group,
+    .surface,
+    .animate-rise {
+        animation: none;
+    }
+
+    .panel-modal-box {
+        animation-duration: 0.12s;
+    }
+
+    /* جدول‌های «table-cards» روی موبایل به کارت تبدیل می‌شوند */
+    .table-wrap {
+        overflow: visible;
+    }
+
+    table.table-cards {
+        display: block;
+        min-width: 0;
+    }
+
+    table.table-cards thead {
+        display: none;
+    }
+
+    table.table-cards tbody {
+        display: block;
+    }
+
+    table.table-cards tbody tr {
+        display: block;
+        padding: 0.9rem 0.25rem;
+        border-top: 1px solid var(--color-line);
+    }
+
+    table.table-cards tbody tr:first-child {
+        border-top: 0;
+    }
+
+    table.table-cards tbody td {
+        display: flex;
+        width: auto;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.75rem;
+        padding: 0.35rem 0;
+        border: 0;
+        text-align: right;
+    }
+
+    table.table-cards tbody td::before {
+        content: attr(data-label);
+        flex: none;
+        font-size: 0.72rem;
+        color: var(--color-muted);
+    }
+
+    /* سلول‌های بی‌عنوان (سرِ کارت یا ردیف دکمه‌ها) تمام‌عرض می‌مانند */
+    table.table-cards tbody td[data-label=''] {
+        display: block;
+        padding-top: 0.5rem;
+    }
+
+    table.table-cards tbody td[data-label='']::before {
+        display: none;
+    }
+
+    table.table-cards tbody td > * {
+        min-width: 0;
+    }
+
+    /* محتوای سلول‌ها فضای باقی‌مانده را می‌گیرد تا فیلدها و دکمه‌ها جا شوند */
+    table.table-cards tbody td:not([data-label='']) > div {
+        flex: 1 1 auto;
+    }
+
+    /* ردیف دکمه‌های هر کارت */
+    table.table-cards tbody td[data-label=''] > div {
+        flex-wrap: wrap;
+        justify-content: flex-start;
+    }
+}
+
+/* فاصله امن پایین صفحه برای نوار پایین موبایل */
+.safe-bottom {
+    padding-bottom: calc(0.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+@media print {
+    .no-print,
+    .jump-bar {
+        display: none !important;
+    }
 }

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="پروانه شو">
+  <title>پروانه شو</title>
+
+  <!-- شاخک‌ها -->
+  <path d="M30.5 19.5 C27 13.5 22.5 9.5 17.5 8" stroke="#4E7268" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+  <path d="M33.5 19.5 C37 13.5 41.5 9.5 46.5 8" stroke="#4E7268" stroke-width="1.8" stroke-linecap="round" fill="none"/>
+  <circle cx="17" cy="7.6" r="2" fill="#4E7268"/>
+  <circle cx="47" cy="7.6" r="2" fill="#4E7268"/>
+
+  <!-- بال‌های بالا (یشمی) -->
+  <ellipse cx="19" cy="22" rx="14" ry="10.5" fill="#659287" transform="rotate(-26 19 22)"/>
+  <ellipse cx="45" cy="22" rx="14" ry="10.5" fill="#659287" transform="rotate(26 45 22)"/>
+
+  <!-- نقطه‌های طلایی -->
+  <circle cx="16.5" cy="19" r="2.4" fill="#FAEDCE"/>
+  <circle cx="47.5" cy="19" r="2.4" fill="#FAEDCE"/>
+
+  <!-- بال‌های پایین (برگی) -->
+  <ellipse cx="21" cy="42" rx="10.5" ry="8" fill="#D2DCB6" transform="rotate(22 21 42)"/>
+  <ellipse cx="43" cy="42" rx="10.5" ry="8" fill="#D2DCB6" transform="rotate(-22 43 42)"/>
+
+  <!-- بدن -->
+  <rect x="29.6" y="21" width="4.8" height="27" rx="2.4" fill="#4E7268"/>
+
+  <!-- سر -->
+  <circle cx="32" cy="21" r="4.2" fill="#4E7268"/>
+</svg>
