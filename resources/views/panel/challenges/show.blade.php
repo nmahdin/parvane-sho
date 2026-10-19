@@ -21,7 +21,8 @@
 
                 <div>
                     <h2 class="text-lg">{{ $challenge->title }}</h2>
-                    <p class="mt-1.5 max-w-2xl text-xs leading-6 text-muted">{{ $challenge->tagline ?: 'توضیح کوتاهی ثبت نشده است.' }}</p>
+                    @php($shortText = $challenge->tagline ?: $challenge->description)
+                    <p class="mt-1.5 max-w-2xl text-xs leading-6 text-muted">{{ $shortText ? \Illuminate\Support\Str::limit($shortText, 160) : 'توضیح کوتاهی ثبت نشده است.' }}</p>
 
                     <div class="mt-3 flex flex-wrap items-center gap-2">
                         <span class="badge {{ $challenge->statusClasses() }}">{{ $challenge->statusLabel() }}</span>
@@ -122,7 +123,7 @@
                 @php($dayFiles = $day['files'] ?? collect())
 
                 <details id="day-{{ $dayNumber }}" class="group overflow-hidden rounded-3xl bg-paper surface" @if ($day['open']) open @endif>
-                    <summary class="flex cursor-pointer flex-wrap items-center justify-between gap-3 bg-cream px-4 py-3 sm:px-5">
+                    <summary class="flex cursor-pointer flex-wrap items-center justify-between gap-3 bg-shell/70 px-4 py-3 sm:px-5">
                         <span class="flex flex-wrap items-center gap-2 text-sm font-semibold text-ink">
                             <span class="grid size-8 shrink-0 place-items-center rounded-xl text-xs font-bold {{ $day['is_today'] ? 'bg-jade text-white' : ($day['has_content'] ? 'bg-leaf/50 text-ink' : 'bg-line text-muted') }}">
                                 {{ $isGeneral ? '★' : ($day['unlocked'] ? fa_num($dayNumber) : '🔒') }}
@@ -159,7 +160,7 @@
                     {{-- افزودن به همین روز: چهار دکمهٔ ثابت؛ هر کدام مودال خودش را
                          باز می‌کند. روز از خود دکمه می‌آید و مودال‌ها فیلد انتخاب روز ندارند؛
                          بعد از هر ذخیره فرم خالی می‌شود و مودال باز می‌ماند. --}}
-                    <div class="flex flex-wrap items-center gap-2 border-t border-line bg-cream/70 px-4 py-3 sm:px-5">
+                    <div class="flex flex-wrap items-center gap-2 px-4 py-3 sm:px-5">
                         <button type="button" class="btn btn-primary btn-sm"
                                 data-open-modal="modal-content"
                                 data-modal-day="{{ $isGeneral ? '' : $dayNumber }}"
@@ -184,15 +185,12 @@
                                     data-modal-title="افزودن فایل">📎 افزودن فایل</button>
                         @endunless
 
-                        <button type="button" class="btn btn-ghost btn-sm ms-auto"
-                                data-open-modal="modal-bulk"
-                                data-modal-day="{{ $isGeneral ? '' : $dayNumber }}">📃 چند کار یک‌جا</button>
                     </div>
 
                     @unless ($isGeneral)
                         {{-- عنوان و توضیحات همین روز --}}
-                        <div class="border-t border-line bg-paper px-4 py-3 sm:px-5">
-                            <details id="day-{{ $dayNumber }}-title" class="day-group rounded-2xl bg-cream/70">
+                        <div class="px-4 py-3 sm:px-5">
+                            <details id="day-{{ $dayNumber }}-title" class="day-group rounded-2xl bg-shell/60">
                                 <summary class="day-group-head">
                                     <span>✏️ عنوان و توضیحات این روز</span>
                                     <span class="font-normal text-muted">
@@ -204,7 +202,7 @@
                                     </span>
                                 </summary>
 
-                                <form method="POST" action="{{ route('panel.days.update', [$challenge, $dayNumber]) }}" data-ajax-save class="space-y-3 border-t border-line px-4 py-4 text-right">
+                                <form method="POST" action="{{ route('panel.days.update', [$challenge, $dayNumber]) }}" data-ajax-save class="space-y-3 px-4 py-4 text-right">
                                     @csrf
                                     @method('PUT')
 
@@ -226,8 +224,8 @@
                     @endunless
 
                     {{-- کارهای این روز --}}
-                    <div class="border-t border-line bg-paper px-4 py-3 sm:px-5">
-                        <details id="day-{{ $dayNumber }}-tasks" class="day-group rounded-2xl bg-cream/70">
+                    <div class="px-4 py-3 sm:px-5">
+                        <details id="day-{{ $dayNumber }}-tasks" class="day-group rounded-2xl bg-shell/60">
                             <summary class="day-group-head">
                                 <span class="flex flex-wrap items-center gap-2">
                                     <span>📝</span> کارهای این روز
@@ -240,17 +238,14 @@
                                             data-modal-day="{{ $isGeneral ? '' : $dayNumber }}"
                                             data-modal-type="task">+ کار</button>
 
-                                    <button type="button" class="btn btn-white btn-sm"
-                                            data-open-modal="modal-bulk"
-                                            data-modal-day="{{ $isGeneral ? '' : $dayNumber }}">+ چند کار</button>
                                 </span>
                             </summary>
 
-                            <div class="border-t border-line">
+                            <div>
                     @if ($tasksOfDay->isEmpty())
                         <p class="bg-paper px-5 py-3 text-xs text-muted">برای این روز هنوز کاری ثبت نشده است.</p>
                     @else
-                        <ul class="divide-y divide-line bg-paper">
+                        <ul class="space-y-1 bg-paper">
                             @foreach ($tasksOfDay as $task)
                                 <li class="px-5 py-4">
                                     <div class="flex flex-wrap items-start justify-between gap-3">
@@ -367,8 +362,8 @@
                     </div>
 
                     {{-- پرسش‌های همین روز --}}
-                    <div class="border-t border-line bg-paper px-4 py-3 sm:px-5">
-                        <details id="day-{{ $dayNumber }}-questions" class="day-group rounded-2xl bg-cream/70">
+                    <div class="px-4 py-3 sm:px-5">
+                        <details id="day-{{ $dayNumber }}-questions" class="day-group rounded-2xl bg-shell/60">
                             <summary class="day-group-head">
                                 <span class="flex flex-wrap items-center gap-2">
                                     <span>❓</span> پرسش و پاسخ این روز
@@ -381,7 +376,7 @@
                                         data-modal-type="question">+ پرسش</button>
                             </summary>
 
-                            <div class="space-y-3 border-t border-line px-4 py-4">
+                            <div class="space-y-3 px-4 py-4">
                     @if ($questionsOfDay->isEmpty())
                         <p class="text-[11px] text-muted">برای این روز هنوز پرسشی ثبت نشده است.</p>
                     @else
@@ -509,8 +504,8 @@
                     </div>
 
                     {{-- نکته‌های این روز --}}
-                    <div class="border-t border-line bg-gold/5 px-4 py-3 sm:px-5">
-                        <details id="day-{{ $dayNumber }}-tips" class="day-group rounded-2xl bg-paper/80">
+                    <div class="px-4 py-3 sm:px-5">
+                        <details id="day-{{ $dayNumber }}-tips" class="day-group rounded-2xl bg-gold/10">
                             <summary class="day-group-head">
                                 <span class="flex flex-wrap items-center gap-2">
                                     <span>💡</span> {{ $isGeneral ? 'نکته‌های کلی' : 'نکته‌های این روز' }}
@@ -522,7 +517,7 @@
                                         data-modal-day="{{ $isGeneral ? '' : $dayNumber }}">+ نکته</button>
                             </summary>
 
-                            <div class="border-t border-gold/30 px-4 py-4">
+                            <div class="px-4 py-4">
                                 @if ($dayTips->isEmpty())
                                     <p class="text-[11px] text-muted">برای {{ $isGeneral ? 'کل چالش' : 'این روز' }} هنوز نکته‌ای نوشته نشده است.</p>
                                 @else
@@ -538,8 +533,8 @@
 
                     {{-- فایل‌ها و فایل‌های صوتی همین روز --}}
                     @unless ($isGeneral)
-                        <div class="border-t border-line bg-paper px-4 py-3 sm:px-5">
-                            <details id="day-{{ $dayNumber }}-files" class="day-group rounded-2xl bg-cream/70">
+                        <div class="px-4 py-3 sm:px-5">
+                            <details id="day-{{ $dayNumber }}-files" class="day-group rounded-2xl bg-shell/60">
                                 <summary class="day-group-head">
                                     <span class="flex flex-wrap items-center gap-2">
                                         <span>📎</span> فایل‌ها و فایل‌های صوتی این روز
@@ -551,7 +546,7 @@
                                             data-modal-day="{{ $dayNumber }}">+ فایل</button>
                                 </summary>
 
-                                <div class="border-t border-line px-4 py-4">
+                                <div class="px-4 py-4">
                             @if ($dayFiles->isEmpty())
                                 <p class="mt-4 rounded-2xl bg-cream px-4 py-5 text-center text-[11px] text-muted">برای این روز هنوز فایلی گذاشته نشده است.</p>
                             @else
@@ -704,27 +699,6 @@
         </div>
     </dialog>
 
-    <dialog id="modal-bulk" class="panel-modal">
-        <div class="panel-modal-box">
-            <div class="panel-modal-head">
-                <h3 class="text-sm font-semibold text-ink">افزودن چند کار یک‌جا <span data-modal-day-label class="font-normal text-muted"></span></h3>
-                <button type="button" class="icon-btn" data-close-modal aria-label="بستن"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="size-4"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></svg></button>
-            </div>
-
-            <form method="POST" action="{{ route('panel.tasks.bulk', $challenge) }}" data-ajax-save data-modal-form data-stay-open class="space-y-3 text-right">
-                @csrf
-                <input type="hidden" name="day_number" value="" data-modal-day-input>
-
-                <label class="label">هر خط یک کار</label>
-                <textarea name="items" rows="5" required class="input resize-y" placeholder="۲۰ دقیقه پیاده‌روی&#10;نوشتن سه جمله شکرگزاری&#10;۱۰ دقیقه تمرین تمرکز"></textarea>
-
-                <div class="flex items-center gap-2">
-                    <button type="button" class="btn btn-ghost flex-1 justify-center" data-close-modal>انصراف</button>
-                    <button type="submit" class="btn btn-primary flex-1 justify-center">افزودن کارها</button>
-                </div>
-            </form>
-        </div>
-    </dialog>
 
     <dialog id="modal-file" class="panel-modal">
         <div class="panel-modal-box">

@@ -64,8 +64,8 @@ class PanelDayModalsTest extends TestCase
 
         // همه گروه‌های داخل روز به‌طور پیش‌فرض بسته‌اند (بدون open)
         foreach (['title', 'tasks', 'questions', 'tips', 'files'] as $group) {
-            $this->assertStringNotContainsString('id="day-1-'.$group.'" class="day-group rounded-2xl bg-cream/70" open', $html);
-            $this->assertStringNotContainsString('id="day-1-'.$group.'" class="day-group rounded-2xl bg-paper/80" open', $html);
+            $this->assertStringNotContainsString('id="day-1-'.$group.'" class="day-group rounded-2xl bg-shell/60" open', $html);
+            $this->assertStringNotContainsString('id="day-1-'.$group.'" class="day-group rounded-2xl bg-gold/10" open', $html);
         }
     }
 
@@ -75,7 +75,7 @@ class PanelDayModalsTest extends TestCase
 
         $html = $this->panelHtml($challenge);
 
-        foreach (['modal-content', 'modal-bulk', 'modal-file', 'modal-tip'] as $modal) {
+        foreach (['modal-content', 'modal-file', 'modal-tip'] as $modal) {
             $this->assertStringContainsString('<dialog id="'.$modal.'"', $html);
         }
 
@@ -120,9 +120,9 @@ class PanelDayModalsTest extends TestCase
         $this->assertStringContainsString('data-modal-title="افزودن پرسش"', $html);
 
         // بعد از ذخیره، فرم خالی می‌شود و مودال بسته نمی‌شود:
-        // هر چهار فرم مودال data-stay-open دارند (با فاصلهٔ اول تا attribute-bag
+        // هر سه فرم مودال data-stay-open دارند (با فاصلهٔ اول تا attribute-bag
         // کامپوننت نکته که data-stay-open="data-stay-open" رندر می‌شود شمرده نشود)
-        $this->assertSame(4, substr_count($html, ' data-stay-open'));
+        $this->assertSame(3, substr_count($html, ' data-stay-open'));
 
         // مودال نکته فیلد انتخاب روز ندارد؛ روز از دکمهٔ همان روز می‌آید
         $tipModal = substr($html, (int) strpos($html, '<dialog id="modal-tip"'));

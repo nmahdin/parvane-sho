@@ -1270,18 +1270,18 @@ const app = {
         window.addEventListener('pagehide', hide);
     },
 
-    /* باز و بسته شدن نرم کارت روزها در سایت: ارتفاع کارت بین «فقط سرِ ردیف»
-       و «ارتفاع کامل» انیمیشن می‌شود و محتوای روز محو/نمایان می‌شود. */
+    /* باز و بسته شدن نرم کارت روزها و گروه‌های داخلشان: ارتفاع بین
+       «فقط سرِ ردیف» و «ارتفاع کامل» انیمیشن می‌شود و محتوا محو/نمایان می‌شود. */
     initDayCardAnimation() {
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-        document.querySelectorAll('details.day-card').forEach((card) => {
+        document.querySelectorAll('details.day-card, details.day-group').forEach((card) => {
             if (card.dataset.animBound) return;
             card.dataset.animBound = '1';
 
             const summary = card.querySelector(':scope > summary');
             const body = card.querySelector(':scope > .day-body');
-            if (!summary || !body || typeof card.animate !== 'function') return;
+            if (!summary || typeof card.animate !== 'function') return;
 
             const easing = 'cubic-bezier(0.22, 0.8, 0.36, 1)';
             let running = null;
@@ -1306,7 +1306,7 @@ const app = {
                         [{ height: `${currentHeight}px` }, { height: `${closedHeight}px` }],
                         { duration: 300, easing }
                     );
-                    body.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, easing: 'ease-in' });
+                    body?.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, easing: 'ease-in' });
                     running.onfinish = () => {
                         card.open = false;
                         stop();
@@ -1318,7 +1318,7 @@ const app = {
                         [{ height: `${closedHeight}px` }, { height: `${openHeight}px` }],
                         { duration: 340, easing }
                     );
-                    body.animate(
+                    body?.animate(
                         [{ opacity: 0, transform: 'translateY(-6px)' }, { opacity: 1, transform: 'none' }],
                         { duration: 300, easing: 'ease-out' }
                     );

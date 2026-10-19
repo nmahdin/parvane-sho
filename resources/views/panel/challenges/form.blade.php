@@ -26,12 +26,7 @@
                 </div>
 
                 <div>
-                    <label for="tagline" class="label">توضیح کوتاه</label>
-                    <input id="tagline" name="tagline" type="text" value="{{ old('tagline', $challenge->tagline) }}" class="input" placeholder="یک جمله که در فهرست چالش‌ها زیر عنوان دیده می‌شود">
-                </div>
-
-                <div>
-                    <label for="description" class="label">توضیح کوتاه چالش</label>
+                    <label for="description" class="label">توضیح کوتاه</label>
                     <textarea id="description" name="description" rows="3" class="input resize-y" placeholder="یک پاراگراف کوتاه که بالای صفحه چالش دیده می‌شود...">{{ old('description', $challenge->description) }}</textarea>
                 </div>
 

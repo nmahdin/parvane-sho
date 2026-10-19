@@ -11,7 +11,7 @@
 
         <div class="min-w-0">
             <h3 class="truncate text-base font-semibold text-ink group-hover:text-brand-700">{{ $challenge->title }}</h3>
-            <p class="mt-1 line-clamp-2 text-xs leading-6 text-muted">{{ $challenge->tagline ?: 'بدون توضیح کوتاه' }}</p>
+            <p class="mt-1 line-clamp-2 text-xs leading-6 text-muted">{{ $challenge->tagline ?: $challenge->description ?: 'بدون توضیح کوتاه' }}</p>
         </div>
     </div>
 

@@ -51,7 +51,6 @@ class PanelAjaxSaveTest extends TestCase
         foreach ([
             'action="'.route('panel.days.store', $challenge).'"',
             'action="'.route('panel.days.update', [$challenge, 1]).'"',
-            'action="'.route('panel.tasks.bulk', $challenge).'"',
             'action="'.route('panel.day-files.store', $challenge).'"',
             'action="'.route('panel.tips.store', $challenge).'"',
         ] as $action) {
