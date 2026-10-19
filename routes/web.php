@@ -127,6 +127,7 @@ Route::prefix('panel')->name('panel.')->group(function () {
         // تنظیمات
         Route::get('settings', [SettingController::class, 'edit'])->name('settings.edit');
         Route::put('settings', [SettingController::class, 'update'])->name('settings.update');
+        Route::put('settings/theme', [SettingController::class, 'updateTheme'])->name('settings.theme');
         Route::put('settings/password', [SettingController::class, 'updatePassword'])->name('settings.password');
         Route::patch('settings/maintenance', [SettingController::class, 'toggleMaintenance'])->name('settings.maintenance');
 

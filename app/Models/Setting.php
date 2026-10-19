@@ -37,6 +37,99 @@ class Setting extends Model
     }
 
     /**
+     * رنگ‌های پیش‌فرض سایت (همان توکن‌های resources/css/app.css).
+     */
+    public const THEME_DEFAULTS = [
+        'jade' => '#659287',
+        'forest' => '#4E7268',
+        'leaf' => '#B8C9A3',
+        'gold' => '#F2DDA8',
+        'cream' => '#F6F6F2',
+        'shell' => '#EFF1E6',
+        'canvas' => '#F6F7F1',
+        'line' => '#C9D2B9',
+    ];
+
+    /**
+     * رنگ‌های فعلی سایت: مقادیر ذخیره‌شده روی پیش‌فرض‌ها، فقط هگز معتبر.
+     *
+     * @return array<string, string>
+     */
+    public static function themeColors(): array
+    {
+        $colors = self::THEME_DEFAULTS;
+
+        try {
+            $stored = json_decode((string) static::get('theme_colors', '{}'), true);
+        } catch (\Throwable) {
+            $stored = null;
+        }
+
+        if (is_array($stored)) {
+            foreach (self::THEME_DEFAULTS as $key => $default) {
+                $value = $stored[$key] ?? null;
+
+                if (is_string($value) && preg_match('/^#[0-9a-fA-F]{6}$/', $value)) {
+                    $colors[$key] = strtoupper($value);
+                }
+            }
+        }
+
+        return $colors;
+    }
+
+    /**
+     * CSS متغیرهای رنگ برای تزریق در <head>؛ وقتی چیزی تغییر نکرده null است.
+     */
+    public static function themeCss(): ?string
+    {
+        $colors = static::themeColors();
+
+        if ($colors === self::THEME_DEFAULTS) {
+            return null;
+        }
+
+        $mix = static function (string $hex, string $with, int $percentOfWith): string {
+            $channel = static fn (string $c, int $i): int => hexdec(substr($c, $i, 2));
+            $out = '';
+
+            for ($i = 1; $i <= 5; $i += 2) {
+                $a = $channel($hex, $i);
+                $b = $channel($with, $i);
+                $v = (int) round($a + ($b - $a) * $percentOfWith / 100);
+                $out .= str_pad(strtoupper(dechex(max(0, min(255, $v)))), 2, '0', STR_PAD_LEFT);
+            }
+
+            return '#'.$out;
+        };
+
+        $jade = $colors['jade'];
+        $forest = $colors['forest'];
+
+        return ':root{'
+            .implode('; ', [
+                '--color-jade: '.$jade,
+                '--color-forest: '.$forest,
+                '--color-leaf: '.$colors['leaf'],
+                '--color-gold: '.$colors['gold'],
+                '--color-cream: '.$colors['cream'],
+                '--color-shell: '.$colors['shell'],
+                '--color-canvas: '.$colors['canvas'],
+                '--color-line: '.$colors['line'],
+                '--color-brand-50: '.$mix($jade, '#FFFFFF', 92),
+                '--color-brand-100: '.$mix($jade, '#FFFFFF', 82),
+                '--color-brand-200: '.$mix($jade, '#FFFFFF', 65),
+                '--color-brand-300: '.$mix($jade, '#FFFFFF', 45),
+                '--color-brand-400: '.$mix($jade, '#FFFFFF', 25),
+                '--color-brand-500: '.$jade,
+                '--color-brand-600: '.$mix($jade, '#000000', 10),
+                '--color-brand-700: '.$forest,
+                '--color-brand-800: '.$mix($forest, '#000000', 15),
+                '--color-brand-900: '.$mix($forest, '#000000', 30),
+            ]).';}';
+    }
+
+    /**
      * Site-wide settings with sensible defaults.
      *
      * @return array<string, string>

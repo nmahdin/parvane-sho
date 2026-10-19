@@ -646,8 +646,15 @@ const app = {
             Chart.defaults.font.family = "'Vazirmatn Variable', ui-sans-serif, system-ui, sans-serif";
             Chart.defaults.color = '#566f64';
             Chart.defaults.plugins.tooltip.callbacks = {
-                label: (item) => `${item.dataset.label || item.label}: ${fa(item.parsed.y ?? item.parsed)}`,
+                title: (items) => (items[0]?.label ? String(items[0].label) : ''),
+                label: (item) => ` ${item.dataset.label || item.label}: ${fa(item.parsed.y ?? item.parsed)}`,
             };
+            Chart.defaults.plugins.tooltip.backgroundColor = '#2F3E38';
+            Chart.defaults.plugins.tooltip.padding = 10;
+            Chart.defaults.plugins.tooltip.cornerRadius = 12;
+            Chart.defaults.plugins.tooltip.displayColors = true;
+            Chart.defaults.plugins.tooltip.boxPadding = 4;
+            Chart.defaults.animation = { duration: 700, easing: 'easeOutQuart' };
 
             const grid = { color: 'rgba(202, 220, 193, 0.5)' };
 
@@ -657,10 +664,10 @@ const app = {
                 data: {
                     labels: data.daily.labels,
                     datasets: [
-                        { label: 'صفحه چالش', data: data.daily.challenge, borderColor: '#659287', backgroundColor: 'rgba(101, 146, 135, 0.14)', fill: true, tension: 0.35, pointRadius: 2 },
-                        { label: 'کارت روز', data: data.daily.day, borderColor: '#D9B96E', backgroundColor: 'rgba(217, 185, 110, 0.14)', fill: true, tension: 0.35, pointRadius: 2 },
-                        { label: 'داشبورد شرکت‌کننده', data: data.daily.dashboard, borderColor: '#A8B89A', backgroundColor: 'rgba(168, 184, 154, 0.16)', fill: true, tension: 0.35, pointRadius: 2 },
-                        { label: 'صفحه اصلی', data: data.daily.home, borderColor: '#4E7268', backgroundColor: 'rgba(78, 114, 104, 0.12)', fill: true, tension: 0.35, pointRadius: 2 },
+                        { label: 'صفحه چالش', data: data.daily.challenge, borderColor: '#659287', backgroundColor: 'rgba(101, 146, 135, 0.14)', fill: true, tension: 0.35, pointRadius: 2, pointHoverRadius: 6, pointHitRadius: 18 },
+                        { label: 'کارت روز', data: data.daily.day, borderColor: '#D9B96E', backgroundColor: 'rgba(217, 185, 110, 0.14)', fill: true, tension: 0.35, pointRadius: 2, pointHoverRadius: 6, pointHitRadius: 18 },
+                        { label: 'داشبورد شرکت‌کننده', data: data.daily.dashboard, borderColor: '#A8B89A', backgroundColor: 'rgba(168, 184, 154, 0.16)', fill: true, tension: 0.35, pointRadius: 2, pointHoverRadius: 6, pointHitRadius: 18 },
+                        { label: 'صفحه اصلی', data: data.daily.home, borderColor: '#4E7268', backgroundColor: 'rgba(78, 114, 104, 0.12)', fill: true, tension: 0.35, pointRadius: 2, pointHoverRadius: 6, pointHitRadius: 18 },
                     ],
                 },
                 options: {
@@ -679,7 +686,7 @@ const app = {
                 type: 'bar',
                 data: {
                     labels: data.monthly.labels,
-                    datasets: [{ label: 'بازدید ماه', data: data.monthly.totals, backgroundColor: 'rgba(217, 185, 110, 0.75)', borderColor: '#D9B96E', borderWidth: 1, borderRadius: 8 }],
+                    datasets: [{ label: 'بازدید ماه', data: data.monthly.totals, backgroundColor: 'rgba(217, 185, 110, 0.75)', borderColor: '#D9B96E', borderWidth: 1, borderRadius: 8, hoverBackgroundColor: '#D9B96E' }],
                 },
                 options: {
                     responsive: true,
@@ -696,7 +703,7 @@ const app = {
                 type: 'doughnut',
                 data: {
                     labels: data.types.labels,
-                    datasets: [{ data: data.types.totals, backgroundColor: ['#659287', '#D9B96E', '#A8B89A', '#4E7268'], borderColor: '#ffffff', borderWidth: 2 }],
+                    datasets: [{ data: data.types.totals, backgroundColor: ['#659287', '#D9B96E', '#A8B89A', '#4E7268'], borderColor: '#ffffff', borderWidth: 2, hoverOffset: 10, spacing: 2 }],
                 },
                 options: {
                     responsive: true,
@@ -780,8 +787,8 @@ const app = {
         window.addEventListener('pagehide', hide);
     },
 
-    /* باز و بسته شدن نرم کارت روزها در سایت: ارتفاع با انیمیشن جمع/باز
-       می‌شود و محتوای روز کمی محو/نمایان می‌شود. */
+    /* باز و بسته شدن نرم کارت روزها در سایت: ارتفاع کارت بین «فقط سرِ ردیف»
+       و «ارتفاع کامل» انیمیشن می‌شود و محتوای روز محو/نمایان می‌شود. */
     initDayCardAnimation() {
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
@@ -791,40 +798,51 @@ const app = {
 
             const summary = card.querySelector(':scope > summary');
             const body = card.querySelector(':scope > .day-body');
-            if (!summary || !body) return;
+            if (!summary || !body || typeof card.animate !== 'function') return;
+
+            const easing = 'cubic-bezier(0.22, 0.8, 0.36, 1)';
+            let running = null;
+
+            const stop = () => {
+                running = null;
+                card.style.height = '';
+            };
 
             summary.addEventListener('click', (event) => {
                 event.preventDefault();
-                if (card._dayAnim) card._dayAnim.cancel();
 
-                const closedHeight = summary.offsetHeight;
-                const openHeight = card.scrollHeight;
-                const timing = { easing: 'cubic-bezier(0.22, 0.8, 0.36, 1)' };
+                const currentHeight = card.getBoundingClientRect().height;
+                const closedHeight = summary.getBoundingClientRect().height;
+                if (running) {
+                    running.cancel();
+                    running = null;
+                }
 
                 if (card.open) {
-                    card._dayAnim = card.animate(
-                        [{ height: `${openHeight}px` }, { height: `${closedHeight}px` }],
-                        { ...timing, duration: 300 }
+                    running = card.animate(
+                        [{ height: `${currentHeight}px` }, { height: `${closedHeight}px` }],
+                        { duration: 300, easing }
                     );
-                    body.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 180, easing: 'ease-in' });
-                    card._dayAnim.onfinish = () => {
+                    body.animate([{ opacity: 1 }, { opacity: 0 }], { duration: 160, easing: 'ease-in' });
+                    running.onfinish = () => {
                         card.open = false;
-                        card._dayAnim = null;
+                        stop();
                     };
                 } else {
                     card.open = true;
-                    card._dayAnim = card.animate(
+                    const openHeight = Math.max(card.scrollHeight, closedHeight + 1);
+                    running = card.animate(
                         [{ height: `${closedHeight}px` }, { height: `${openHeight}px` }],
-                        { ...timing, duration: 340 }
+                        { duration: 340, easing }
                     );
                     body.animate(
                         [{ opacity: 0, transform: 'translateY(-6px)' }, { opacity: 1, transform: 'none' }],
                         { duration: 300, easing: 'ease-out' }
                     );
-                    card._dayAnim.onfinish = () => {
-                        card._dayAnim = null;
-                    };
+                    running.onfinish = stop;
                 }
+
+                running.oncancel = stop;
             });
         });
     },

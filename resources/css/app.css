@@ -314,6 +314,48 @@
         }
     }
 
+    /* تولتیپ اطلاعات — با هاور روی آیکون ℹ نمایش داده می‌شود */
+    .tip-anchor {
+        position: relative;
+        display: inline-grid;
+        place-items: center;
+        width: 1.15rem;
+        height: 1.15rem;
+        border-radius: 999px;
+        background-color: var(--color-line);
+        color: var(--color-ink);
+        font-size: 10px;
+        font-style: normal;
+        font-weight: 700;
+        cursor: help;
+    }
+
+    .tip-anchor .tip-bubble {
+        position: absolute;
+        bottom: calc(100% + 8px);
+        inset-inline-start: 50%;
+        transform: translateX(50%) translateY(4px);
+        z-index: 40;
+        width: max-content;
+        max-width: 15rem;
+        padding: 0.5rem 0.65rem;
+        border-radius: var(--radius-xl);
+        background-color: var(--color-ink);
+        color: #fff;
+        font-size: 11px;
+        font-weight: 400;
+        line-height: 1.7;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.15s ease, transform 0.15s ease;
+    }
+
+    .tip-anchor:hover .tip-bubble,
+    .tip-anchor:focus-visible .tip-bubble {
+        opacity: 1;
+        transform: translateX(50%) translateY(0);
+    }
+
     /* نوار بارگذاری صفحه — هنگام جابه‌جایی بین صفحات */
     #page-loader {
         position: fixed;
@@ -507,9 +549,6 @@
     .day-card {
         @apply overflow-hidden rounded-3xl bg-paper;
         box-shadow: 0 1px 2px rgb(78 114 104 / 0.05), 0 14px 28px -22px rgb(78 114 104 / 0.28);
-        /* رندر تنبل: کارت‌های خارج از دید، سنگینِ رندر نمی‌شوند */
-        content-visibility: auto;
-        contain-intrinsic-size: auto 220px;
     }
 
     /* روزی که هستیم: بدون حاشیه، با سایهٔ یشمی برجسته‌تر */

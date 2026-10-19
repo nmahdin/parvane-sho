@@ -22,6 +22,8 @@ class SettingController extends Controller
             'site_name' => Setting::get('site_name', config('panel.site_name')),
             'site_tagline' => Setting::get('site_tagline', config('panel.site_tagline')),
             'site_about' => Setting::get('site_about', config('panel.site_about')),
+            'themeColors' => Setting::themeColors(),
+            'themeDefaults' => Setting::THEME_DEFAULTS,
             'maintenanceMode' => Setting::maintenanceMode(),
             'maintenanceMessage' => Setting::get('maintenance_message'),
             'admin' => $admin,
@@ -49,6 +51,43 @@ class SettingController extends Controller
         Setting::put('maintenance_message', trim((string) ($validated['maintenance_message'] ?? '')));
 
         return back()->with('status', 'تنظیمات سایت ذخیره شد.');
+    }
+
+    /**
+     * تغییر رنگ‌های سایت (فقط مدیر اصلی) — همان توکن‌های CSS ذخیره می‌شوند
+     * و در <head> همه صفحه‌ها به‌صورت متغیر :root تزریق می‌شوند.
+     */
+    public function updateTheme(Request $request): RedirectResponse
+    {
+        abort_unless($this->currentAdmin()->isSuper(), 403);
+
+        if ($request->boolean('reset')) {
+            Setting::put('theme_colors', null);
+
+            return back()->with('status', 'رنگ‌های سایت به حالت پیش‌فرض برگشت.');
+        }
+
+        $rules = [];
+
+        foreach (array_keys(Setting::THEME_DEFAULTS) as $key) {
+            $rules['colors.'.$key] = ['nullable', 'regex:/^#[0-9a-fA-F]{6}$/'];
+        }
+
+        $validated = $request->validate($rules, [
+            'colors.*.regex' => 'کد رنگ نامعتبر است؛ نمونهٔ معتبر: #659287',
+        ]);
+
+        $colors = [];
+
+        foreach (($validated['colors'] ?? []) as $key => $value) {
+            if ($value && strtoupper($value) !== Setting::THEME_DEFAULTS[$key]) {
+                $colors[$key] = strtoupper($value);
+            }
+        }
+
+        Setting::put('theme_colors', $colors ? json_encode($colors) : null);
+
+        return back()->with('status', 'رنگ‌های سایت ذخیره شد و همان لحظه در همه صفحه‌ها اعمال شد.');
     }
 
     /**

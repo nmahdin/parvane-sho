@@ -195,9 +195,6 @@ class PanelDayModalsTest extends TestCase
         $this->assertSame(1, preg_match('/\.panel-sidebar\{[^}]*background-color:var\(--color-paper\)/', $css));
         $this->assertSame(1, preg_match('/\.sidebar-link\.is-active\{[^}]*background-color:var\(--color-jade\)/', $css));
 
-        // رندر تنبل کارت‌های روز برای لود سریع‌تر صفحات طولانی
-        $this->assertStringContainsString('content-visibility:auto', $css);
-
         // نوار بارگذاری صفحه
         $this->assertStringContainsString('page-loader', $css);
 

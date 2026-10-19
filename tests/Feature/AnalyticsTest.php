@@ -175,7 +175,7 @@ class AnalyticsTest extends TestCase
         $html = $this->get(route('panel.analytics'))->assertOk()->getContent();
 
         $this->assertStringContainsString('آمار بازدید', $html);
-        $this->assertStringContainsString('نمودار بازدید — ۳۰ روز اخیر', $html);
+        $this->assertStringContainsString('نمودار بازدید — بازهٔ انتخابی', $html);
         $this->assertStringContainsString('جمع ماهانه (شمسی)', $html);
         $this->assertStringContainsString('چالش آمار', $html);
 
@@ -224,6 +224,31 @@ class AnalyticsTest extends TestCase
         $this->loginAsAdmin($this->superAdmin());
         $superHtml = $this->get(route('panel.analytics'))->assertOk()->getContent();
         $this->assertStringContainsString('چالش دیگری', $superHtml);
+    }
+
+    public function test_analytics_supports_range_and_type_filters(): void
+    {
+        $challenge = $this->makeChallenge();
+        $this->loginAsAdmin();
+
+        Visit::record(request()->create('/'), Visit::TYPE_HOME);
+        Visit::record(request()->create('/c'), Visit::TYPE_CHALLENGE, $challenge);
+
+        // بازهٔ سریع
+        $html = $this->get(route('panel.analytics', ['range' => 7]))->assertOk()->getContent();
+        $this->assertStringContainsString('name="from"', $html);
+        $this->assertStringContainsString('range=7', $html);
+
+        // فیلتر نوع
+        $html = $this->get(route('panel.analytics', ['type' => 'day']))->assertOk()->getContent();
+        $this->assertStringContainsString('value="day" selected', $html);
+
+        // بازهٔ دلخواه شمسی (امروز تا امروز)
+        $today = \App\Support\Jalali::inputValue(now());
+        $html = $this->get(route('panel.analytics', ['from' => $today, 'to' => $today]))
+            ->assertOk()
+            ->getContent();
+        $this->assertStringContainsString('بازدید در بازهٔ انتخابی', $html);
     }
 
     public function test_analytics_requires_login(): void

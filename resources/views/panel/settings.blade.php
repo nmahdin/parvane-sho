@@ -93,6 +93,57 @@
                 </form>
             </section>
 
+            {{-- رنگ‌های سایت --}}
+            <section class="card space-y-5">
+                <div>
+                    <h2 class="text-base">رنگ‌های سایت</h2>
+                    <p class="mt-1 text-xs text-muted">
+                        همین کدها تمام رنگ‌های سایت و پنل را می‌سازند؛ تغییر بده و ذخیره کن، همان لحظه همه‌جا اعمال می‌شود.
+                    </p>
+                </div>
+
+                @error('colors.*')
+                    <p class="rounded-2xl bg-danger-soft px-4 py-3 text-xs text-danger">{{ $message }}</p>
+                @enderror
+
+                <form method="POST" action="{{ route('panel.settings.theme') }}" class="space-y-4">
+                    @csrf
+                    @method('PUT')
+
+                    <div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                        @php
+                            $themeLabels = [
+                                'jade' => 'سبز اصلی (دکمه‌ها و لینک‌ها)',
+                                'forest' => 'سبز تیره (متن و عنوان‌ها)',
+                                'leaf' => 'برگ (لهجهٔ روشن)',
+                                'gold' => 'کرم طلایی (نکته‌ها)',
+                                'cream' => 'کرم داخلی (سطح‌ها)',
+                                'shell' => 'پس‌زمینه پنل',
+                                'canvas' => 'پس‌زمینه سایت',
+                                'line' => 'خطوط و ورودی‌ها',
+                            ];
+                        @endphp
+
+                        @foreach ($themeDefaults as $key => $default)
+                            <label class="flex items-center gap-3 rounded-2xl bg-cream/70 px-3 py-2.5">
+                                <input type="color" name="colors[{{ $key }}]" value="{{ old('colors.'.$key, $themeColors[$key]) }}"
+                                       class="size-10 shrink-0 cursor-pointer rounded-xl border-0 bg-transparent p-0">
+                                <span class="min-w-0">
+                                    <span class="block truncate text-xs font-semibold text-ink">{{ $themeLabels[$key] ?? $key }}</span>
+                                    <span class="block text-[11px] text-muted" dir="ltr">{{ old('colors.'.$key, $themeColors[$key]) }}</span>
+                                </span>
+                            </label>
+                        @endforeach
+                    </div>
+
+                    <div class="flex flex-wrap items-center gap-3">
+                        <button type="submit" class="btn btn-primary">ذخیره رنگ‌ها</button>
+                        <button type="submit" name="reset" value="1" class="btn btn-white"
+                                onclick="return confirm('رنگ‌ها به حالت پیش‌فرض برگردانده شود؟');">بازنشانی به پیش‌فرض</button>
+                    </div>
+                </form>
+            </section>
+
             {{-- حالت تعمیر سایت --}}
             <section class="card space-y-4 {{ $maintenanceMode ? 'ring-2 ring-gold' : '' }}">
                 <div class="flex flex-wrap items-start justify-between gap-4">

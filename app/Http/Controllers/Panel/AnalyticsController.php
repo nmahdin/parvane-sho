@@ -34,19 +34,55 @@ class AnalyticsController extends Controller
             $selected = $challenges->firstWhere('id', $request->integer('challenge'));
         }
 
+        // فیلتر بازهٔ زمانی: چیپ‌های سریع (روز) یا بازهٔ دلخواه شمسی
+        $rangeOptions = [7 => '۷ روز', 30 => '۳۰ روز', 90 => '۹۰ روز', 365 => 'یک سال'];
+        $range = $request->integer('range');
+        $range = array_key_exists($range, $rangeOptions) ? $range : 30;
+
+        $customFrom = Jalali::parseInput($request->filled('from') ? $request->string('from')->toString() : null);
+        $customTo = Jalali::parseInput($request->filled('to') ? $request->string('to')->toString() : null);
+        $custom = $customFrom !== null || $customTo !== null;
+
+        if ($custom) {
+            $to = ($customTo ?? now())->copy()->endOfDay();
+            $from = ($customFrom ?? $to->copy()->subDays(29))->copy()->startOfDay();
+        } else {
+            $to = now()->endOfDay();
+            $from = now()->subDays($range - 1)->startOfDay();
+        }
+
+        if ($from->greaterThan($to)) {
+            [$from, $to] = [$to->copy()->startOfDay(), $from->copy()->endOfDay()];
+        }
+
+        // فیلتر نوع بازدید
+        $typeOptions = [
+            'home' => 'صفحه اصلی',
+            'challenge' => 'صفحه چالش',
+            'day' => 'کارت روز',
+            'dashboard' => 'داشبورد شرکت‌کننده',
+        ];
+        $type = $request->string('type')->toString();
+        $type = array_key_exists($type, $typeOptions) ? $type : null;
+
         // دامنه بازدیدها: مدیر کل همه، مدیر عادی فقط چالش‌های خودش
-        $scope = fn () => Visit::query()->visibleToAdmin($admin)
+        $globalScope = fn () => Visit::query()->visibleToAdmin($admin)
             ->when($selected, fn (Builder $q) => $q->where('challenge_id', $selected->id));
+
+        $scope = fn () => $globalScope()
+            ->whereBetween('visited_at', [$from, $to])
+            ->when($type !== null, fn (Builder $q) => $q->where('type', $type));
 
         $today = now()->startOfDay();
 
         $totals = [
-            'today' => $scope()->where('visited_at', '>=', $today)->count(),
-            'week' => $scope()->where('visited_at', '>=', now()->subDays(6)->startOfDay())->count(),
-            'month' => $scope()->where('visited_at', '>=', now()->subDays(29)->startOfDay())->count(),
-            'all' => $scope()->count(),
-            'day_views' => $scope()->where('type', Visit::TYPE_DAY)->count(),
-            'dashboard' => $scope()->where('type', Visit::TYPE_DASHBOARD)->count(),
+            'range' => $scope()->count(),
+            'today' => $globalScope()->where('visited_at', '>=', $today)->count(),
+            'week' => $globalScope()->where('visited_at', '>=', now()->subDays(6)->startOfDay())->count(),
+            'month' => $globalScope()->where('visited_at', '>=', now()->subDays(29)->startOfDay())->count(),
+            'all' => $globalScope()->count(),
+            'day_views' => $globalScope()->where('type', Visit::TYPE_DAY)->count(),
+            'dashboard' => $globalScope()->where('type', Visit::TYPE_DASHBOARD)->count(),
         ];
 
         // پخش صوت و دانلود فایل‌ها (ستون‌های شمارشی روی خود فایل‌ها)
@@ -63,34 +99,44 @@ class AnalyticsController extends Controller
                 ->sum('downloads'),
         ];
 
-        // نمودار روزانه ۳۰ روز اخیر (تفکیک نوع)
+        // نمودار روزانه در بازهٔ انتخابی (تفکیک نوع)؛ بازهٔ بلند = سطل هفتگی
+        $spanDays = (int) $from->diffInDays($to) + 1;
+        $weeklyBuckets = $spanDays > 92;
+
         $dailyRows = $scope()
-            ->where('visited_at', '>=', now()->subDays(29)->startOfDay())
             ->selectRaw('DATE(visited_at) as d, type, COUNT(*) as c')
             ->groupBy('d', 'type')
             ->get();
 
         $daily = [];
 
-        for ($i = 29; $i >= 0; $i--) {
-            $date = now()->subDays($i)->toDateString();
-            $daily[$date] = ['challenge' => 0, 'day' => 0, 'dashboard' => 0, 'home' => 0, 'total' => 0];
+        for ($cursor = $from->copy(); $cursor->lte($to); $cursor->addDays($weeklyBuckets ? 7 : 1)) {
+            $daily[$cursor->toDateString()] = ['challenge' => 0, 'day' => 0, 'dashboard' => 0, 'home' => 0, 'total' => 0];
         }
 
         foreach ($dailyRows as $row) {
-            if (! isset($daily[$row->d])) {
+            if ($weeklyBuckets) {
+                $offset = (int) $from->diffInDays(\Illuminate\Support\Carbon::parse($row->d));
+                $key = $from->copy()->addDays($offset - ($offset % 7))->toDateString();
+            } else {
+                $key = $row->d;
+            }
+
+            if (! isset($daily[$key])) {
                 continue;
             }
 
-            $daily[$row->d][$row->type] = (int) $row->c;
-            $daily[$row->d]['total'] += (int) $row->c;
+            if (isset($daily[$key][$row->type])) {
+                $daily[$key][$row->type] += (int) $row->c;
+            }
+
+            $daily[$key]['total'] += (int) $row->c;
         }
 
         $dailyMax = max(1, max(array_map(fn ($d) => $d['total'], $daily)));
 
         // جمع ماهانه (شمسی) از ۱۸۳ روز اخیر
         $monthRows = $scope()
-            ->where('visited_at', '>=', now()->subDays(182)->startOfDay())
             ->selectRaw('DATE(visited_at) as d, COUNT(*) as c')
             ->groupBy('d')
             ->get();
@@ -109,13 +155,15 @@ class AnalyticsController extends Controller
             $monthly[$key]['total'] = ($monthly[$key]['total'] ?? 0) + (int) $row->c;
         }
 
-        $monthly = array_slice($monthly, -6, true);
+        $monthly = array_slice($monthly, -12, true);
         $monthlyMax = max(1, max(array_map(fn ($m) => $m['total'], $monthly) ?: [1]));
 
         // جدول هر چالش
         $visitCounts = Visit::query()
             ->visibleToAdmin($admin)
             ->whereNotNull('challenge_id')
+            ->whereBetween('visited_at', [$from, $to])
+            ->when($type !== null, fn (Builder $q) => $q->where('type', $type))
             ->selectRaw('challenge_id, COUNT(*) as c')
             ->groupBy('challenge_id')
             ->pluck('c', 'challenge_id');
@@ -151,6 +199,7 @@ class AnalyticsController extends Controller
             $perDayVisits = Visit::query()
                 ->where('challenge_id', $selected->id)
                 ->where('type', Visit::TYPE_DAY)
+                ->whereBetween('visited_at', [$from, $to])
                 ->whereNotNull('day_number')
                 ->selectRaw('day_number, COUNT(*) as c')
                 ->groupBy('day_number')
@@ -189,7 +238,7 @@ class AnalyticsController extends Controller
                 (int) substr($date, 8, 2),
             );
 
-            $dailyLabels[] = Jalali::toPersianDigits($jd).' '.Jalali::MONTHS[$jm];
+            $dailyLabels[] = ($weeklyBuckets ? 'هفتهٔ ' : '').Jalali::toPersianDigits($jd).' '.Jalali::MONTHS[$jm];
 
             foreach ($series as $key => $values) {
                 $series[$key][] = $row[$key];
@@ -231,6 +280,14 @@ class AnalyticsController extends Controller
             'perChallenge' => $perChallenge,
             'perDay' => $perDay,
             'isSuper' => $admin->isSuper(),
+            'range' => $range,
+            'rangeOptions' => $rangeOptions,
+            'custom' => $custom,
+            'from' => $from,
+            'to' => $to,
+            'type' => $type,
+            'typeOptions' => $typeOptions,
+            'weeklyBuckets' => $weeklyBuckets,
         ]);
     }
 }
