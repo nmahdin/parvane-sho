@@ -244,6 +244,10 @@
        (inset:0 و margin:auto و ...) خنثی می‌شود تا سر جای خودشان بمانند */
     .toast[popover] {
         inset: auto;
+
+        /* inset:auto جای top/left را خالی می‌کند؛ صریح برشان می‌گردانیم */
+        top: 1.25rem;
+        left: 1.25rem;
         margin: 0;
         border: 0;
         overflow: visible;
@@ -254,6 +258,8 @@
 
     .upload-progress[popover] {
         inset: auto;
+        top: 0.9rem;
+        left: 50%;
         margin: 0;
         border: 0;
         overflow: visible;

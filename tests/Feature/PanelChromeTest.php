@@ -81,6 +81,8 @@ class PanelChromeTest extends TestCase
         $this->assertStringContainsString('document.fonts', $js);
         $this->assertStringContainsString('initPageReadyChip', $js);
         $this->assertStringContainsString('closeModalAnimated', $js);
+        // لغو انیمیشن بسته‌شدن تا مودال دوباره نامرئی باز نشود
+        $this->assertStringContainsString('getAnimations', $js);
         $this->assertStringContainsString('initActionMenus', $js);
         $this->assertStringContainsString('animationPlayState', $js);
         // انتخابگر اختصاصی به‌جای منوی پیش‌فرض مرورگر
@@ -129,15 +131,24 @@ class PanelChromeTest extends TestCase
             'is_published' => true,
         ]);
 
+        $challenge->tasks()->create([
+            'day_number' => 1,
+            'title' => 'کار با توضیح چندخطی',
+            'description' => "خط اول\n\nخط دوم",
+        ]);
+
         $this->loginAsAdmin();
 
         $html = $this->get(route('panel.challenges.show', $challenge))->assertOk()->getContent();
 
         // انصراف راست (اول در DOM راست‌به‌چپ)، ثبت چپ، هر دو هم‌اندازه
         $this->assertGreaterThan(1, substr_count($html, 'btn btn-ghost flex-1 justify-center'));
+        // توضیح کار با حفظ خط‌های جدید نمایش داده می‌شود
+        $this->assertStringContainsString('whitespace-pre-line', $html);
+        $modal = substr($html, (int) strpos($html, 'id="modal-content"'));
         $this->assertLessThan(
-            strpos($html, '>ذخیره</button>'),
-            strpos($html, '>انصراف</button>')
+            strpos($modal, '>ذخیره</button>'),
+            strpos($modal, '>انصراف</button>')
         );
     }
 

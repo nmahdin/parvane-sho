@@ -364,7 +364,7 @@
                                             </span>
 
                                             @if ($task->description)
-                                                <span class="mt-1 block text-xs leading-6 {{ $done ? 'text-hint' : 'text-muted' }}">
+                                                <span class="mt-1 block text-xs leading-6 whitespace-pre-line {{ $done ? 'text-hint' : 'text-muted' }}">
                                                     {{ $task->description }}
                                                 </span>
                                             @endif

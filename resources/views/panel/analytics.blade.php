@@ -111,7 +111,7 @@
 
             <div>
                 <h3 class="text-sm font-semibold text-ink">سهم هر نوع بازدید (بازهٔ انتخابی)</h3>
-                <p class="mt-0.5 text-[11px] text-hint">صفحه چالش، باز شدن کارت روز، داشبورد و صفحه اصلی.</p>
+                <p class="mt-0.5 text-[11px] text-hint">صفحه چالش، باز شدن کارت روز{{ $isSuper ? '، داشبورد و صفحه اصلی' : ' و داشبورد' }}.</p>
                 <div id="xchart-types" class="xchart chart-box mt-3" style="height: 13rem" role="img" aria-label="دونات سهم انواع بازدید"></div>
             </div>
         </div>

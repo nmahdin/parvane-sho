@@ -260,4 +260,23 @@ class AnalyticsTest extends TestCase
     {
         $this->get(route('panel.analytics'))->assertRedirect(route('panel.login'));
     }
+
+    public function test_challenge_admin_analytics_has_no_site_wide_pieces(): void
+    {
+        $admin = $this->makeChallengeAdmin();
+        $this->makeChallenge(['admin_id' => $admin->id]);
+
+        $this->loginAsAdmin($admin);
+
+        $this->get(route('panel.analytics'))
+            ->assertOk()
+            ->assertDontSee('صفحه اصلی');
+
+        // مدیر کل همچنان آمار صفحه اصلی را می‌بیند
+        $this->loginAsAdmin();
+
+        $this->get(route('panel.analytics'))
+            ->assertOk()
+            ->assertSee('صفحه اصلی');
+    }
 }

@@ -784,11 +784,13 @@ const app = {
         if (areaEl && data.daily?.labels?.length) {
             const labels = data.daily.labels;
             const series = [
-                { name: 'صفحه چالش', color: COLORS[0], values: data.daily.challenge || [] },
-                { name: 'کارت روز', color: COLORS[1], values: data.daily.day || [] },
-                { name: 'داشبورد', color: COLORS[2], values: data.daily.dashboard || [] },
-                { name: 'صفحه اصلی', color: COLORS[3], values: data.daily.home || [] },
-            ];
+                ['challenge', 'صفحه چالش'],
+                ['day', 'کارت روز'],
+                ['dashboard', 'داشبورد'],
+                ['home', 'صفحه اصلی'],
+            ]
+                .filter(([key]) => Array.isArray(data.daily[key]))
+                .map(([key, name], i) => ({ name, color: COLORS[i], values: data.daily[key] }));
 
             // هم‌اندازهٔ واقعی ظرف (پیکسل) تا عرض نمودار دقیق پر شود
             const W = Math.max(320, Math.round(areaEl.clientWidth || 720));
@@ -1384,6 +1386,11 @@ const app = {
         }
 
         if (typeof dialog.showModal === 'function') {
+            // انیمیشن بسته‌شدن قبلی (fill:forwards) دیالوگ را شفاف نگه می‌دارد؛
+            // پیش از باز شدن دوباره همهٔ انیمیشن‌ها لغو شوند
+            dialog.getAnimations().forEach((animation) => animation.cancel());
+            dialog.firstElementChild?.getAnimations().forEach((animation) => animation.cancel());
+
             dialog.showModal();
         } else {
             dialog.setAttribute('open', '');
@@ -1416,15 +1423,21 @@ const app = {
             );
         }
 
+        const finish = () => {
+            dialog.close();
+
+            // fill:forwards دیالوگ/کارت را شفاف نگه می‌دارد — با لغو انیمیشن‌ها
+            // دفعهٔ بعد که مودال باز می‌شود کاملاً دیده شود
+            dialog.getAnimations().forEach((animation) => animation.cancel());
+
+            if (card) {
+                card.getAnimations().forEach((animation) => animation.cancel());
+            }
+        };
+
         Promise.all(animations.map((animation) => animation.finished))
-            .then(() => {
-                dialog.close();
-                dialog.style.opacity = '';
-            })
-            .catch(() => {
-                dialog.close();
-                dialog.style.opacity = '';
-            });
+            .then(finish)
+            .catch(finish);
     },
 
     closeModalFor(form) {

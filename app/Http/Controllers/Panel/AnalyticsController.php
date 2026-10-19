@@ -62,6 +62,10 @@ class AnalyticsController extends Controller
             'day' => 'کارت روز',
             'dashboard' => 'داشبورد شرکت‌کننده',
         ];
+        if (! $admin->isSuper()) {
+            unset($typeOptions['home']);
+        }
+
         $type = $request->string('type')->toString();
         $type = array_key_exists($type, $typeOptions) ? $type : null;
 
@@ -251,16 +255,26 @@ class AnalyticsController extends Controller
             ->take(8)
             ->values();
 
+        // مدیر چالش آمار صفحهٔ اصلی (سراسری) را نمی‌بیند
+        if (! $admin->isSuper()) {
+            unset($series['home']);
+        }
+
         $charts = [
             'daily' => ['labels' => $dailyLabels] + $series,
             'monthly' => [
                 'labels' => array_column($monthly, 'label'),
                 'totals' => array_column($monthly, 'total'),
             ],
-            'types' => [
-                'labels' => ['صفحه چالش', 'کارت روز', 'داشبورد شرکت‌کننده', 'صفحه اصلی'],
-                'totals' => [$typeTotals['challenge'], $typeTotals['day'], $typeTotals['dashboard'], $typeTotals['home']],
-            ],
+            'types' => $admin->isSuper()
+                ? [
+                    'labels' => ['صفحه چالش', 'کارت روز', 'داشبورد شرکت‌کننده', 'صفحه اصلی'],
+                    'totals' => [$typeTotals['challenge'], $typeTotals['day'], $typeTotals['dashboard'], $typeTotals['home']],
+                ]
+                : [
+                    'labels' => ['صفحه چالش', 'کارت روز', 'داشبورد شرکت‌کننده'],
+                    'totals' => [$typeTotals['challenge'], $typeTotals['day'], $typeTotals['dashboard']],
+                ],
             'challenges' => [
                 'labels' => $topChallenges->pluck('title')->all(),
                 'totals' => $topChallenges->pluck('month')->all(),

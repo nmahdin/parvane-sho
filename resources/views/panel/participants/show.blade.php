@@ -265,7 +265,7 @@
                                             <span class="min-w-0 flex-1">
                                                 <span class="block text-sm {{ $done ? 'text-hint line-through' : 'font-medium text-ink' }}">{{ $task->title }}</span>
                                                 @if ($task->description)
-                                                    <span class="mt-1 block text-xs text-muted">{{ $task->description }}</span>
+                                                    <span class="mt-1 block text-xs text-muted whitespace-pre-line">{{ $task->description }}</span>
                                                 @endif
                                             </span>
 

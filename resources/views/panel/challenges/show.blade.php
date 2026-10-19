@@ -257,7 +257,7 @@
                                         <div class="min-w-0 flex-1">
                                             <p class="text-sm font-medium text-ink">{{ $task->title }}</p>
                                             @if ($task->description)
-                                                <p class="mt-1 text-xs leading-6 text-muted">{{ $task->description }}</p>
+                                                <p class="mt-1 text-xs leading-6 text-muted whitespace-pre-line">{{ $task->description }}</p>
                                             @endif
 
                                             @php($taskStatus = $taskStatuses[$task->id] ?? null)

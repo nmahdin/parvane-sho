@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 /**
- * داشبورد مدیر کل: مدیریت فایل‌ها، ارتباط‌ها و حجم مصرفی.
+ * مدیریت منابع: مدیریت فایل‌ها، ارتباط‌ها و حجم مصرفی.
  */
 class SuperDashboardTest extends TestCase
 {
@@ -32,7 +32,7 @@ class SuperDashboardTest extends TestCase
 
         $html = $this->get(route('panel.super.dashboard'))->assertOk()->getContent();
 
-        $this->assertStringContainsString('داشبورد مدیر کل', $html);
+        $this->assertStringContainsString('مدیریت منابع', $html);
         $this->assertStringContainsString('حجم مصرفی', $html);
         $this->assertStringContainsString('ارتباط‌ها', $html);
         $this->assertStringContainsString('مدیریت فایل‌ها', $html);
@@ -52,14 +52,14 @@ class SuperDashboardTest extends TestCase
         $super = $this->loginAsAdmin();
 
         $html = $this->get(route('panel.dashboard'))->assertOk()->getContent();
-        $this->assertStringContainsString('داشبورد مدیر کل', $html);
+        $this->assertStringContainsString('مدیریت منابع', $html);
 
         $this->post(route('panel.logout'));
 
         $this->loginAsAdmin($this->makeChallengeAdmin(['username' => 'other']));
 
         $html = $this->get(route('panel.dashboard'))->assertOk()->getContent();
-        $this->assertStringNotContainsString('داشبورد مدیر کل', $html);
+        $this->assertStringNotContainsString('مدیریت منابع', $html);
 
         $this->assertNotNull($super);
     }

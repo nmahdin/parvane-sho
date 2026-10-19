@@ -1,7 +1,7 @@
 @extends('layouts.panel')
 
-@section('title', 'داشبورد مدیر کل')
-@section('page-title', 'داشبورد مدیر کل')
+@section('title', 'مدیریت منابع')
+@section('page-title', 'مدیریت منابع')
 @section('page-subtitle', 'مدیریت فایل‌های سایت، دیدن ارتباط داده‌ها و حجم مصرفی')
 
 @section('content')
