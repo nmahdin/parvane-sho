@@ -155,10 +155,17 @@
         box-shadow: 0 1px 2px rgb(78 114 104 / 0.05), 0 16px 32px -24px rgb(78 114 104 / 0.30);
     }
 
-    /* کارتی که تولتیپش باز است باید روی کارت‌های کناری بماند */
-    .card:hover,
-    .card:focus-within {
+    /* فقط کارتی که تولتیپ دارد هنگام هاور روی کارت‌های کناری بماند؛
+       کارت‌های بزرگ (مثل بخش روزها) نباید روی هدر چسبان بروند */
+    .card:has(.tip-anchor):hover,
+    .card:has(.tip-anchor):focus-within {
         z-index: 45;
+    }
+
+    /* نوار ناوبری چسبان: دقیقاً زیر هدر چسبان می‌نشیند (جاوااسکریپت
+       متغیر را از ارتفاع واقعی هدر پر می‌کند) */
+    .sticky-nav {
+        top: var(--sticky-nav-top, 6rem);
     }
 
     /* بدون جاوااسکریپت هم کارت‌ها یک‌بار آرام ظاهر می‌شوند */
@@ -884,15 +891,6 @@
         }
     }
 
-    /* قرص متحرک سایدبار: نشانگر انتخاب از لینک کلیک‌شده به آیتم فعال سُر می‌خورد */
-    .sidebar-pill {
-        position: absolute;
-        z-index: 40;
-        border-radius: var(--radius-2xl);
-        background-color: var(--color-jade);
-        box-shadow: 0 2px 4px rgb(78 114 104 / 0.10), 0 12px 24px -14px rgb(78 114 104 / 0.45);
-        pointer-events: none;
-    }
 
     /* جعبهٔ نمودار تا آماده شدن chart.js ضربان دارد */
     .chart-box {

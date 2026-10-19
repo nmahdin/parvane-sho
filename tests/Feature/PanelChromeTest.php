@@ -71,10 +71,13 @@ class PanelChromeTest extends TestCase
         $this->assertStringContainsString('page-chip', $css);
         $this->assertStringContainsString('action-menu-panel', $css);
         $this->assertStringContainsString('has-js', $css);
-        $this->assertStringContainsString('initSidebarTransition', $js);
-        // قرص متحرک سایدبار و منوی عملیات شناور
-        $this->assertStringContainsString('sidebar-pill', $css);
-        $this->assertStringContainsString('sidebar-pill', $js);
+        // قرص متحرک سایدبار حذف شده است
+        $this->assertStringNotContainsString('sidebar-pill', $css);
+        $this->assertStringNotContainsString('sidebar-pill', $js);
+        // ناوبری چسبان دقیقاً زیر هدر چسبان می‌نشیند
+        $this->assertStringContainsString('initStickyOffsets', $js);
+        $this->assertStringContainsString('--sticky-nav-top', $js);
+        $this->assertStringContainsString('sticky-nav', $css);
         $this->assertStringContainsString('document.fonts', $js);
         $this->assertStringContainsString('initPageReadyChip', $js);
         $this->assertStringContainsString('closeModalAnimated', $js);

@@ -59,8 +59,8 @@ class PanelDayModalsTest extends TestCase
         // هدر اصلی همیشه چسبان است و ناوبری بخش‌ها زیر آن فیکس می‌شود
         $this->assertStringNotContainsString('lg:static', $html);
         // ناوبری بالاتر از هدر نقاشی می‌شود تا سایهٔ هدر رویش نیفتد
-        $this->assertStringContainsString('sticky top-[4.5rem] z-30', $html);
-        $this->assertStringContainsString('sticky top-0 z-20', $html);
+        $this->assertStringContainsString('sticky sticky-nav z-40', $html);
+        $this->assertStringContainsString('sticky top-3 z-50', $html);
 
         // همه گروه‌های داخل روز به‌طور پیش‌فرض بسته‌اند (بدون open)
         foreach (['title', 'tasks', 'questions', 'tips', 'files'] as $group) {

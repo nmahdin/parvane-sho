@@ -78,7 +78,7 @@
     </section>
 
     {{-- ناوبری بخش‌های چالش --}}
-    <nav class="sticky top-[4.5rem] z-30 flex gap-2 overflow-x-auto rounded-3xl bg-paper p-3 surface">
+    <nav class="sticky sticky-nav z-40 flex gap-2 overflow-x-auto rounded-3xl bg-paper p-3 surface">
         @foreach ([
             ['#days', '📅 روزها، کارها و پرسش‌ها'],
             ['#tips', '💡 نکات'],
@@ -955,10 +955,9 @@
                                 </td>
 
                                 <td data-label="لینک اختصاصی">
-                                    <div class="flex items-center gap-2">
-                                        <input id="link-{{ $participant->id }}" type="text" readonly value="{{ route('participant.show', $participant) }}" class="input py-2 text-[11px]" dir="ltr">
-                                        <button type="button" class="btn btn-soft btn-sm shrink-0" data-copy-target="#link-{{ $participant->id }}">کپی</button>
-                                    </div>
+                                    {{-- خود لینک نمایش داده نمی‌شود؛ فقط دکمهٔ کپی --}}
+                                    <input id="link-{{ $participant->id }}" type="hidden" value="{{ route('participant.show', $participant) }}">
+                                    <button type="button" class="btn btn-soft btn-sm" data-copy-target="#link-{{ $participant->id }}">کپی لینک</button>
                                 </td>
 
                                 <td data-label="آخرین بازدید" class="text-xs text-muted">

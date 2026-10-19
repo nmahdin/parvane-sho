@@ -10,10 +10,10 @@ const app = {
         this.initModals();
         this.initDayViewTracking();
         this.initCustomCharts();
+        this.initStickyOffsets();
         this.initCardEntrance();
         this.initDayCardAnimation();
         this.initPageLoader();
-        this.initSidebarTransition();
         this.initPageReadyChip();
         this.initActionMenus();
         this.initCustomSelects();
@@ -711,6 +711,38 @@ const app = {
         });
     },
 
+    /* هدر چسبان کمی از بالا فاصله دارد؛ نوار ناوبری چسبان باید دقیقاً
+       زیر هدر بنشیند — ارتفاع واقعی هدر اندازه‌گیری و در متغیر CSS گذاشته می‌شود. */
+    initStickyOffsets() {
+        const header = document.getElementById('panel-header');
+        const nav = document.querySelector('.sticky-nav');
+        if (!header || !nav) return;
+
+        const update = () => {
+            const gap = 12; // همان top-3 هدر
+            document.documentElement.style.setProperty(
+                '--sticky-nav-top',
+                `${header.offsetHeight + gap * 2}px`
+            );
+        };
+
+        update();
+
+        if (!this._stickyOffsetsBound) {
+            this._stickyOffsetsBound = true;
+
+            let timer;
+            window.addEventListener('resize', () => {
+                window.clearTimeout(timer);
+                timer = window.setTimeout(update, 120);
+            });
+
+            if (document.fonts?.ready) {
+                document.fonts.ready.then(update);
+            }
+        }
+    },
+
     /* نمودارهای اختصاصی صفحهٔ «آمار بازدید» — SVG/CSS ساخت خودمان،
        بدون کتابخانهٔ خارجی؛ هاور روی هر نقطه پنل اطلاعاتی نشان می‌دهد. */
     initCustomCharts() {
@@ -758,8 +790,9 @@ const app = {
                 { name: 'صفحه اصلی', color: COLORS[3], values: data.daily.home || [] },
             ];
 
-            const W = 720;
-            const H = 260;
+            // هم‌اندازهٔ واقعی ظرف (پیکسل) تا عرض نمودار دقیق پر شود
+            const W = Math.max(320, Math.round(areaEl.clientWidth || 720));
+            const H = Math.max(160, Math.round(areaEl.clientHeight || 260));
             const padL = 40;
             const padR = 10;
             const padT = 12;
@@ -816,6 +849,17 @@ const app = {
                 tip.hidden = true;
                 cursor.setAttribute('stroke-opacity', '0');
             });
+
+            // با تغییر اندازهٔ پنجره، نمودار هم‌اندازهٔ ظرف از نو ساخته می‌شود
+            if (!this._chartsResizeBound) {
+                this._chartsResizeBound = true;
+
+                let chartTimer;
+                window.addEventListener('resize', () => {
+                    window.clearTimeout(chartTimer);
+                    chartTimer = window.setTimeout(() => this.initCustomCharts(), 200);
+                });
+            }
         }
 
         /* --- ۲) ستون‌های ماهانه --- */
@@ -1042,88 +1086,6 @@ const app = {
                 if (event.key === 'Escape') close();
             });
         });
-    },
-
-    /* جابه‌جانی انتخاب سایدبار: قرص سبز از لینک کلیک‌شده به آیتم فعالِ
-       صفحهٔ تازه سُر می‌خورد. اندازه‌گیری بعد از آماده شدن فونت‌ها انجام
-       می‌شود تا جابه‌جایی بدون پرش باشد. */
-    initSidebarTransition() {
-        const links = Array.from(document.querySelectorAll('.sidebar-link'));
-        if (!links.length) return;
-
-        const key = 'sidebar-nav-from';
-
-        links.forEach((link) => {
-            link.addEventListener('click', (event) => {
-                if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-
-                const href = link.getAttribute('href') || '';
-                if (!href || href.startsWith('#') || href.startsWith('javascript:')) return;
-
-                const rect = link.getBoundingClientRect();
-                sessionStorage.setItem(key, JSON.stringify({
-                    top: rect.top + window.scrollY,
-                    height: rect.height,
-                }));
-            });
-        });
-
-        const savedRaw = sessionStorage.getItem(key);
-        if (!savedRaw) return;
-        sessionStorage.removeItem(key);
-
-        const active = document.querySelector('.sidebar-link.is-active');
-        if (!active) return;
-
-        let saved;
-        try {
-            saved = JSON.parse(savedRaw);
-        } catch {
-            return;
-        }
-
-        const run = () => {
-            if (typeof active.animate !== 'function') return;
-
-            const rect = active.getBoundingClientRect();
-            const offset = saved.top - (rect.top + window.scrollY);
-            if (Math.abs(offset) < 4) return;
-
-            const pill = document.createElement('span');
-            pill.className = 'sidebar-pill';
-            pill.setAttribute('aria-hidden', 'true');
-            pill.style.top = `${rect.top + window.scrollY}px`;
-            pill.style.left = `${rect.left + window.scrollX}px`;
-            pill.style.width = `${rect.width}px`;
-            pill.style.height = `${rect.height}px`;
-            document.body.appendChild(pill);
-
-            // تا وقتی قرص در راه است، هایلایت واقعی خاموش بماند تا دوتایی دیده نشود
-            active.style.backgroundColor = 'transparent';
-            active.style.boxShadow = 'none';
-            active.style.color = 'var(--color-forest)';
-
-            const restore = () => {
-                pill.remove();
-                active.style.backgroundColor = '';
-                active.style.boxShadow = '';
-                active.style.color = '';
-            };
-
-            const animation = pill.animate(
-                [{ transform: `translateY(${offset}px)` }, { transform: 'translateY(0)' }],
-                { duration: 420, easing: 'cubic-bezier(0.22, 0.8, 0.36, 1)' }
-            );
-            animation.onfinish = restore;
-            animation.oncancel = restore;
-        };
-
-        // دو فریم بعد از آماده شدن فونت‌ها: چیدمان کاملاً قطعی است
-        if (document.fonts?.ready) {
-            document.fonts.ready.then(() => requestAnimationFrame(() => requestAnimationFrame(run)));
-        } else {
-            requestAnimationFrame(() => requestAnimationFrame(run));
-        }
     },
 
     /* چیپ «در حال بارگذاری…» در صفحه نمایش اطلاعات (صفحه عمومی چالش) */

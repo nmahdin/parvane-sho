@@ -236,7 +236,7 @@
             </section>
 
             {{-- حالت تعمیر سایت --}}
-            <section class="card space-y-4 {{ $maintenanceMode ? 'ring-2 ring-gold' : '' }}">
+            <section class="card self-start space-y-4 {{ $maintenanceMode ? 'ring-2 ring-gold' : '' }}">
                 <div class="flex flex-wrap items-start justify-between gap-4">
                     <div>
                         <h2 class="flex flex-wrap items-center gap-2 text-base">

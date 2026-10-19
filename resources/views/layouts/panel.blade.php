@@ -85,7 +85,7 @@
 
         {{-- محتوای اصلی --}}
         <div class="min-w-0 flex-1 space-y-6">
-            <header class="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-paper/95 px-4 py-3 surface backdrop-blur sm:gap-4 sm:px-5 lg:rounded-3xl">
+            <header id="panel-header" class="sticky top-3 z-50 flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-paper/95 px-4 py-3 surface backdrop-blur sm:gap-4 sm:px-5 lg:rounded-3xl">
                 <div class="min-w-0">
                     <h1 class="truncate text-lg">@yield('page-title', 'داشبورد')</h1>
                     <p id="page-subtitle" class="mt-0.5 truncate text-xs text-muted">@yield('page-subtitle', 'مدیریت چالش‌ها، شرکت‌کننده‌ها و لینک‌های اختصاصی')</p>
