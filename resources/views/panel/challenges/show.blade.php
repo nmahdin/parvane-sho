@@ -347,16 +347,11 @@
                                                         <button type="button" class="icon-btn" data-close-modal aria-label="بستن"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" class="size-4"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></svg></button>
                                                     </div>
 
-                                                    <form method="POST" action="{{ route('panel.tasks.update', [$challenge, $task]) }}" data-ajax-save data-modal-form class="grid gap-3 text-right sm:grid-cols-2">
+                                                    <form method="POST" action="{{ route('panel.tasks.update', [$challenge, $task]) }}" data-ajax-save data-modal-form class="grid gap-3 text-right">
                                                     @csrf
                                                     @method('PUT')
 
-                                                    <div>
-                                                        <label class="label">تاریخ روز</label>
-                                                        <input type="text" name="date" dir="ltr" data-jalali-picker class="input text-center"
-                                                               value="{{ \App\Support\Jalali::inputValue($challenge->dateForDay($task->day_number ?? 1)) }}">
-                                                        <p class="hint">با تغییر تاریخ، کار به آن روز منتقل می‌شود.</p>
-                                                    </div>
+                                                    <input type="hidden" name="day_number" value="{{ $task->day_number }}">
 
                                                     <div>
                                                         <label class="label">عنوان</label>
@@ -495,19 +490,7 @@
                                                     @csrf
                                                     @method('PUT')
 
-                                                    <div class="grid gap-3 sm:grid-cols-2">
-                                                        <div>
-                                                            <label class="label">تاریخ روز</label>
-                                                            <input type="text" name="date" dir="ltr" data-jalali-picker class="input text-center"
-                                                                   value="{{ $question->day_number ? \App\Support\Jalali::inputValue($challenge->dateForDay($question->day_number)) : '' }}">
-                                                            <p class="hint">خالی بگذاری، پرسش در «بدون روز مشخص» می‌نشیند.</p>
-                                                        </div>
-
-                                                        <div>
-                                                            <label class="label">پرسنده</label>
-                                                            <input type="text" name="asked_by" value="{{ $question->asked_by }}" class="input">
-                                                        </div>
-                                                    </div>
+                                                    <input type="hidden" name="day_number" value="{{ $question->day_number }}">
 
                                                     <div>
                                                         <label class="label">پرسش</label>
@@ -637,18 +620,11 @@
                                                             @csrf
                                                             @method('PUT')
 
-                                                            <div class="grid gap-3 sm:grid-cols-2">
-                                                                <div>
-                                                                    <label class="label">تاریخ روز</label>
-                                                                    <input type="text" name="date" dir="ltr" data-jalali-picker class="input text-center"
-                                                                           value="{{ \App\Support\Jalali::inputValue($challenge->dateForDay($dayFile->day_number)) }}">
-                                                                    <p class="hint">با تغییر تاریخ، فایل به آن روز منتقل می‌شود.</p>
-                                                                </div>
+                                                            <input type="hidden" name="day_number" value="{{ $dayFile->day_number }}">
 
-                                                                <div>
-                                                                    <label class="label">عنوان</label>
-                                                                    <input type="text" name="title" value="{{ $dayFile->title }}" required class="input">
-                                                                </div>
+                                                            <div>
+                                                                <label class="label">عنوان</label>
+                                                                <input type="text" name="title" value="{{ $dayFile->title }}" required class="input">
                                                             </div>
 
                                                             <button type="submit" class="btn btn-primary btn-sm">ذخیره</button>
@@ -720,18 +696,11 @@
                         <input name="question" type="text" class="input" placeholder="مثلاً اگر یک روز را از دست بدهم چه می‌شود؟">
                     </div>
 
-                    <div class="grid gap-4 sm:grid-cols-[1fr_auto] sm:items-end">
-                        <div>
-                            <label class="label">پرسنده (اختیاری)</label>
-                            <input name="asked_by" type="text" class="input" placeholder="نام شرکت‌کننده">
-                        </div>
-
-                        <label class="flex items-center gap-2 pb-3 text-xs text-ink/80">
-                            <input type="hidden" name="is_published" value="0">
-                            <input type="checkbox" name="is_published" value="1" checked class="size-4 rounded border-line text-brand-600 focus:ring-brand-500">
-                            نمایش در صفحه چالش
-                        </label>
-                    </div>
+                    <label class="flex items-center gap-2 text-xs text-ink/80">
+                        <input type="hidden" name="is_published" value="0">
+                        <input type="checkbox" name="is_published" value="1" checked class="size-4 rounded border-line text-brand-600 focus:ring-brand-500">
+                        نمایش در صفحه چالش
+                    </label>
                 </div>
 
                 <div class="flex items-center gap-2">

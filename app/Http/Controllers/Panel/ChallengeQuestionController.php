@@ -42,7 +42,7 @@ class ChallengeQuestionController extends Controller
             'day_number' => $this->resolveDayNumber($request, $challenge),
             'question' => $validated['question'],
             'answer' => $validated['answer'] ?? null,
-            'asked_by' => $validated['asked_by'] ?? null,
+            'asked_by' => $validated['asked_by'] ?? $question->asked_by,
             'is_published' => $request->boolean('is_published'),
         ]);
 
