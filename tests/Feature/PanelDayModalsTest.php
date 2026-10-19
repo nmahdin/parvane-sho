@@ -56,6 +56,10 @@ class PanelDayModalsTest extends TestCase
         $this->assertStringContainsString('<body class="min-h-screen bg-shell">', $html);
         $this->assertStringContainsString('surface', $html);
 
+        // هدر اصلی همیشه چسبان است و ناوبری بخش‌ها زیر آن فیکس می‌شود
+        $this->assertStringNotContainsString('lg:static', $html);
+        $this->assertStringContainsString('sticky top-[4.5rem] z-20', $html);
+
         // همه گروه‌های داخل روز به‌طور پیش‌فرض بسته‌اند (بدون open)
         foreach (['title', 'tasks', 'questions', 'tips', 'files'] as $group) {
             $this->assertStringNotContainsString('id="day-1-'.$group.'" class="day-group rounded-2xl bg-cream/70" open', $html);
@@ -186,6 +190,11 @@ class PanelDayModalsTest extends TestCase
 
         // رندر تنبل کارت‌های روز برای لود سریع‌تر صفحات طولانی
         $this->assertStringContainsString('content-visibility:auto', $css);
+
+        // پالت پررنگ‌تر و حذف نوار کناری ریل‌ها
+        $this->assertStringContainsString('#b8c9a3', strtolower($css));
+        $this->assertStringContainsString('#f2dda8', strtolower($css));
+        $this->assertSame(0, preg_match('/\.rail\{[^}]*border-inline-start/', $css));
 
         // آیتم فعال سایدبار: برجسته با سایه، بدون حاشیه
         $activeCss = substr($css, (int) strpos($css, '.sidebar-link.is-active{'));

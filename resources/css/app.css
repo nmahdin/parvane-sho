@@ -14,14 +14,14 @@
        ------------------------------------------------------------------ */
     --color-forest: #4E7268;
     --color-jade: #659287;
-    --color-leaf: #D2DCB6;
+    --color-leaf: #B8C9A3;
     /* بوم صفحه: سبز-کرم بسیار کم‌رنگ؛ cream برای سطح‌های داخلی؛
        shell پس‌زمینه خود پنل مدیریت است */
     --color-cream: #F6F6F2;
     --color-shell: #EFF1E6;
     --color-canvas: #F6F7F1;
-    --color-gold: #FAEDCE;
-    --color-line: #D6DAC8;
+    --color-gold: #F2DDA8;
+    --color-line: #C9D2B9;
     --color-ink: #2F3E38;
     --color-muted: #5A6B62;
     --color-hint: #71817A;
@@ -34,9 +34,9 @@
 
     /* مقیاس «برند» از دل رنگ اصلی #659287 */
     --color-brand-50: #F2F6F4;
-    --color-brand-100: #E3ECE8;
-    --color-brand-200: #C9DAD3;
-    --color-brand-300: #A5C0B6;
+    --color-brand-100: #DCE7E2;
+    --color-brand-200: #BCCFC7;
+    --color-brand-300: #93B0A5;
     --color-brand-400: #82A398;
     --color-brand-500: #659287;
     --color-brand-600: #5B857B;
@@ -155,23 +155,23 @@
        سطح‌ها و ریل‌های رنگی: هر نوع محتوا یک ریل و یک سطح، نه چند کرم تودرتو
        ------------------------------------------------------------------ */
     .rail {
-        @apply rounded-2xl border-s-[3px] px-4 py-3.5;
+        @apply rounded-2xl px-4 py-3.5;
     }
 
     .rail-tips {
-        @apply border-s-gold bg-gold/8;
+        @apply bg-gold/25;
     }
 
     .rail-questions {
-        @apply border-s-jade bg-jade/6;
+        @apply bg-jade/10;
     }
 
     .rail-tasks {
-        @apply border-s-leaf bg-leaf/6;
+        @apply bg-leaf/25;
     }
 
     .rail-about {
-        @apply border-s-line bg-cream;
+        @apply bg-cream;
     }
 
     .rail-label {
@@ -401,7 +401,7 @@
 
     /* پخش‌کننده اختصاصی فایل صوتی (هماهنگ با پالت سایت) ------------------ */
     .audio-player {
-        @apply rounded-2xl bg-paper p-3 sm:p-3.5;
+        @apply rounded-2xl bg-leaf/30 p-3 sm:p-3.5;
     }
 
     .audio-player.is-playing {
@@ -465,11 +465,11 @@
 
     /* ریل فایل‌های هر روز */
     .rail-files {
-        @apply border-s-jade bg-jade/6;
+        @apply bg-jade/10;
     }
 
     .rail-audio {
-        @apply border-s-gold bg-gold/8;
+        @apply bg-gold/25;
     }
 
     /* کارت روز به‌صورت آکاردئون ---------------------------------------- */

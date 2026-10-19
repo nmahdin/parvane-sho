@@ -78,7 +78,7 @@
     </section>
 
     {{-- ناوبری بخش‌های چالش --}}
-    <nav class="flex gap-2 overflow-x-auto rounded-3xl bg-paper p-3 surface">
+    <nav class="sticky top-[4.5rem] z-20 flex gap-2 overflow-x-auto rounded-3xl bg-paper p-3 surface">
         @foreach ([
             ['#days', '📅 روزها، کارها و پرسش‌ها'],
             ['#tips', '💡 نکات'],
@@ -124,7 +124,7 @@
                 <details id="day-{{ $dayNumber }}" class="group overflow-hidden rounded-3xl bg-paper surface" @if ($day['open']) open @endif>
                     <summary class="flex cursor-pointer flex-wrap items-center justify-between gap-3 bg-cream px-4 py-3 sm:px-5">
                         <span class="flex flex-wrap items-center gap-2 text-sm font-semibold text-ink">
-                            <span class="grid size-8 shrink-0 place-items-center rounded-xl text-xs font-bold {{ $day['is_today'] ? 'bg-jade text-white' : ($day['has_content'] ? 'bg-paper text-ink ring-1 ring-line' : 'bg-line/60 text-muted') }}">
+                            <span class="grid size-8 shrink-0 place-items-center rounded-xl text-xs font-bold {{ $day['is_today'] ? 'bg-jade text-white' : ($day['has_content'] ? 'bg-leaf/50 text-ink' : 'bg-line text-muted') }}">
                                 {{ $isGeneral ? '★' : ($day['unlocked'] ? fa_num($dayNumber) : '🔒') }}
                             </span>
 

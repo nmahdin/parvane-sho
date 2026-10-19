@@ -5,7 +5,7 @@
     $dayChoices ??= collect();
 @endphp
 
-<div {{ $attributes->merge(['class' => 'rounded-3xl bg-gradient-to-tl from-gold/15 to-paper p-4 surface']) }}>
+<div {{ $attributes->merge(['class' => 'rounded-3xl bg-gradient-to-tl from-gold/40 to-paper p-4 surface']) }}>
     <div class="flex flex-wrap items-start justify-between gap-3">
         <div class="flex items-start gap-3">
             <span class="grid size-10 shrink-0 place-items-center rounded-2xl bg-paper text-lg shadow-sm ring-1 ring-gold/50">{{ $tip->emoji }}</span>

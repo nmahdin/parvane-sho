@@ -24,7 +24,7 @@
          data-day-view-number="{{ $number }}"
          data-day-view-open="{{ $open ? '1' : '' }}">
     <summary>
-        <span class="day-num {{ $today ? 'bg-jade text-white' : 'bg-gold/20 text-forest ring-1 ring-gold/40' }}"
+        <span class="day-num {{ $today ? 'bg-jade text-white' : 'bg-gold/60 text-forest' }}"
               aria-hidden="true">{{ $number > 0 ? fa_num($number) : '★' }}</span>
 
         <span class="min-w-0 flex-1">
