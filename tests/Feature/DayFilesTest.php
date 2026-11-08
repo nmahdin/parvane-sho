@@ -120,6 +120,9 @@ class DayFilesTest extends TestCase
         $response->assertOk();
         $this->assertStringContainsString('inline', (string) $response->headers->get('Content-Disposition'));
 
+        // فایل روز هیچ‌وقت عوض نمی‌شود؛ مرورگر یک ماه بی‌پرسش کش می‌کند
+        $this->assertSame('max-age=2592000, public', (string) $response->headers->get('Cache-Control'));
+
         // برای جلو/عقب بردن صوت، پاسخ باید Range را پشتیبانی کند
         $this->assertSame('bytes', (string) $response->headers->get('Accept-Ranges'));
         $partial = $this->get(route('challenge.day-files.show', [$challenge, $file]), ['HTTP_RANGE' => 'bytes=0-9']);

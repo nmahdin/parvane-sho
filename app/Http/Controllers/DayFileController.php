@@ -39,6 +39,11 @@ class DayFileController extends Controller
             'Content-Type' => $dayFile->mime ?: 'application/octet-stream',
         ]);
 
+        // محتوای هر فایل روز هیچ‌وقت عوض نمی‌شود (ویرایش فقط عنوان/روز را
+        // تغییر می‌دهد)، پس مرورگر می‌تواند یک ماه بی‌پرسش کش کند؛
+        // این یعنی بار دوم، صوت و عکس‌ها حتی بدون سرویس‌ورکر هم آنی می‌آیند.
+        $response->setPublic()->setMaxAge(2592000);
+
         // صوتی‌ها inline می‌آیند تا پخش‌کننده خود سایت همان‌جا پخش کند؛
         // بقیه فایل‌ها دانلود می‌شوند.
         $disposition = $dayFile->is_audio ? 'inline' : 'attachment';
