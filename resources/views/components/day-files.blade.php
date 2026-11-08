@@ -53,7 +53,7 @@
                                  alt="{{ $image->title }}"
                                  loading="lazy"
                                  decoding="async"
-                                 class="day-image">
+                                 class="day-image img-reveal">
                         </a>
 
                         <figcaption class="mt-2 flex flex-wrap items-center justify-between gap-2">

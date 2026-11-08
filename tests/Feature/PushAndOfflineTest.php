@@ -202,4 +202,33 @@ class PushAndOfflineTest extends TestCase
         $this->assertStringContainsString('pv-audio-', $js);
         $this->assertStringContainsString('serviceWorker', $js);
     }
+
+    public function test_day_images_fade_from_blur_to_clear_on_load(): void
+    {
+        $challenge = $this->makeChallenge();
+
+        \Illuminate\Support\Facades\Storage::disk('local')->put('day-files/pic.jpg', 'fakejpg');
+        $challenge->dayFiles()->create([
+            'day_number' => 1,
+            'title' => 'تصویر روز',
+            'path' => 'day-files/pic.jpg',
+            'original_name' => 'pic.jpg',
+            'mime' => 'image/jpeg',
+            'is_audio' => false,
+            'sort_order' => 1,
+        ]);
+
+        $html = $this->get(route('challenges.show', $challenge))->getContent();
+
+        // عکس روز کلاس انیمیشن دارد و تا لود، مات است
+        $this->assertStringContainsString('class="day-image img-reveal"', $html);
+
+        $css = file_get_contents(collect(glob(public_path('build/assets/*.css')))->first());
+        $this->assertStringContainsString('img-reveal', $css);
+        $this->assertStringContainsString('is-loaded', $css);
+
+        $js = file_get_contents(collect(glob(public_path('build/assets/app-*.js')))->first());
+        $this->assertStringContainsString('img-reveal', $js);
+        $this->assertStringContainsString('is-loaded', $js);
+    }
 }

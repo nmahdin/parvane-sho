@@ -190,7 +190,7 @@ class DayFilesTest extends TestCase
 
         // عکس کامل و به اندازه عرض باکس روز نمایش داده می‌شود
         $this->assertStringContainsString('تصاویر این روز', $box);
-        $this->assertStringContainsString('class="day-image"', $box, 'عکس باید با کلاس تمام‌عرض day-image رندر شود.');
+        $this->assertStringContainsString('class="day-image img-reveal"', $box, 'عکس باید با کلاس تمام‌عرض day-image رندر شود.');
         $this->assertStringContainsString('src="'.e($image->url()).'"', $box);
         $this->assertStringContainsString('alt="عکس اردوی روز اول"', $box);
         $this->assertStringContainsString('loading="lazy"', $box);
@@ -223,7 +223,7 @@ class DayFilesTest extends TestCase
         $html = $this->get(route('participant.show', $participant))->assertOk()->getContent();
 
         $this->assertStringContainsString('تصاویر این روز', $html);
-        $this->assertStringContainsString('class="day-image"', $html);
+        $this->assertStringContainsString('class="day-image img-reveal"', $html);
         $this->assertStringContainsString('alt="عکس اردو"', $html);
     }
 

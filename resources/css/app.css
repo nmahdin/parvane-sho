@@ -1363,6 +1363,32 @@
 }
 
 /* ----------------------------------------------------------------------
+   ظاهر شدن عکس‌ها: از مات به شفاف — تا وقتی فایل کامل دانلود نشده،
+   تصویر مات است و بعد آرام شفاف می‌شود (بدون جاوااسکریپت، همیشه شفاف).
+   ---------------------------------------------------------------------- */
+.has-js .img-reveal {
+    opacity: 0;
+    filter: blur(14px);
+    transform: scale(1.03);
+    transition: opacity 0.55s ease, filter 0.55s ease, transform 0.55s ease;
+}
+
+.has-js .img-reveal.is-loaded {
+    opacity: 1;
+    filter: blur(0);
+    transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .has-js .img-reveal {
+        opacity: 1;
+        filter: none;
+        transform: none;
+        transition: none;
+    }
+}
+
+/* ----------------------------------------------------------------------
    موبایل: دسترسی راحت‌تر و نمایش مناسب‌تر
    ---------------------------------------------------------------------- */
 @media (max-width: 767px) {

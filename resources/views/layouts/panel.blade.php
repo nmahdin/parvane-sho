@@ -50,7 +50,7 @@
         <aside class="hidden w-64 shrink-0 lg:block">
             <div class="panel-sidebar sticky top-6">
                 <a href="{{ route('panel.dashboard') }}" class="flex items-center gap-3 border-b border-line px-4 py-4">
-                    <img src="{{ \App\Models\Setting::get('site_logo') ? route('branding', 'logo') : asset('favicon.svg') }}" alt="پنل مدیریت" class="size-10 rounded-2xl bg-white p-1.5 shadow-sm" loading="lazy" decoding="async">
+                    <img src="{{ \App\Models\Setting::get('site_logo') ? route('branding', 'logo') : asset('favicon.svg') }}" alt="پنل مدیریت" class="size-10 rounded-2xl bg-white p-1.5 shadow-sm img-reveal" loading="lazy" decoding="async">
                     <span class="min-w-0">
                         <span class="block truncate text-sm font-semibold text-ink">{{ $site['site_name'] ?? config('panel.site_name') }}</span>
                         <span class="block text-[11px] text-hint">پنل مدیریت چالش‌ها</span>

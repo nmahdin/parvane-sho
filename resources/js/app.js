@@ -23,6 +23,7 @@ const app = {
         this.initConfirm();
         this.initJumpBar();
         this.initAudioPlayers();
+        this.initImageReveal();
         this.initServiceWorker();
         this.initThemeToggle();
         this.initPushReminders();
@@ -534,6 +535,27 @@ const app = {
             });
 
             paint();
+        });
+    },
+
+    /* عکس‌ها هنگام لود از مات به شفاف می‌روند؛ اگر از کش مرورگر
+       فوری آماده بودند، بدون انیمیشن شفاف می‌شوند تا معطل نمانند. */
+    initImageReveal() {
+        document.querySelectorAll('img.img-reveal').forEach((image) => {
+            if (image.dataset.revealBound) return;
+            image.dataset.revealBound = '1';
+
+            const show = () => image.classList.add('is-loaded');
+
+            if (image.complete && image.naturalWidth > 0) {
+                show();
+                return;
+            }
+
+            image.addEventListener('load', show, { once: true });
+
+            // عکس خراب هرگز پشت مات نمی‌ماند
+            image.addEventListener('error', show, { once: true });
         });
     },
 
