@@ -2,6 +2,18 @@
 <html lang="fa" dir="rtl">
 <head>
     <x-theme-vars />
+    {{-- اعمال حالت تاریک پیش از رندر تا صفحه پرش نکند --}}
+    <script>
+        (function () {
+            try {
+                var theme = localStorage.getItem('pv-theme');
+
+                if (theme === 'dark' || (!theme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                    document.documentElement.classList.add('dark');
+                }
+            } catch (e) {}
+        })();
+    </script>
     <meta charset="utf-8">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="viewport" content="width=device-width, initial-scale=1">

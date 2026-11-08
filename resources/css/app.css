@@ -1511,3 +1511,57 @@
         display: none !important;
     }
 }
+
+/* ----------------------------------------------------------------------
+   حالت تاریک — همان پالت یشمی با سطح‌های تیره؛ فقط متغیرهای رنگ
+   عوض می‌شوند تا همهٔ اجزا خودکار هماهنگ شوند.
+   ---------------------------------------------------------------------- */
+html.dark {
+    --color-forest: #A9C4B6;
+    --color-jade: #659287;
+    --color-leaf: #6F8A5F;
+    --color-cream: #232E28;
+    --color-shell: #1D2721;
+    --color-canvas: #161E19;
+    --color-gold: #F2DDA8;
+    --color-line: #37463D;
+    --color-ink: #E7EDE8;
+    --color-muted: #A8B7AC;
+    --color-hint: #8B9A90;
+    --color-gold-ink: #DCC389;
+    --color-paper: #1F2A24;
+
+    --color-danger: #D9887C;
+    --color-danger-soft: #3A2823;
+
+    --color-brand-50: #24322A;
+    --color-brand-100: #2C3D33;
+    --color-brand-200: #3B5043;
+    --color-brand-300: #4E6757;
+    --color-brand-400: #628173;
+    --color-brand-500: #78A496;
+    --color-brand-600: #8FB6A9;
+    --color-brand-700: #A9C4B6;
+    --color-brand-800: #C3D6CB;
+    --color-brand-900: #DCE8E0;
+
+    color-scheme: dark;
+}
+
+/* سفیدهای صریح (هدر چسبان، پس‌زمینه لوگو) در حالت تاریک کاغذی می‌شوند */
+html.dark .bg-white\/85 {
+    background-color: rgb(31 42 36 / 0.88);
+}
+
+html.dark .bg-white {
+    background-color: var(--color-paper);
+}
+
+html.dark .panel-modal::backdrop {
+    background-color: #0D130F99;
+}
+
+html.dark .shadow-sm,
+html.dark .shadow {
+    box-shadow: none;
+}

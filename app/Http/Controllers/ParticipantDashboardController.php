@@ -7,6 +7,7 @@ use App\Models\ChallengeTask;
 use App\Models\Participant;
 use App\Models\Visit;
 use Illuminate\Contracts\View\View;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
@@ -217,5 +218,40 @@ class ParticipantDashboardController extends Controller
         return redirect()
             ->to(route('participant.show', $participant).'#note')
             ->with('status', 'یادداشت شما ذخیره شد.');
+    }
+
+    /**
+     * ثبت اشتراک پوش نوتیفیکیشن برای یادآور روزانه (خروجی JSON برای fetch).
+     */
+    public function subscribePush(Request $request, Participant $participant): JsonResponse
+    {
+        $validated = $request->validate([
+            'endpoint' => ['required', 'string', 'max:1000', 'url'],
+            'keys.p256dh' => ['required', 'string', 'max:255'],
+            'keys.auth' => ['required', 'string', 'max:255'],
+        ], [
+            'endpoint.required' => 'آدرس سرویس پوش نامعتبر است.',
+            'endpoint.url' => 'آدرس سرویس پوش نامعتبر است.',
+        ]);
+
+        $participant->pushSubscription()->updateOrCreate([
+            'endpoint' => $validated['endpoint'],
+            'p256dh' => $validated['keys']['p256dh'],
+            'auth' => $validated['keys']['auth'],
+        ]);
+
+        return response()->json(['ok' => true]);
+    }
+
+    /**
+     * لغو یادآور روزانه.
+     */
+    public function unsubscribePush(Participant $participant): RedirectResponse
+    {
+        $participant->pushSubscription()->delete();
+
+        return redirect()
+            ->route('participant.show', $participant)
+            ->with('status', 'یادآور روزانه خاموش شد.');
     }
 }

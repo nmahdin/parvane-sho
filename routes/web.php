@@ -53,6 +53,8 @@ Route::post('/p/{participant}/tasks/{task}', [ParticipantDashboardController::cl
 Route::post('/p/{participant}/questions/{question}', [ParticipantDashboardController::class, 'answerQuestion'])->name('participant.questions.answer');
 Route::put('/p/{participant}/note', [ParticipantDashboardController::class, 'updateNote'])->name('participant.note');
 Route::post('/p/{participant}/pledge', [ParticipantDashboardController::class, 'pledge'])->name('participant.pledge');
+Route::post('/p/{participant}/push', [ParticipantDashboardController::class, 'subscribePush'])->name('participant.push');
+Route::post('/p/{participant}/push/cancel', [ParticipantDashboardController::class, 'unsubscribePush'])->name('participant.push.cancel');
 
 /*
 |--------------------------------------------------------------------------

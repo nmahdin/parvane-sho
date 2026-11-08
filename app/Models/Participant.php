@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\RouteKey;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -75,6 +76,14 @@ class Participant extends Model
     /**
      * @return BelongsTo<Challenge, $this>
      */
+    /**
+     * اشتراک پوش نوتیفیکیشن یادآور روزانه (یک اشتراک به‌ازای هر شرکت‌کننده).
+     */
+    public function pushSubscription(): HasOne
+    {
+        return $this->hasOne(PushSubscription::class);
+    }
+
     public function challenge(): BelongsTo
     {
         return $this->belongsTo(Challenge::class);

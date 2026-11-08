@@ -16,6 +16,7 @@
 <div class="audio-player"
      id="{{ $playerId }}"
      data-audio-player
+     data-audio-id="{{ $file->id }}"
      data-audio-src="{{ $file->url() }}"
      data-audio-play-url="{{ route('challenge.day-files.plays', [$file->challenge, $file]) }}"
      data-audio-title="{{ $file->title }}">

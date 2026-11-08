@@ -455,6 +455,27 @@
                     </div>
                 </div>
 
+                <div class="card">
+                    <h2 class="text-sm font-semibold text-ink">یادآور روزانه 🔔</h2>
+                    <p class="mt-1.5 text-xs leading-6 text-muted">
+                        هر شب ساعت ۲۰ یک اعلان روی گوشی یا مرورگرت می‌آید تا کارهای همان روز را از دست ندهی.
+                    </p>
+
+                    @if ($participant->pushSubscription)
+                        <form method="POST" action="{{ route('participant.push.cancel', $participant) }}" class="mt-4">
+                            @csrf
+                            <button type="submit" class="btn btn-white w-full">یادآور فعال است — خاموشش کن</button>
+                        </form>
+                    @else
+                        <button type="button"
+                                class="btn btn-primary w-full mt-4"
+                                data-push-subscribe="{{ route('participant.push', $participant) }}"
+                                data-vapid-key="{{ \App\Support\WebPush::publicKey() }}">
+                            فعال‌سازی یادآور روزانه
+                        </button>
+                    @endif
+                </div>
+
                 <div class="card bg-forest ring-forest">
                     <p class="text-sm font-semibold text-white">یادت باشد</p>
                     <p class="mt-2 text-xs leading-6 text-white/70">
