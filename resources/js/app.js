@@ -366,27 +366,11 @@ const app = {
             if (player.dataset.bound) return;
             player.dataset.bound = '1';
 
-            const audio = new Audio(player.dataset.audioSrc);
-            audio.preload = 'metadata';
-
-            // آمار دقیق پخش: فقط وقتی کاربر واقعاً دکمهٔ پخش را بزند
-            // (یک‌بار در هر بار باز شدن صفحه)؛ preload مرورگر شمرده نمی‌شود.
-            // در پنل (پیش‌نمایش مدیر) شمرده نمی‌شود.
-            if (player.dataset.audioPlayUrl && !window.location.pathname.startsWith('/panel')) {
-                audio.addEventListener('play', () => {
-                    if (player.dataset.playSent) return;
-                    player.dataset.playSent = '1';
-
-                    const body = new FormData();
-                    body.append('_token', document.querySelector('meta[name="csrf-token"]')?.content || '');
-
-                    fetch(player.dataset.audioPlayUrl, {
-                        method: 'POST',
-                        body,
-                        keepalive: true,
-                    }).catch(() => {});
-                });
-            }
+            /* بارگذاری هوشمند: آبجکت صوت تا لحظه‌ای که کاربر دکمهٔ پخش را
+               نزده ساخته نمی‌شود (preload: none). این‌طور صوتِ کارت روزی که
+               هنوز باز نشده هیچ بایتی از اینترنت کاربر مصرف نمی‌کند و فقط
+               موقع پخش، به‌تدریج دانلود می‌شود. */
+            let audio = null;
 
             const toggle = player.querySelector('[data-audio-toggle]');
             const seek = player.querySelector('[data-audio-seek]');
@@ -403,8 +387,9 @@ const app = {
             let dragging = false;
 
             const paint = () => {
-                const duration = Number.isFinite(audio.duration) ? audio.duration : 0;
-                const progress = duration > 0 ? (audio.currentTime / duration) * 100 : 0;
+                const duration = audio && Number.isFinite(audio.duration) ? audio.duration : 0;
+                const time = audio ? audio.currentTime : 0;
+                const progress = duration > 0 ? (time / duration) * 100 : 0;
 
                 seek.style.setProperty('--audio-progress', `${progress.toFixed(2)}%`);
 
@@ -412,7 +397,7 @@ const app = {
                     seek.value = String(Math.round(progress * 10));
                 }
 
-                currentLabel.textContent = toFaTime(audio.currentTime);
+                currentLabel.textContent = toFaTime(time);
                 durationLabel.textContent = toFaTime(duration);
             };
 
@@ -424,16 +409,62 @@ const app = {
                 player.classList.toggle('is-playing', playing);
             };
 
+            const ensureAudio = () => {
+                if (audio) return audio;
+
+                audio = new Audio();
+                audio.preload = 'none';
+                audio.src = player.dataset.audioSrc;
+                audio.playbackRate = speeds[speedIndex];
+
+                // آمار دقیق پخش: فقط وقتی کاربر واقعاً دکمهٔ پخش را بزند
+                // (یک‌بار در هر بار باز شدن صفحه)؛ preload مرورگر شمرده نمی‌شود.
+                // در پنل (پیش‌نمایش مدیر) شمرده نمی‌شود.
+                if (player.dataset.audioPlayUrl && !window.location.pathname.startsWith('/panel')) {
+                    audio.addEventListener('play', () => {
+                        if (player.dataset.playSent) return;
+                        player.dataset.playSent = '1';
+
+                        const body = new FormData();
+                        body.append('_token', document.querySelector('meta[name="csrf-token"]')?.content || '');
+
+                        fetch(player.dataset.audioPlayUrl, {
+                            method: 'POST',
+                            body,
+                            keepalive: true,
+                        }).catch(() => {});
+                    });
+                }
+
+                audio.addEventListener('play', () => setPlaying(true));
+                audio.addEventListener('pause', () => setPlaying(false));
+                audio.addEventListener('ended', () => {
+                    audio.currentTime = 0;
+                    setPlaying(false);
+                    paint();
+                });
+                audio.addEventListener('loadedmetadata', paint);
+                audio.addEventListener('timeupdate', paint);
+                audio.addEventListener('error', () => {
+                    toggle.disabled = true;
+                    durationLabel.textContent = 'پخش نشد';
+                });
+
+                return audio;
+            };
+
             toggle.addEventListener('click', () => {
-                if (audio.paused) {
-                    if (current && current !== audio) {
+                const media = ensureAudio();
+
+                if (media.paused) {
+                    if (current && current !== media) {
                         current.pause();
                     }
 
-                    current = audio;
-                    audio.play().catch(() => setPlaying(false));
+                    current = media;
+                    media.play().catch(() => setPlaying(false));
                 } else {
-                    audio.pause();
+                    media.pause();
                 }
             });
 
@@ -441,7 +472,7 @@ const app = {
             seek.addEventListener('pointerup', () => { dragging = false; });
 
             seek.addEventListener('input', () => {
-                const duration = Number.isFinite(audio.duration) ? audio.duration : 0;
+                const duration = audio && Number.isFinite(audio.duration) ? audio.duration : 0;
                 const ratio = Number(seek.value) / 1000;
 
                 seek.style.setProperty('--audio-progress', `${(ratio * 100).toFixed(2)}%`);
@@ -449,6 +480,8 @@ const app = {
             });
 
             seek.addEventListener('change', () => {
+                if (!audio) return;
+
                 const duration = Number.isFinite(audio.duration) ? audio.duration : 0;
 
                 if (duration > 0) {
@@ -461,22 +494,12 @@ const app = {
 
             speed.addEventListener('click', () => {
                 speedIndex = (speedIndex + 1) % speeds.length;
-                audio.playbackRate = speeds[speedIndex];
-                speed.textContent = toPersianDigits(speeds[speedIndex]) + '×';
-            });
 
-            audio.addEventListener('play', () => setPlaying(true));
-            audio.addEventListener('pause', () => setPlaying(false));
-            audio.addEventListener('ended', () => {
-                audio.currentTime = 0;
-                setPlaying(false);
-                paint();
-            });
-            audio.addEventListener('loadedmetadata', paint);
-            audio.addEventListener('timeupdate', paint);
-            audio.addEventListener('error', () => {
-                toggle.disabled = true;
-                durationLabel.textContent = 'پخش نشد';
+                if (audio) {
+                    audio.playbackRate = speeds[speedIndex];
+                }
+
+                speed.textContent = toPersianDigits(speeds[speedIndex]) + '×';
             });
 
             paint();
