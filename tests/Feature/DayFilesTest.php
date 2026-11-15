@@ -4,9 +4,13 @@ namespace Tests\Feature;
 
 use App\Models\Challenge;
 use App\Support\ChallengeExport;
+use App\Support\UploadLimits;
 use App\Support\Jalali;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Contracts\Debug\ExceptionHandler;
+use Illuminate\Http\Request;
+use Illuminate\Session\TokenMismatchException;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -64,7 +68,8 @@ class DayFilesTest extends TestCase
         // در پنل، باکس همان روز هر دو فایل را نشان می‌دهد
         $panel = $this->get(route('panel.challenges.show', $challenge))->assertOk()->getContent();
 
-        $this->assertStringContainsString('فایل‌ها و فایل‌های صوتی این روز', $panel);
+        $this->assertStringContainsString('فایل‌های روز', $panel);
+        $this->assertStringNotContainsString('فایل‌ها و فایل‌های صوتی این روز', $panel, 'عنوان بخش باید فقط «فایل‌های روز» باشد.');
         $this->assertStringContainsString('برنامه روز اول', $panel);
         $this->assertStringContainsString('صوت روز اول', $panel);
         $this->assertStringContainsString('🎧 فایل صوتی', $panel);
@@ -598,5 +603,87 @@ class DayFilesTest extends TestCase
         $end = strpos($html, 'id="day-'.($day + 1).'"', $start);
 
         return substr($html, $start, ($end === false ? $limit : $end - $start));
+    }
+
+    public function test_the_panel_warns_when_the_server_accepts_less_than_sixty_megabytes(): void
+    {
+        // تبدیل مقدارهای php.ini به بایت
+        $this->assertSame(8 * 1024 * 1024, UploadLimits::toBytes('8M'));
+        $this->assertSame(512 * 1024, UploadLimits::toBytes('512K'));
+        $this->assertSame(2 * 1024 ** 3, UploadLimits::toBytes('2G'));
+        $this->assertSame(1048576, UploadLimits::toBytes('1048576'));
+        $this->assertSame(0, UploadLimits::toBytes('-1'), '-1 یعنی نامحدود');
+
+        $this->loginAsAdmin();
+        $challenge = $this->makeChallenge(['starts_on' => now()->subDay(), 'ends_on' => now()->addDays(6)]);
+
+        // سروری که فقط ۸ مگابایت می‌پذیرد: هشدار در پنل دیده می‌شود
+        UploadLimits::fake(8 * 1024 * 1024);
+
+        $this->assertTrue(UploadLimits::isBelowAppLimit());
+        $this->assertSame('۸ مگابایت', UploadLimits::serverMaxForHumans());
+        $this->assertNotNull(UploadLimits::warning());
+
+        $panel = $this->get(route('panel.challenges.show', $challenge))->assertOk()->getContent();
+
+        $this->assertStringContainsString('سرور این سایت الان حداکثر ۸ مگابایت', $panel);
+        $this->assertStringContainsString('upload_max_filesize', $panel);
+
+        // سروری که ۶۴ مگابایت می‌پذیرد: هشداری در کار نیست
+        UploadLimits::fake(64 * 1024 * 1024);
+
+        $this->assertFalse(UploadLimits::isBelowAppLimit());
+        $this->assertNull(UploadLimits::warning());
+
+        $panel = $this->get(route('panel.challenges.show', $challenge))->assertOk()->getContent();
+
+        $this->assertStringNotContainsString('سرور این سایت الان حداکثر', $panel);
+        $this->assertStringContainsString('حجم هر فایل تا ۶۰ مگابایت', $panel);
+
+        UploadLimits::fake(null);
+    }
+
+    public function test_a_request_bigger_than_the_server_limit_gets_a_clear_message(): void
+    {
+        $challenge = $this->makeChallenge(['starts_on' => now()->subDay(), 'ends_on' => now()->addDays(6)]);
+
+        /* وقتی حجم درخواست از post_max_size بیشتر شود، PHP کل $_POST را خالی
+           می‌کند و Laravel فقط «توکن CSRF نامتمبر» می‌بیند؛ باید پیام مربوط به
+           حجم فایل برگردد، نه خطای بی‌ربط. (در آزمون، میان‌افزار CSRF خاموش
+           است، پس خودِ هندلر خطا با همان درخواست صدا زده می‌شود.) */
+        UploadLimits::fake(2 * 1024 * 1024);
+
+        $request = Request::create(
+            route('panel.day-files.store', $challenge),
+            'POST',
+            [],
+            [],
+            [],
+            [
+                'CONTENT_LENGTH' => (string) (3 * 1024 * 1024),
+                'HTTP_ACCEPT' => 'application/json',
+            ]
+        );
+
+        $response = app(ExceptionHandler::class)->render($request, new TokenMismatchException);
+
+        $this->assertSame(413, $response->getStatusCode());
+
+        $message = json_decode($response->getContent(), true)['message'] ?? '';
+
+        $this->assertStringContainsString('حد مجاز سرور', $message);
+        $this->assertStringContainsString('upload_max_filesize', $message);
+        $this->assertStringContainsString('php.ini', $message);
+        $this->assertStringContainsString(UploadLimits::serverMaxForHumans(), $message);
+
+        // درخواست کوچک‌تر از سقف سرور دست‌نخورده به مسیر عادی خودش می‌رود
+        $small = Request::create(route('panel.day-files.store', $challenge), 'POST', [], [], [], [
+            'CONTENT_LENGTH' => '1024',
+            'HTTP_ACCEPT' => 'application/json',
+        ]);
+
+        $this->assertNotSame(413, app(ExceptionHandler::class)->render($small, new TokenMismatchException)->getStatusCode());
+
+        UploadLimits::fake(null);
     }
 }

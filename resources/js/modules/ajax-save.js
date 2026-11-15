@@ -87,11 +87,19 @@ export default {
                 return;
             }
 
-            if (response.status === 422) {
+            // ۴۲۲ = خطای اعتبارسنجی، ۴۱۳ = حجم فایل بیشتر از حد مجاز سرور
+            if (response.status === 422 || response.status === 413) {
                 const data = await response.json().catch(() => null);
                 const firstError = data?.errors ? Object.values(data.errors)[0]?.[0] : null;
 
-                this.showToast(firstError || data?.message || 'مقادیر فرم درست نیست.', 'error');
+                this.showToast(
+                    firstError
+                        || data?.message
+                        || (response.status === 413
+                            ? 'حجم فایل بیشتر از حد مجاز سرور است.'
+                            : 'مقادیر فرم درست نیست.'),
+                    'error'
+                );
 
                 return;
             }
@@ -361,7 +369,8 @@ export default {
                 return;
             }
 
-            if (xhr.status === 422) {
+            // ۴۲۲ = خطای اعتبارسنجی، ۴۱۳ = حجم فایل بیشتر از حد مجاز سرور
+            if (xhr.status === 422 || xhr.status === 413) {
                 let data = null;
 
                 try {
@@ -371,7 +380,15 @@ export default {
                 }
 
                 const firstError = data?.errors ? Object.values(data.errors)[0]?.[0] : null;
-                this.showToast(firstError || data?.message || 'مقادیر فرم درست نیست.', 'error');
+
+                this.showToast(
+                    firstError
+                        || data?.message
+                        || (xhr.status === 413
+                            ? 'حجم فایل بیشتر از حد مجاز سرور است.'
+                            : 'مقادیر فرم درست نیست.'),
+                    'error'
+                );
 
                 return;
             }

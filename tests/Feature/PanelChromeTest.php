@@ -209,4 +209,21 @@ class PanelChromeTest extends TestCase
             ->assertOk()
             ->assertSee('🦋');
     }
+
+    public function test_the_panel_header_has_exactly_one_theme_toggle(): void
+    {
+        $this->loginAsAdmin();
+
+        $html = $this->get(route('panel.dashboard'))->assertOk()->getContent();
+
+        $this->assertSame(
+            1,
+            substr_count($html, 'data-theme-toggle'),
+            'در هدر پنل باید فقط یک دکمهٔ روز/شب باشد.'
+        );
+
+        // و همان یکی هم آیکون ماه و خورشید را با هم دارد
+        $this->assertSame(1, substr_count($html, 'data-theme-icon="moon"'));
+        $this->assertSame(1, substr_count($html, 'data-theme-icon="sun"'));
+    }
 }

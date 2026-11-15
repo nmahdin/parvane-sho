@@ -61,7 +61,7 @@ return [
     ],
     'string' => ':attribute باید متن باشد.',
     'unique' => ':attribute قبلاً ثبت شده است.',
-    'uploaded' => 'بارگذاری :attribute انجام نشد.',
+    'uploaded' => 'بارگذاری :attribute انجام نشد؛ حجم فایل بیشتر از حد مجاز سرور است. مقدار upload_max_filesize و post_max_size را در php.ini بالا ببر.',
     'url' => ':attribute باید یک نشانی معتبر باشد.',
 
     'attributes' => [

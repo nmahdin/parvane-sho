@@ -556,7 +556,7 @@
                             <details id="day-{{ $dayNumber }}-files" class="day-group rounded-2xl bg-shell/60">
                                 <summary class="day-group-head">
                                     <span class="flex flex-wrap items-center gap-2">
-                                        <span>📎</span> فایل‌ها و فایل‌های صوتی این روز (ویدیو هم با پخش‌کنندهٔ سایت پخش می‌شود)
+                                        <span>📎</span> فایل‌های روز
                                         <span class="badge bg-jade/10 text-jade ring-jade/30">{{ fa_num($dayFiles->count()) }}</span>
                                     </span>
 
@@ -738,6 +738,10 @@
                     <label class="label">فایل یا فایل صوتی</label>
                     <input name="file" type="file" required class="input py-2.5 text-xs file:me-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-1.5 file:text-brand-700">
                     <p class="hint">mp3، m4a، wav، ogg برای صوت و mp4، webm، mov برای ویدیو؛ pdf، تصویر، zip و ... برای فایل. حجم هر فایل تا ۶۰ مگابایت. صوتی‌ها و ویدیوها با پخش‌کنندهٔ خود سایت پخش می‌شوند.</p>
+
+                    @if ($uploadWarning = \App\Support\UploadLimits::warning())
+                        <p class="hint text-gold-ink">⚠️ {{ $uploadWarning }}</p>
+                    @endif
                 </div>
 
                 <div class="flex items-center gap-2">
@@ -794,6 +798,10 @@
             <p class="mt-1 text-xs leading-6 text-muted">
                 فایل راهنما، جدول تمرین‌ها، صوت، ویدیو یا هر چیزی که شرکت‌کننده‌ها لازم دارند. حجم هر فایل تا ۶۰ مگابایت.
             </p>
+
+            @if ($uploadWarning = \App\Support\UploadLimits::warning())
+                <p class="mt-1 text-xs leading-6 text-gold-ink">⚠️ {{ $uploadWarning }}</p>
+            @endif
         </div>
 
         <form method="POST" action="{{ route('panel.attachments.store', $challenge) }}" enctype="multipart/form-data" class="mt-5 grid gap-4 rounded-2xl bg-cream p-4 sm:grid-cols-[1fr_1.4fr_auto]">
