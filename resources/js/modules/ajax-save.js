@@ -1,3 +1,5 @@
+import { toPersianDigits } from '../jalali-datepicker';
+
 /**
  * ذخیرهٔ بدون رفرش فرم‌ها، نوار پیشرفت آپلود و toastهای پیام.
  */

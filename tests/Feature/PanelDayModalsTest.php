@@ -229,4 +229,57 @@ class PanelDayModalsTest extends TestCase
         $this->assertStringContainsString('box-shadow', $activeCss);
         $this->assertStringNotContainsString('ring', $activeCss);
     }
+
+    /**
+     * هر ماژول JS که از هلپرهای مشترک (jalali-datepicker) استفاده می‌کند باید
+     * آن‌ها را import کرده باشد. این دقیقاً همان باگی است که با تقسیم app.js
+     * به ماژول‌ها پیش آمد: `toPersianDigits` بدون import صدا زده می‌شد و
+     * `openModal()` پیش از `showModal()` با ReferenceError می‌شکست — یعنی
+     * مودال‌های «افزودن» باز نمی‌شدند.
+     */
+    public function test_every_js_module_imports_the_shared_helpers_it_uses(): void
+    {
+        $helpers = ['toPersianDigits', 'jalaliInputToDate', 'initJalaliPickers'];
+
+        $files = array_merge(
+            glob(base_path('resources/js/modules/*.js')) ?: [],
+            [base_path('resources/js/app.js')]
+        );
+
+        $this->assertNotEmpty($files, 'ماژول‌های JS پیدا نشدند.');
+
+        foreach ($files as $file) {
+            $source = (string) file_get_contents($file);
+
+            foreach ($helpers as $helper) {
+                $used = (bool) preg_match('/(?<![\w$.])'.$helper.'\s*\(/', $source);
+                $imported = (bool) preg_match('/^import\s*\{[^}]*\b'.$helper.'\b[^}]*\}/m', $source);
+
+                $this->assertTrue(
+                    ! $used || $imported,
+                    basename($file).' از '.$helper.'() استفاده می‌کند ولی import نکرده است؛ در مرورگر ReferenceError می‌دهد.'
+                );
+            }
+        }
+    }
+
+    /**
+     * در باندل ساخته‌شده، تابع import‌شده به یک نام محلی کوتاه تبدیل می‌شود؛
+     * پس اگر نام `toPersianDigits` هنوز در باندل پیدا شود یعنی جایی بدون
+     * import صدا زده شده و در زمان اجرا خطا می‌دهد (مودال باز نمی‌شود).
+     */
+    public function test_the_built_bundle_has_no_unresolved_helper_reference(): void
+    {
+        $bundles = glob(public_path('build/assets/app-*.js'));
+
+        $this->assertNotEmpty($bundles, 'باندل اسکریپت ساخته نشده است.');
+
+        foreach ($bundles as $bundle) {
+            $this->assertStringNotContainsString(
+                'toPersianDigits',
+                (string) file_get_contents($bundle),
+                'ارجاع حل‌نشدهٔ toPersianDigits در باندل مانده است؛ ماژولی آن را بدون import صدا می‌زند.'
+            );
+        }
+    }
 }

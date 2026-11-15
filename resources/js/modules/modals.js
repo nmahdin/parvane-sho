@@ -1,3 +1,5 @@
+import { toPersianDigits } from '../jalali-datepicker';
+
 /**
  * مودال‌های پنل: باز/بسته شدن با انیمیشن و پاک‌سازی فرم‌ها.
  */
