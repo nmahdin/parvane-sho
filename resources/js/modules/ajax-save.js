@@ -75,7 +75,7 @@ export default {
 
                 if (!stayOpen) this.closeModalFor(form);
 
-                const message = await this.refreshDynamicSections(dayNumber);
+                const message = await this.safeRefresh(dayNumber);
 
                 if (stayOpen) {
                     this.resetModalForm(form);
@@ -104,7 +104,13 @@ export default {
                 return;
             }
 
-            this.showToast('ذخیره انجام نشد؛ دوباره تلاش کن.', 'error');
+            if (response.status === 419) {
+                this.showToast('نشست شما پایان یافته است؛ صفحه را تازه کن و دوباره تلاش کن.', 'error');
+
+                return;
+            }
+
+            this.showToast(`ذخیره انجام نشد (کد ${toPersianDigits(String(response.status))})؛ دوباره تلاش کن.`, 'error');
         } catch {
             this.showToast('اتصال برقرار نشد؛ دوباره تلاش کن.', 'error');
         } finally {
@@ -310,6 +316,39 @@ export default {
         window.setTimeout(() => bar.remove(), 500);
     },
 
+    /* تازه‌کردن بخش‌ها best-effort است: اگر خودش خطا داد، ذخیرهٔ موفق
+       نباید به کاربر «ناموفق» گزارش شود. */
+    async safeRefresh(dayNumber) {
+        try {
+            return await this.refreshDynamicSections(dayNumber);
+        } catch {
+            return null;
+        }
+    },
+
+    /* پیش از آپلود، حجم فایل با سقف مجاز (که سرور در data-max-upload-bytes
+       گذاشته) سنجیده می‌شود؛ این‌طور فایل بزرگ به‌جای آپلود نیمه‌کاره و پیام
+       مبهم، همان اول پیام دقیق می‌گیرد. */
+    oversizedFile(form) {
+        const input = form.querySelector('input[type="file"][data-max-upload-bytes]');
+
+        if (!input || !input.files || !input.files.length) return null;
+
+        const limit = Number(input.dataset.maxUploadBytes || 0);
+        const label = input.dataset.maxUploadLabel || '';
+
+        if (!limit) return null;
+
+        const file = Array.from(input.files).find((item) => item.size > limit);
+
+        if (!file) return null;
+
+        const size = file.size / (1024 * 1024);
+        const readable = toPersianDigits(String(Math.round(size * 10) / 10)) + ' مگابایت';
+
+        return `حجم «${file.name}» ${readable} است و از حد مجاز (${label}) بیشتر است؛ فایل کوچک‌تری انتخاب کن.`;
+    },
+
     /* ارسال فرم با XHR تا رویداد پیشرفت آپلود در دسترس باشد */
     xhrUpload(form) {
         return new Promise((resolve, reject) => {
@@ -349,6 +388,14 @@ export default {
     async uploadFormWithProgress(form) {
         const dayNumber = this.dayNumberOf(form);
 
+        const tooBig = this.oversizedFile(form);
+
+        if (tooBig) {
+            this.showToast(tooBig, 'error');
+
+            return;
+        }
+
         try {
             const xhr = await this.xhrUpload(form);
 
@@ -357,7 +404,7 @@ export default {
 
                 if (!stayOpen) this.closeModalFor(form);
 
-                const message = await this.refreshDynamicSections(dayNumber);
+                const message = await this.safeRefresh(dayNumber);
 
                 if (stayOpen) {
                     this.resetModalForm(form);
@@ -393,9 +440,27 @@ export default {
                 return;
             }
 
-            this.showToast('ذخیره انجام نشد؛ دوباره تلاش کن.', 'error');
-        } catch {
-            this.showToast('آپلود انجام نشد؛ دوباره تلاش کن.', 'error');
+            // نشست تمام شده (CSRF) — صفحه باید تازه شود
+            if (xhr.status === 419) {
+                this.showToast('نشست شما پایان یافته است؛ صفحه را تازه کن و دوباره تلاش کن.', 'error');
+
+                return;
+            }
+
+            // کد وضعیت در پیام می‌آید تا علت خطا از خود پیام پیدا باشد
+            this.showToast(
+                xhr.status === 0
+                    ? 'پاسخی از سرور نرسید؛ اگر فایل بزرگ است احتمالاً حجمش از حد مجاز سرور یا پروکسی بیشتر است.'
+                    : `ذخیره انجام نشد (کد ${toPersianDigits(String(xhr.status))})؛ دوباره تلاش کن.`,
+                'error'
+            );
+        } catch (error) {
+            this.showToast(
+                error?.message === 'abort'
+                    ? 'آپلود لغو شد.'
+                    : 'اتصال در میانهٔ آپلود قطع شد؛ اگر فایل بزرگ است احتمالاً حجمش از حد مجاز سرور یا پروکسی بیشتر است.',
+                'error'
+            );
         }
     },
 

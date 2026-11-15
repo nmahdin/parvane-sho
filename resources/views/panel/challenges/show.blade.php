@@ -736,7 +736,7 @@
 
                 <div>
                     <label class="label">فایل یا فایل صوتی</label>
-                    <input name="file" type="file" required class="input py-2.5 text-xs file:me-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-1.5 file:text-brand-700">
+                    <input name="file" type="file" required data-max-upload-bytes="{{ \App\Support\UploadLimits::limitBytes() }}" data-max-upload-label="{{ \App\Support\UploadLimits::limitForHumans() }}" class="input py-2.5 text-xs file:me-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-1.5 file:text-brand-700">
                     <p class="hint">mp3، m4a، wav، ogg برای صوت و mp4، webm، mov برای ویدیو؛ pdf، تصویر، zip و ... برای فایل. حجم هر فایل تا ۶۰ مگابایت. صوتی‌ها و ویدیوها با پخش‌کنندهٔ خود سایت پخش می‌شوند.</p>
 
                     @if ($uploadWarning = \App\Support\UploadLimits::warning())
@@ -814,7 +814,7 @@
 
             <div>
                 <label class="label" for="file-input">فایل</label>
-                <input id="file-input" name="file" type="file" required class="input py-2.5 text-xs file:me-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-1.5 file:text-brand-700">
+                <input id="file-input" name="file" type="file" required data-max-upload-bytes="{{ \App\Support\UploadLimits::limitBytes() }}" data-max-upload-label="{{ \App\Support\UploadLimits::limitForHumans() }}" class="input py-2.5 text-xs file:me-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-1.5 file:text-brand-700">
             </div>
 
             <div class="flex items-end">

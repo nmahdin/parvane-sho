@@ -686,4 +686,52 @@ class DayFilesTest extends TestCase
 
         UploadLimits::fake(null);
     }
+
+    public function test_the_upload_forms_carry_the_effective_size_limit(): void
+    {
+        $this->loginAsAdmin();
+        $challenge = $this->makeChallenge(['starts_on' => now()->subDay(), 'ends_on' => now()->addDays(6)]);
+
+        // سروری که ۶۴ مگابایت می‌پذیرد: سقف مؤثر همان ۶۰ مگابایت اپلیکیشن است
+        UploadLimits::fake(64 * 1024 * 1024);
+        $this->assertSame(60 * 1024 * 1024, UploadLimits::limitBytes());
+        $this->assertSame('۶۰ مگابایت', UploadLimits::limitForHumans());
+
+        $panel = $this->get(route('panel.challenges.show', $challenge))->assertOk()->getContent();
+
+        $this->assertStringContainsString('data-max-upload-bytes="'.(60 * 1024 * 1024).'"', $panel);
+        $this->assertStringContainsString('data-max-upload-label="۶۰ مگابایت"', $panel);
+
+        // سروری که فقط ۸ مگابایت می‌پذیرد: سقف مؤثر همان ۸ مگابایت می‌شود
+        UploadLimits::fake(8 * 1024 * 1024);
+        $this->assertSame(8 * 1024 * 1024, UploadLimits::limitBytes());
+
+        $panel = $this->get(route('panel.challenges.show', $challenge))->assertOk()->getContent();
+
+        $this->assertStringContainsString('data-max-upload-bytes="'.(8 * 1024 * 1024).'"', $panel);
+        $this->assertStringContainsString('data-max-upload-label="۸ مگابایت"', $panel);
+
+        UploadLimits::fake(null);
+    }
+
+    public function test_the_built_assets_report_upload_failures_precisely(): void
+    {
+        $bundles = glob(public_path('build/assets/app-*.js'));
+
+        $this->assertNotEmpty($bundles, 'باندل اسکریپت ساخته نشده است.');
+
+        $js = (string) file_get_contents($bundles[0]);
+
+        // پیش از آپلود، حجم فایل با سقف مجاز سنجیده می‌شود
+        $this->assertStringContainsString('oversizedFile', $js);
+        $this->assertStringContainsString('maxUploadBytes', $js);
+
+        // خطاهای آپلود با کد وضعیت گزارش می‌شوند تا علت از خود پیام پیدا باشد
+        $this->assertStringContainsString('نشست شما پایان یافته', $js);
+        $this->assertStringContainsString('از حد مجاز سرور یا پروکسی بیشتر است', $js);
+
+        // تازه‌کردن بخش‌ها best-effort است؛ ذخیرهٔ موفق «ناموفق» گزارش نمی‌شود
+        $this->assertStringContainsString('safeRefresh', $js);
+        $this->assertStringNotContainsString("const message = await this.refreshDynamicSections(dayNumber);", $js);
+    }
 }

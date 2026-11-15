@@ -68,6 +68,31 @@ class UploadLimits
     }
 
     /**
+     * سقف مؤثر برای آپلود (بایت): کمینهٔ سقف اپلیکیشن و سقف واقعی سرور.
+     * این همان عددی است که به فرم آپلود داده می‌شود تا پیش از ارسال،
+     * فایل بزرگ‌تر با پیام دقیق رد شود.
+     */
+    public static function limitBytes(): int
+    {
+        $app = DayFile::MAX_KILOBYTES * 1024;
+        $server = self::serverMaxBytes();
+
+        return $server > 0 ? min($app, $server) : $app;
+    }
+
+    /**
+     * سقف مؤثر به واحد خوانای فارسی.
+     */
+    public static function limitForHumans(): string
+    {
+        $bytes = self::limitBytes();
+        $units = ['بایت', 'کیلوبایت', 'مگابایت', 'گیگابایت'];
+        $power = min((int) floor(log(max(1, $bytes), 1024)), count($units) - 1);
+
+        return fa_num(round($bytes / (1024 ** $power), $power === 0 ? 0 : 1)).' '.$units[$power];
+    }
+
+    /**
      * سقف سرور از سقف اپلیکیشن (۶۰ مگابایت) کمتر است؟
      */
     public static function isBelowAppLimit(): bool
