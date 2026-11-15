@@ -303,7 +303,7 @@ class ChallengeExport
             $rows[] = [
                 'روز '.fa_num($day),
                 fa_date($challenge->dateForDay($day)),
-                $file->is_audio ? 'فایل صوتی' : 'فایل',
+                $file->typeLabel(),
                 $file->title,
                 $file->original_name,
                 $file->sizeForHumans(),

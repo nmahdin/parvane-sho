@@ -556,7 +556,7 @@
                             <details id="day-{{ $dayNumber }}-files" class="day-group rounded-2xl bg-shell/60">
                                 <summary class="day-group-head">
                                     <span class="flex flex-wrap items-center gap-2">
-                                        <span>📎</span> فایل‌ها و فایل‌های صوتی این روز
+                                        <span>📎</span> فایل‌ها و فایل‌های صوتی این روز (ویدیو هم با پخش‌کنندهٔ سایت پخش می‌شود)
                                         <span class="badge bg-jade/10 text-jade ring-jade/30">{{ fa_num($dayFiles->count()) }}</span>
                                     </span>
 
@@ -579,8 +579,8 @@
                                                     <div class="min-w-0">
                                                         <p class="flex flex-wrap items-center gap-2 text-sm font-medium text-ink">
                                                             {{ $dayFile->title }}
-                                                            <span class="badge {{ $dayFile->is_audio ? 'bg-gold/15 text-gold-ink ring-gold/50' : 'bg-jade/10 text-jade ring-jade/30' }}">
-                                                                {{ $dayFile->is_audio ? '🎧 فایل صوتی' : '📎 فایل' }}
+                                                            <span class="badge {{ $dayFile->is_audio ? 'bg-gold/15 text-gold-ink ring-gold/50' : ($dayFile->isVideo() ? 'bg-forest/15 text-forest ring-forest/40' : 'bg-jade/10 text-jade ring-jade/30') }}">
+                                                                {{ $dayFile->is_audio ? '🎧 فایل صوتی' : ($dayFile->isVideo() ? '🎬 ویدیو' : '📎 فایل') }}
                                                             </span>
                                                         </p>
 
@@ -591,6 +591,8 @@
                                                         <p class="mt-1 text-[11px] text-muted">
                                                             @if ($dayFile->is_audio)
                                                                 🎧 {{ fa_num($dayFile->plays) }} پخش
+                                                            @elseif ($dayFile->isVideo())
+                                                                🎬 {{ fa_num($dayFile->plays) }} پخش
                                                             @else
                                                                 ⬇️ {{ fa_num($dayFile->downloads) }} دانلود
                                                             @endif
@@ -599,6 +601,10 @@
                                                         @if ($dayFile->is_audio)
                                                             <div class="mt-3 max-w-md">
                                                                 <x-audio-player :file="$dayFile" :day="$dayNumber" />
+                                                            </div>
+                                                        @elseif ($dayFile->isVideo())
+                                                            <div class="mt-3 max-w-lg">
+                                                                <x-video-player :file="$dayFile" :day="$dayNumber" />
                                                             </div>
                                                         @endif
                                                     </div>
@@ -731,7 +737,7 @@
                 <div>
                     <label class="label">فایل یا فایل صوتی</label>
                     <input name="file" type="file" required class="input py-2.5 text-xs file:me-3 file:rounded-lg file:border-0 file:bg-brand-50 file:px-3 file:py-1.5 file:text-brand-700">
-                    <p class="hint">mp3، m4a، wav، ogg برای صوت (تا ۶۰ مگابایت)؛ pdf، تصویر، zip و ... برای فایل (تا ۸ مگابایت). صوتی‌ها با پخش‌کننده خود سایت پخش می‌شوند.</p>
+                    <p class="hint">mp3، m4a، wav، ogg برای صوت و mp4، webm، mov برای ویدیو؛ pdf، تصویر، zip و ... برای فایل. حجم هر فایل تا ۶۰ مگابایت. صوتی‌ها و ویدیوها با پخش‌کنندهٔ خود سایت پخش می‌شوند.</p>
                 </div>
 
                 <div class="flex items-center gap-2">
@@ -786,7 +792,7 @@
         <div>
             <h2 class="text-base">فایل‌های ضمیمه چالش</h2>
             <p class="mt-1 text-xs leading-6 text-muted">
-                فایل راهنما، جدول تمرین‌ها، صوت یا هر چیزی که شرکت‌کننده‌ها لازم دارند. حجم هر فایل تا ۸ مگابایت.
+                فایل راهنما، جدول تمرین‌ها، صوت، ویدیو یا هر چیزی که شرکت‌کننده‌ها لازم دارند. حجم هر فایل تا ۶۰ مگابایت.
             </p>
         </div>
 

@@ -11,8 +11,9 @@ use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
 /**
- * فایل‌ها و فایل‌های صوتی هر روز: افزودن از پنل، نمایش داخل کارت همان روز،
- * پخش‌کننده اختصاصی صوت (نه پخش‌کننده پیش‌فرض مرورگر) و قفل بودن روزهای بعدی.
+ * فایل‌ها، فایل‌های صوتی و ویدیوهای هر روز: افزودن از پنل (تا ۶۰ مگابایت)،
+ * نمایش داخل کارت همان روز، پخش‌کننده اختصاصی صوت و ویدیو (نه پخش‌کننده
+ * پیش‌فرض مرورگر) و قفل بودن روزهای بعدی.
  */
 class DayFilesTest extends TestCase
 {
@@ -409,6 +410,180 @@ class DayFilesTest extends TestCase
         $this->assertSame('روز', $rows[0][0]);
         $this->assertContains('صوت روز دوم', $rows[1]);
         $this->assertContains('فایل صوتی', $rows[1]);
+    }
+
+    public function test_every_upload_can_be_up_to_sixty_megabytes(): void
+    {
+        $this->loginAsAdmin();
+        $challenge = $this->makeChallenge(['starts_on' => now()->subDay(), 'ends_on' => now()->addDays(6)]);
+
+        // یک فایل معمولی (غیرصوتی) هم تا ۶۰ مگابایت مجاز است
+        $this->post(route('panel.day-files.store', $challenge), [
+            'day_number' => 1,
+            'title' => 'جدول شصت مگابایتی',
+            'file' => UploadedFile::fake()->create('table.pdf', 60 * 1024, 'application/pdf'),
+        ])->assertRedirect();
+
+        $pdf = $challenge->dayFiles()->firstOrFail();
+        $this->assertSame(60 * 1024 * 1024, $pdf->size);
+        $this->assertFalse($pdf->is_audio);
+        $this->assertFalse($pdf->isVideo());
+
+        // ویدیو هم تا همان ۶۰ مگابایت
+        $this->post(route('panel.day-files.store', $challenge), [
+            'day_number' => 1,
+            'title' => 'ویدیوی شصت مگابایتی',
+            'file' => UploadedFile::fake()->create('movie.mp4', 60 * 1024, 'video/mp4'),
+        ])->assertRedirect();
+
+        $video = $challenge->dayFiles()->where('original_name', 'movie.mp4')->firstOrFail();
+        $this->assertSame(60 * 1024 * 1024, $video->size);
+        $this->assertTrue($video->is_video, 'فایل mp4 باید ویدیو ثبت شود.');
+        $this->assertFalse($video->is_audio);
+        $this->assertSame('ویدیو', $video->typeLabel());
+
+        // بیشتر از ۶۰ مگابایت رد می‌شود (پیام فارسی حد تازه)
+        $challenge->dayFiles()->delete();
+
+        $this->post(route('panel.day-files.store', $challenge), [
+            'day_number' => 1,
+            'title' => 'فایل خیلی بزرگ',
+            'file' => UploadedFile::fake()->create('huge.pdf', (60 * 1024) + 1, 'application/pdf'),
+        ])->assertSessionHasErrors('file');
+
+        $this->assertStringContainsString('۶۰ مگابایت', session('errors')->first('file'));
+        $this->assertSame(0, $challenge->dayFiles()->count());
+
+        // ضمیمهٔ خود چالش هم همان ۶۰ مگابایت را می‌پذیرد
+        $this->post(route('panel.attachments.store', $challenge), [
+            'title' => 'پیوست بزرگ',
+            'file' => UploadedFile::fake()->create('attachment.pdf', 60 * 1024, 'application/pdf'),
+        ])->assertRedirect();
+
+        $this->assertSame(1, $challenge->attachments()->count());
+
+        $this->post(route('panel.attachments.store', $challenge), [
+            'title' => 'پیوست خیلی بزرگ',
+            'file' => UploadedFile::fake()->create('huge.pdf', (60 * 1024) + 1, 'application/pdf'),
+        ])->assertSessionHasErrors('file');
+
+        $this->assertStringContainsString('۶۰ مگابایت', session('errors')->first('file'));
+        $this->assertSame(1, $challenge->attachments()->count());
+
+        // راهنمای هر دو فرم، حد تازه را می‌گوید
+        $html = $this->get(route('panel.challenges.show', $challenge))->assertOk()->getContent();
+        $this->assertStringContainsString('حجم هر فایل تا ۶۰ مگابایت', $html);
+    }
+
+    public function test_a_video_uses_the_dedicated_video_player(): void
+    {
+        $challenge = $this->makeChallenge(['starts_on' => now()->subDay(), 'ends_on' => now()->addDays(6)]);
+
+        $video = $challenge->dayFiles()->create([
+            'day_number' => 1,
+            'title' => 'ویدیوی تنفس روز اول',
+            'path' => 'day-files/breath.mp4',
+            'original_name' => 'breath.mp4',
+            'size' => 20 * 1024 * 1024,
+            'mime' => 'video/mp4',
+            'is_audio' => false,
+            'is_video' => true,
+        ]);
+
+        Storage::disk('local')->put('day-files/breath.mp4', '....ftypisom');
+
+        $html = $this->get(route('challenges.show', $challenge))->assertOk()->getContent();
+        $box = $this->dayBoxHtml($html, 1, 12000);
+
+        // پخش‌کننده اختصاصی سایت، نه کنترل‌های پیش‌فرض مرورگر
+        $this->assertStringContainsString('ویدیوهای این روز', $box);
+        $this->assertStringContainsString('data-video-player', $box);
+        $this->assertStringContainsString('data-video-stage', $box);
+        $this->assertStringContainsString('data-video-toggle', $box);
+        $this->assertStringContainsString('data-video-seek', $box);
+        $this->assertStringContainsString('data-video-fullscreen', $box);
+        $this->assertStringContainsString('preload="none"', $box, 'تا پیش از پخش نباید بایتی از ویدیو دانلود شود.');
+        $this->assertStringContainsString('data-video-src="'.e($video->url()).'"', $box);
+        $this->assertStringContainsString('ویدیوی تنفس روز اول', $box);
+        $this->assertMatchesRegularExpression('/<video(?![^>]*\bcontrols\b)[^>]*>/', $box, 'ویدیو نباید کنترل پیش‌فرض مرورگر داشته باشد.');
+
+        // ویدیو به‌جای لینک دانلود، پخش‌کننده می‌گیرد
+        $this->assertStringNotContainsString('⬇ دانلود', $box);
+
+        // داشبورد شرکت‌کننده هم همان پخش‌کننده را نشان می‌دهد
+        $participant = $challenge->participants()->create(['name' => 'زهرا محمدی', 'pledged_at' => now()]);
+        $this->assertStringContainsString('data-video-player', $this->get(route('participant.show', $participant))->assertOk()->getContent());
+
+        // پنل هم پیش‌نمایش ویدیو را دارد
+        $this->loginAsAdmin();
+        $panel = $this->get(route('panel.challenges.show', $challenge))->assertOk()->getContent();
+        $this->assertStringContainsString('🎬 ویدیو', $panel);
+        $this->assertStringContainsString('data-video-player', $panel);
+    }
+
+    public function test_the_video_streams_inline_with_range_and_counts_plays_not_downloads(): void
+    {
+        $challenge = $this->makeChallenge(['starts_on' => now()->subDay(), 'ends_on' => now()->addDays(6)]);
+
+        $video = $challenge->dayFiles()->create([
+            'day_number' => 1,
+            'title' => 'ویدیوی تنفس',
+            'path' => 'day-files/breath.mp4',
+            'original_name' => 'breath.mp4',
+            'size' => 64,
+            'mime' => 'video/mp4',
+            'is_audio' => false,
+            'is_video' => true,
+        ]);
+
+        Storage::disk('local')->put('day-files/breath.mp4', str_repeat('0123456789', 8));
+
+        $response = $this->get(route('challenge.day-files.show', [$challenge, $video]));
+
+        $response->assertOk();
+        $this->assertStringContainsString('inline', (string) $response->headers->get('Content-Disposition'));
+        $this->assertSame('max-age=2592000, public', (string) $response->headers->get('Cache-Control'));
+        $this->assertSame('bytes', (string) $response->headers->get('Accept-Ranges'));
+        $this->assertSame(0, $video->fresh()->downloads, 'پخش ویدیو نباید دانلود شمرده شود.');
+
+        // جلو/عقب بردن ویدیو با Range
+        $partial = $this->get(route('challenge.day-files.show', [$challenge, $video]), ['HTTP_RANGE' => 'bytes=0-9']);
+        $partial->assertStatus(206);
+        $this->assertStringContainsString('bytes 0-9/', (string) $partial->headers->get('Content-Range'));
+
+        // شمار پخش با beacon پخش‌کننده
+        $this->post(route('challenge.day-files.plays', [$challenge, $video]))->assertNoContent();
+        $this->assertSame(1, $video->fresh()->plays);
+    }
+
+    public function test_the_video_player_reaches_the_built_assets(): void
+    {
+        $script = glob(public_path('build/assets/app-*.js'));
+        $style = glob(public_path('build/assets/app-*.css'));
+
+        $this->assertNotEmpty($script, 'باندل اسکریپت ساخته نشده است.');
+        $this->assertNotEmpty($style, 'باندل استایل ساخته نشده است.');
+
+        $js = (string) file_get_contents($script[0]);
+
+        $this->assertStringContainsString('initVideoPlayers', $js);
+        $this->assertStringContainsString('data-video-player', $js);
+        $this->assertStringContainsString('data-video-fullscreen', $js);
+        $this->assertStringContainsString('pv-video-', $js, 'کلید ادامه از جای قبلی ویدیو در باندل نیست.');
+
+        /* قاعدهٔ «فقط یک رسانه (صوت یا ویدیو) پخش شود» در یک تابع مشترک است
+           و هر دو پخش‌کننده از آن رد می‌شوند (نام تابع در باندل کوتاه می‌شود،
+           پس روی خود منبع بررسی می‌شود). */
+        $source = (string) file_get_contents(base_path('resources/js/modules/media.js'));
+
+        $this->assertStringContainsString('let currentMedia = null;', $source);
+        $this->assertGreaterThanOrEqual(2, substr_count($source, 'playExclusive('), 'پخش صوت و ویدیو باید از یک قاعدهٔ مشترک رد شود.');
+
+        $css = (string) file_get_contents($style[0]);
+
+        $this->assertStringContainsString('video-player', $css);
+        $this->assertStringContainsString('video-screen', $css);
+        $this->assertStringContainsString('--video-progress', $css);
     }
 
     /**

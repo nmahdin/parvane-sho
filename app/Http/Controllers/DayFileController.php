@@ -27,11 +27,12 @@ class DayFileController extends Controller
         abort_unless($challenge->isDayUnlocked((int) $dayFile->day_number), 404);
         abort_unless(Storage::disk('local')->exists($dayFile->path), 404);
 
-        // دانلود فقط برای فایل‌های غیرصوتی شمرده می‌شود. پخش صوت را
-        // پخش‌کنندهٔ سایت با beacon دقیق می‌شمارد (فقط وقتی کاربر واقعاً
-        // دکمهٔ پخش را می‌زند) — چون preload مرورگر هم بایت‌های اول را
-        // می‌گیرد و شمار سمت سرور، بازدید صفحه را به‌جای پخش حساب می‌کرد.
-        if (! $dayFile->is_audio) {
+        // دانلود فقط برای فایل‌های غیرصوتی و غیرویدیویی شمرده می‌شود. پخش
+        // صوت و ویدیو را پخش‌کنندهٔ سایت با beacon دقیق می‌شمارد (فقط وقتی
+        // کاربر واقعاً دکمهٔ پخش را می‌زند) — چون preload مرورگر هم بایت‌های
+        // اول را می‌گیرد و شمار سمت سرور، بازدید صفحه را به‌جای پخش حساب
+        // می‌کرد (و ویدیو تکه‌تکه با Range گرفته می‌شود).
+        if (! $dayFile->is_audio && ! $dayFile->isVideo()) {
             $dayFile->increment('downloads');
         }
 
@@ -44,9 +45,9 @@ class DayFileController extends Controller
         // این یعنی بار دوم، صوت و عکس‌ها حتی بدون سرویس‌ورکر هم آنی می‌آیند.
         $response->setPublic()->setMaxAge(2592000);
 
-        // صوتی‌ها inline می‌آیند تا پخش‌کننده خود سایت همان‌جا پخش کند؛
-        // بقیه فایل‌ها دانلود می‌شوند.
-        $disposition = $dayFile->is_audio ? 'inline' : 'attachment';
+        // صوتی‌ها و ویدیوها inline می‌آیند تا پخش‌کننده خود سایت همان‌جا
+        // پخش کند (ویدیو تکه‌تکه با Range)؛ بقیه فایل‌ها دانلود می‌شوند.
+        $disposition = ($dayFile->is_audio || $dayFile->isVideo()) ? 'inline' : 'attachment';
 
         $response->headers->set(
             'Content-Disposition',
@@ -57,14 +58,14 @@ class DayFileController extends Controller
     }
 
     /**
-     * شمار پخش واقعی: پخش‌کنندهٔ صوت وقتی کاربر دکمهٔ پخش را می‌زند
-     * (یک‌بار در هر بار باز شدن صفحه) این beacon را می‌فرستد.
+     * شمار پخش واقعی: پخش‌کنندهٔ صوت و ویدیو وقتی کاربر دکمهٔ پخش را
+     * می‌زند (یک‌بار در هر بار باز شدن صفحه) این beacon را می‌فرستد.
      */
     public function play(Request $request, Challenge $challenge, DayFile $dayFile): \Illuminate\Http\Response
     {
         abort_unless((int) $dayFile->challenge_id === (int) $challenge->id, 404);
         abort_unless($challenge->is_published, 404);
-        abort_unless($dayFile->is_audio, 404);
+        abort_unless($dayFile->is_audio || $dayFile->isVideo(), 404);
         abort_unless($challenge->isDayUnlocked((int) $dayFile->day_number), 404);
 
         $dayFile->increment('plays');

@@ -1218,9 +1218,126 @@
         @apply inline-flex shrink-0 cursor-pointer items-center gap-1.5 rounded-xl bg-jade/10 px-4 py-2.5 text-xs font-semibold text-jade no-underline ring-1 ring-jade/30 transition hover:bg-jade/20 hover:text-forest;
     }
 
+    /* پخش‌کننده اختصاصی ویدیو (هماهنگ با پالت سایت) --------------------- */
+    .video-player {
+        @apply overflow-hidden rounded-2xl bg-paper p-2 sm:p-2.5;
+    }
+
+    .video-player.is-playing {
+        @apply ring-jade/40;
+        box-shadow: 0 1px 2px rgb(101 146 135 / 0.1), 0 14px 28px -22px rgb(101 146 135 / 0.4);
+    }
+
+    /* پردهٔ ویدیو: تا پیش از پخش، یک زمینهٔ تیره با دکمهٔ بزرگ پخش */
+    .video-screen {
+        @apply relative grid aspect-video w-full place-items-center overflow-hidden rounded-2xl bg-ink;
+    }
+
+    .video-stage {
+        @apply h-full w-full object-contain;
+    }
+
+    .video-bigplay {
+        @apply absolute grid cursor-pointer place-items-center rounded-full bg-jade/95 text-white ring-4 ring-white/20 transition-colors hover:bg-forest disabled:cursor-not-allowed disabled:opacity-60;
+        inline-size: 4.25rem;
+        block-size: 4.25rem;
+    }
+
+    /* نشانگر پرشدن حافظه (بافر) */
+    .video-buffering {
+        @apply absolute rounded-full border-[3px] border-white/25 border-t-white;
+        inline-size: 2.5rem;
+        block-size: 2.5rem;
+        animation: video-spin 0.9s linear infinite;
+    }
+
+    @keyframes video-spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    .video-bar {
+        @apply mt-2 flex flex-wrap items-center gap-2 px-1.5 pb-1;
+    }
+
+    .video-ctl {
+        @apply grid size-9 shrink-0 cursor-pointer place-items-center rounded-xl bg-cream text-muted ring-1 ring-line transition hover:bg-line/50 hover:text-forest no-underline;
+    }
+
+    .video-seek-wrap {
+        @apply min-w-24 flex-1;
+    }
+
+    .video-track {
+        @apply relative h-2.5 w-full cursor-pointer appearance-none rounded-full bg-line outline-none;
+    }
+
+    /* پر شدن مسیر پخش از راست (راست‌به‌چپ) */
+    .video-track::-webkit-slider-runnable-track {
+        height: 100%;
+        border-radius: 9999px;
+        background: linear-gradient(to left, var(--color-forest) var(--video-progress, 0%), var(--color-line) var(--video-progress, 0%));
+    }
+
+    .video-track::-moz-range-track {
+        height: 100%;
+        border-radius: 9999px;
+        background: linear-gradient(to left, var(--color-forest) var(--video-progress, 0%), var(--color-line) var(--video-progress, 0%));
+    }
+
+    .video-track::-webkit-slider-thumb {
+        @apply size-4 rounded-full bg-paper ring-2 ring-forest;
+        -webkit-appearance: none;
+        appearance: none;
+        margin-top: -3px;
+    }
+
+    .video-track::-moz-range-thumb {
+        @apply size-4 rounded-full border-0 bg-paper ring-2 ring-forest;
+    }
+
+    .video-time {
+        @apply shrink-0 text-[11px] font-medium tabular-nums text-muted;
+    }
+
+    .video-speed {
+        @apply shrink-0 cursor-pointer rounded-xl bg-cream px-2.5 py-1.5 text-[11px] font-semibold text-muted ring-1 ring-line transition hover:bg-line/50 hover:text-forest;
+    }
+
+    .video-meta {
+        @apply mt-1 flex flex-wrap items-center gap-2 px-1.5 text-[11px] text-muted;
+    }
+
+    /* تمام‌صفحه: کل پخش‌کننده (با کنترل‌ها) بزرگ می‌شود */
+    .video-player:fullscreen {
+        @apply grid place-items-center bg-ink;
+    }
+
+    .video-player:fullscreen .video-screen {
+        @apply max-h-full aspect-auto h-full w-full;
+    }
+
+    .video-player:fullscreen .video-bar,
+    .video-player:fullscreen .video-meta {
+        @apply w-full max-w-3xl text-paper;
+    }
+
+    .video-player:fullscreen .video-bar {
+        @apply items-center px-3 pb-3;
+    }
+
+    .video-player:fullscreen .video-meta {
+        @apply hidden;
+    }
+
     /* ریل فایل‌های هر روز */
     .rail-files {
         @apply bg-jade/10;
+    }
+
+    .rail-video {
+        @apply bg-leaf/25;
     }
 
     .rail-audio {

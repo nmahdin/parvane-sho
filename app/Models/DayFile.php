@@ -23,6 +23,7 @@ use Illuminate\Support\Facades\Storage;
     'size',
     'mime',
     'is_audio',
+    'is_video',
     'downloads',
     'plays',
     'sort_order',
@@ -44,11 +45,23 @@ class DayFile extends Model
     public const IMAGE_EXTENSIONS = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif', 'svg', 'bmp'];
 
     /**
-     * بیشترین حجم مجاز هر فایل (کیلوبایت) — صوتی‌ها کمی بزرگ‌ترند.
+     * پسوندهایی که به‌عنوان ویدیو شناخته می‌شوند.
+     *
+     * @var list<string>
      */
-    public const MAX_KILOBYTES = 8192;
+    public const VIDEO_EXTENSIONS = ['mp4', 'webm', 'ogv', 'mov', 'm4v', '3gp'];
 
-    public const MAX_AUDIO_KILOBYTES = 61440;
+    /**
+     * بیشترین حجم مجاز هر فایل (کیلوبایت) — ۶۰ مگابایت برای همهٔ
+     * فایل‌ها (صوت، ویدیو، تصویر، pdf و ...).
+     */
+    public const MAX_KILOBYTES = 61440;
+
+    /**
+     * سقف حجم فایل صوتی — همان ۶۰ مگابایت (این ثابت برای سازگاری با
+     * کدهای قبلی نگه داشته شده است).
+     */
+    public const MAX_AUDIO_KILOBYTES = self::MAX_KILOBYTES;
 
     protected function casts(): array
     {
@@ -56,6 +69,7 @@ class DayFile extends Model
             'day_number' => 'integer',
             'size' => 'integer',
             'is_audio' => 'boolean',
+            'is_video' => 'boolean',
             'downloads' => 'integer',
             'plays' => 'integer',
             'sort_order' => 'integer',
@@ -79,6 +93,25 @@ class DayFile extends Model
 
         return str_contains((string) $mime, 'audio')
             || in_array($extension, self::AUDIO_EXTENSIONS, true);
+    }
+
+    /**
+     * این فایل ویدیو است؟ (هم از روی نوع MIME و هم پسوند نام فایل)
+     */
+    public static function looksLikeVideo(?string $mime, ?string $filename): bool
+    {
+        $extension = strtolower(pathinfo((string) $filename, PATHINFO_EXTENSION));
+
+        return str_starts_with((string) $mime, 'video/')
+            || in_array($extension, self::VIDEO_EXTENSIONS, true);
+    }
+
+    /**
+     * این فایل ویدیو است؟ (برای پخش با پخش‌کنندهٔ اختصاصی سایت)
+     */
+    public function isVideo(): bool
+    {
+        return ! $this->is_audio && static::looksLikeVideo($this->mime, $this->original_name);
     }
 
     /**
@@ -133,6 +166,10 @@ class DayFile extends Model
             return '🎧';
         }
 
+        if ($this->is_video || $this->isVideo()) {
+            return '🎬';
+        }
+
         $mime = (string) $this->mime;
         $extension = strtolower(pathinfo((string) $this->original_name, PATHINFO_EXTENSION));
 
@@ -153,6 +190,11 @@ class DayFile extends Model
      */
     public function typeLabel(): string
     {
-        return $this->is_audio ? 'فایل صوتی' : 'فایل';
+        if ($this->is_audio) {
+            return 'فایل صوتی';
+        }
+
+        // ویدیوهای قدیمی (پیش از ستون is_video) هم از روی نام/نوع شناخته می‌شوند
+        return ($this->is_video || $this->isVideo()) ? 'ویدیو' : 'فایل';
     }
 }

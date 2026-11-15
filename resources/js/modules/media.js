@@ -1,7 +1,19 @@
 import { toPersianDigits } from '../jalali-datepicker';
 
+/* در هر لحظه فقط یک رسانه (صوت یا ویدیو) پخش می‌شود. */
+let currentMedia = null;
+
+const playExclusive = (media) => {
+    if (currentMedia && currentMedia !== media) {
+        currentMedia.pause();
+    }
+
+    currentMedia = media;
+};
+
 /**
- * رسانه: پخش‌کنندهٔ صوت با بارگذاری هوشمند و ظاهر شدن عکس‌ها از مات به شفاف.
+ * رسانه: پخش‌کنندهٔ اختصاصی صوت و ویدیو با بارگذاری هوشمند و ظاهر شدن
+ * عکس‌ها از مات به شفاف.
  */
 export default {
     /* پخش‌کننده اختصاصی فایل‌های صوتی:
@@ -20,8 +32,6 @@ export default {
 
         const players = Array.from(document.querySelectorAll('[data-audio-player]'));
         if (!players.length) return;
-
-        let current = null;
 
         players.forEach((player) => {
             if (player.dataset.bound) return;
@@ -146,11 +156,7 @@ export default {
                 const media = ensureAudio();
 
                 if (media.paused) {
-                    if (current && current !== media) {
-                        current.pause();
-                    }
-
-                    current = media;
+                    playExclusive(media);
                     media.play().catch(() => setPlaying(false));
                 } else {
                     media.pause();
@@ -191,6 +197,211 @@ export default {
                 speed.textContent = toPersianDigits(speeds[speedIndex]) + '×';
             });
 
+            paint();
+        });
+    },
+
+    /* پخش‌کننده اختصاصی ویدیو: همان قاعده‌های صوت (بارگذاری هوشمند،
+       «فقط یک رسانه پخش شود»، ادامه از جای قبلی) به‌علاوهٔ بی‌صدا،
+       تمام‌صفحه و نشانگر پرشدن حافظه. کنترل‌های پیش‌فرض مرورگر خاموش است. */
+    initVideoPlayers() {
+        const toFaTime = (seconds) => {
+            if (!Number.isFinite(seconds) || seconds < 0) seconds = 0;
+
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            const pad = (value) => String(value).padStart(2, '0');
+
+            return toPersianDigits(`${pad(mins)}:${pad(secs)}`);
+        };
+
+        const players = Array.from(document.querySelectorAll('[data-video-player]'));
+        if (!players.length) return;
+
+        players.forEach((player) => {
+            if (player.dataset.bound) return;
+            player.dataset.bound = '1';
+
+            const stage = player.querySelector('[data-video-stage]');
+            const toggles = Array.from(player.querySelectorAll('[data-video-toggle]'));
+            const seek = player.querySelector('[data-video-seek]');
+            const speed = player.querySelector('[data-video-speed]');
+            const mute = player.querySelector('[data-video-mute]');
+            const fullscreen = player.querySelector('[data-video-fullscreen]');
+            const currentLabel = player.querySelector('[data-video-current]');
+            const durationLabel = player.querySelector('[data-video-duration]');
+            const buffering = player.querySelector('[data-video-buffering]');
+            const iconSet = (name) => Array.from(player.querySelectorAll(`[data-video-icon="${name}"]`));
+            const resumeKey = 'pv-video-' + (player.dataset.videoId || player.dataset.videoSrc);
+
+            const speeds = [1, 1.25, 1.5, 0.75];
+            let speedIndex = 0;
+            let dragging = false;
+            let loaded = false;
+
+            const paint = () => {
+                const duration = Number.isFinite(stage.duration) ? stage.duration : 0;
+                const time = stage.currentTime || 0;
+                const progress = duration > 0 ? (time / duration) * 100 : 0;
+
+                seek.style.setProperty('--video-progress', `${progress.toFixed(2)}%`);
+
+                if (!dragging) {
+                    seek.value = String(Math.round(progress * 10));
+                }
+
+                currentLabel.textContent = toFaTime(time);
+                durationLabel.textContent = toFaTime(duration);
+            };
+
+            const setPlaying = (playing) => {
+                player.classList.toggle('is-playing', playing);
+                buffering.classList.toggle('hidden', !playing);
+
+                toggles.forEach((toggle) => {
+                    toggle.setAttribute('aria-pressed', playing ? 'true' : 'false');
+                    toggle.setAttribute('aria-label', `${playing ? 'توقف' : 'پخش'} ویدیوی ${player.dataset.videoTitle}`);
+                });
+
+                iconSet('play').forEach((icon) => icon.classList.toggle('hidden', playing));
+                iconSet('pause').forEach((icon) => icon.classList.toggle('hidden', !playing));
+            };
+
+            const setMuted = (muted) => {
+                stage.muted = muted;
+                mute.setAttribute('aria-pressed', muted ? 'true' : 'false');
+                mute.setAttribute('aria-label', muted ? 'با صدا کردن ویدیو' : 'بی‌صدا کردن ویدیو');
+                iconSet('sound-on').forEach((icon) => icon.classList.toggle('hidden', muted));
+                iconSet('sound-off').forEach((icon) => icon.classList.toggle('hidden', !muted));
+            };
+
+            /* بارگذاری هوشمند: تا پیش از اولین پخش، src روی تگ ویدیو گذاشته
+               نمی‌شود؛ پس ویدیوی ۶۰ مگابایتی کارتِ روزی که هنوز باز نشده هیچ
+               بایتی از اینترنت کاربر نمی‌گیرد و موقع پخش تکه‌تکه (Range)
+               دانلود می‌شود. */
+            const ensureSource = () => {
+                if (loaded) return stage;
+                loaded = true;
+
+                stage.src = player.dataset.videoSrc;
+                stage.playbackRate = speeds[speedIndex];
+
+                return stage;
+            };
+
+            // آمار دقیق پخش: فقط وقتی کاربر واقعاً دکمهٔ پخش را بزند.
+            // در پنل (پیش‌نمایش مدیر) شمرده نمی‌شود.
+            stage.addEventListener('play', () => {
+                if (player.dataset.playSent) return;
+                player.dataset.playSent = '1';
+
+                if (!player.dataset.videoPlayUrl || window.location.pathname.startsWith('/panel')) return;
+
+                const body = new FormData();
+                body.append('_token', document.querySelector('meta[name="csrf-token"]')?.content || '');
+
+                fetch(player.dataset.videoPlayUrl, {
+                    method: 'POST',
+                    body,
+                    keepalive: true,
+                }).catch(() => {});
+            });
+
+            stage.addEventListener('play', () => setPlaying(true));
+            stage.addEventListener('pause', () => {
+                localStorage.setItem(resumeKey, String(Math.round(stage.currentTime)));
+                setPlaying(false);
+            });
+            stage.addEventListener('ended', () => {
+                localStorage.removeItem(resumeKey);
+                stage.currentTime = 0;
+                setPlaying(false);
+                paint();
+            });
+            stage.addEventListener('loadedmetadata', () => {
+                /* ادامه از جای قبلی: اگر آخرین بار وسط ویدیو رها شده بود،
+                   همان‌جا ادامه بده (نه از اول). */
+                const saved = Number(localStorage.getItem(resumeKey) || 0);
+
+                if (saved > 5 && Number.isFinite(stage.duration) && saved < stage.duration - 5) {
+                    stage.currentTime = saved;
+                }
+
+                paint();
+            });
+            stage.addEventListener('timeupdate', () => {
+                const now = Date.now();
+
+                if (now - (player.dataset.lastSave || 0) > 5000) {
+                    player.dataset.lastSave = String(now);
+                    localStorage.setItem(resumeKey, String(Math.round(stage.currentTime)));
+                }
+            });
+            stage.addEventListener('timeupdate', paint);
+            stage.addEventListener('waiting', () => buffering.classList.remove('hidden'));
+            stage.addEventListener('playing', () => buffering.classList.toggle('hidden', stage.paused));
+            stage.addEventListener('error', () => {
+                toggles.forEach((toggle) => { toggle.disabled = true; });
+                buffering.classList.add('hidden');
+                durationLabel.textContent = 'پخش نشد';
+            });
+
+            const togglePlay = () => {
+                const media = ensureSource();
+
+                if (media.paused) {
+                    playExclusive(media);
+                    media.play().catch(() => setPlaying(false));
+                } else {
+                    media.pause();
+                }
+            };
+
+            toggles.forEach((toggle) => toggle.addEventListener('click', togglePlay));
+
+            seek.addEventListener('pointerdown', () => { dragging = true; });
+            seek.addEventListener('pointerup', () => { dragging = false; });
+
+            seek.addEventListener('input', () => {
+                const duration = Number.isFinite(stage.duration) ? stage.duration : 0;
+                const ratio = Number(seek.value) / 1000;
+
+                seek.style.setProperty('--video-progress', `${(ratio * 100).toFixed(2)}%`);
+                currentLabel.textContent = toFaTime(duration * ratio);
+            });
+
+            seek.addEventListener('change', () => {
+                if (!loaded) return;
+
+                const duration = Number.isFinite(stage.duration) ? stage.duration : 0;
+
+                if (duration > 0) {
+                    stage.currentTime = duration * (Number(seek.value) / 1000);
+                }
+
+                dragging = false;
+                paint();
+            });
+
+            speed.addEventListener('click', () => {
+                speedIndex = (speedIndex + 1) % speeds.length;
+                stage.playbackRate = speeds[speedIndex];
+                speed.textContent = toPersianDigits(speeds[speedIndex]) + '×';
+            });
+
+            mute.addEventListener('click', () => setMuted(!stage.muted));
+
+            fullscreen.addEventListener('click', () => {
+                if (document.fullscreenElement) {
+                    document.exitFullscreen?.().catch(() => {});
+
+                    return;
+                }
+
+                player.requestFullscreen?.().catch(() => {});
+            });
+
+            setMuted(false);
             paint();
         });
     },

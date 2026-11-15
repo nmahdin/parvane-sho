@@ -3,7 +3,7 @@
       دفعهٔ بعد بدون اینترنت هم باز/پخش می‌شود.
    ۲) دریافت پوش‌نوتیفیکیشن یادآور روزانه. */
 
-const CACHE = 'parvane-files-v1';
+const CACHE = 'parvane-files-v2';
 const MAX_ENTRIES = 60;
 
 self.addEventListener('install', () => self.skipWaiting());
@@ -24,6 +24,11 @@ self.addEventListener('fetch', (event) => {
     // فقط فایل‌های روز (صوت و ضمیمه) کش می‌شوند؛ صفحات همیشه از سرور
     if (!url.pathname.includes('/day-files/')) return;
 
+    /* ویدیو (تا ۶۰ مگابایت) کش نمی‌شود: هم حافظهٔ کاربر را پر می‌کند و هم
+       درخواست تکه‌ای (Range) با کش جواب درست نمی‌دهد؛ مرورگر خودش ویدیو را
+       مدیریت می‌کند. کش فقط برای صوت/عکس/فایل کامل. */
+    if (event.request.headers.has('range')) return;
+
     event.respondWith(
         caches.open(CACHE).then(async (cache) => {
             const cached = await cache.match(event.request);
@@ -32,7 +37,12 @@ self.addEventListener('fetch', (event) => {
             try {
                 const response = await fetch(event.request);
 
-                if (response.ok || response.status === 206) {
+                const type = (response.headers.get('content-type') || '').toLowerCase();
+                const cacheable = response.ok
+                    && !type.startsWith('video/')
+                    && !response.headers.has('content-range');
+
+                if (cacheable) {
                     cache.put(event.request, response.clone()).then(async () => {
                         const keys = await cache.keys();
                         if (keys.length > MAX_ENTRIES) {

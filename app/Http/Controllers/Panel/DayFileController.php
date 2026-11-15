@@ -48,6 +48,7 @@ class DayFileController extends Controller
             'حجم این فایل بیشتر از حد مجاز است.');
 
         $isAudio = DayFile::looksLikeAudio($file->getClientMimeType(), $file->getClientOriginalName());
+        $isVideo = ! $isAudio && DayFile::looksLikeVideo($file->getClientMimeType(), $file->getClientOriginalName());
 
         $path = $file->store('challenge-days/'.$challenge->id.'/day-'.$dayNumber, 'local');
 
@@ -59,13 +60,16 @@ class DayFileController extends Controller
             'size' => $file->getSize(),
             'mime' => $file->getClientMimeType(),
             'is_audio' => $isAudio,
+            'is_video' => $isVideo,
             'sort_order' => $this->nextOrder($challenge, $dayNumber),
         ]);
 
+        $label = $isAudio ? 'فایل صوتی' : ($isVideo ? 'ویدیو' : 'فایل');
+        $how = ($isAudio || $isVideo) ? 'با پخش‌کنندهٔ خود سایت پخش می‌شود.' : 'برای دانلود گذاشته می‌شود.';
+
         return back()->with(
             'status',
-            ($isAudio ? 'فایل صوتی' : 'فایل').' برای روز '.fa_num($dayNumber).' اضافه شد.'
-                .' در سایت '.($isAudio ? 'با پخش‌کنندهٔ خود سایت پخش می‌شود.' : 'برای دانلود گذاشته می‌شود.')
+            $label.' برای روز '.fa_num($dayNumber).' اضافه شد. در سایت '.$how
         );
     }
 
@@ -109,7 +113,7 @@ class DayFileController extends Controller
     }
 
     /**
-     * سقف حجم: فایل‌های صوتی بیشتر، بقیه فایل‌ها ۸ مگابایت.
+     * سقف حجم: ۶۰ مگابایت برای همهٔ فایل‌ها (صوت، ویدیو، تصویر، pdf و ...).
      */
     private function maxBytesFor(?string $filename, ?string $mime): int
     {

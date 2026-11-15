@@ -14,7 +14,7 @@ class ChallengeAttachmentController extends Controller
     /**
      * حجم مجاز فایل ضمیمه (کیلوبایت).
      */
-    private const MAX_KILOBYTES = 8192;
+    private const MAX_KILOBYTES = 61440;
 
     public function store(Request $request, Challenge $challenge): RedirectResponse
     {
@@ -22,8 +22,8 @@ class ChallengeAttachmentController extends Controller
             'title' => ['nullable', 'string', 'max:190'],
             'file' => ['required', 'file', 'max:'.self::MAX_KILOBYTES],
         ], [
-            'file.required' => 'یک فایل انتخاب کنید (اگر فایل بزرگ است، حجم آن نباید بیشتر از ۸ مگابایت باشد).',
-            'file.max' => 'حجم فایل نباید بیشتر از ۸ مگابایت باشد. برای فایل‌های بزرگ‌تر مقدار upload_max_filesize را در php.ini بالا ببرید.',
+            'file.required' => 'یک فایل انتخاب کنید (حجم آن نباید بیشتر از ۶۰ مگابایت باشد).',
+            'file.max' => 'حجم فایل نباید بیشتر از ۶۰ مگابایت باشد. برای فایل‌های بزرگ‌تر مقدار upload_max_filesize را در php.ini بالا ببرید.',
         ], [
             'title' => 'عنوان فایل',
             'file' => 'فایل',

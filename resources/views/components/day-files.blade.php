@@ -1,12 +1,12 @@
 {{--
-    فایل‌ها و فایل‌های صوتی یک روز.
+    فایل‌ها، فایل‌های صوتی و ویدیوهای یک روز.
 
     - $day:   شماره روز
     - $title: عنوان ریل (پیش‌فرض «فایل‌های این روز»)
 
-    صوتی‌ها با پخش‌کننده اختصاصی سایت پخش می‌شوند، عکس‌ها کامل و به اندازه
-    عرض باکس روز نمایش داده می‌شوند (کلیک = اندازه اصلی) و بقیه فایل‌ها با
-    یک دکمه دانلود. همه داخل کارت همان روز می‌آیند.
+    صوتی‌ها و ویدیوها با پخش‌کننده اختصاصی سایت پخش می‌شوند، عکس‌ها کامل و به
+    اندازه عرض باکس روز نمایش داده می‌شوند (کلیک = اندازه اصلی) و بقیه
+    فایل‌ها با یک دکمه دانلود. همه داخل کارت همان روز می‌آیند.
 --}}
 @props(['challenge', 'day' => null, 'title' => null])
 
@@ -14,8 +14,9 @@
     $files = ($day === null || (int) $day < 1) ? collect() : $challenge->filesForDay((int) $day);
     $audios = $files->where('is_audio', true);
     $documents = $files->where('is_audio', false);
-    $images = $documents->filter(fn ($file) => $file->isImage());
-    $others = $documents->reject(fn ($file) => $file->isImage());
+    $videos = $documents->filter(fn ($file) => $file->isVideo());
+    $images = $documents->reject(fn ($file) => $file->isVideo())->filter(fn ($file) => $file->isImage());
+    $others = $documents->reject(fn ($file) => $file->isImage() || $file->isVideo());
 @endphp
 
 @if ($files->isNotEmpty())
@@ -29,6 +30,21 @@
             <div class="mt-2.5 space-y-2">
                 @foreach ($audios as $audio)
                     <x-audio-player :file="$audio" :day="(int) $day" />
+                @endforeach
+            </div>
+        </div>
+    @endif
+
+    @if ($videos->isNotEmpty())
+        <div class="rail rail-video">
+            <p class="rail-label text-forest">
+                <span>🎬</span> ویدیوهای این روز
+                <span class="font-normal text-muted">{{ fa_num($videos->count()) }} ویدیو — همین‌جا پخش می‌شود</span>
+            </p>
+
+            <div class="mt-2.5 space-y-3">
+                @foreach ($videos as $video)
+                    <x-video-player :file="$video" :day="(int) $day" />
                 @endforeach
             </div>
         </div>

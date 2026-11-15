@@ -32,6 +32,7 @@ const app = {
         this.initConfirm();
         this.initJumpBar();
         this.initAudioPlayers();
+        this.initVideoPlayers();
         this.initImageReveal();
         this.initServiceWorker();
         this.initThemeToggle();
