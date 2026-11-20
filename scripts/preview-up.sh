@@ -50,6 +50,14 @@ if [ ! -f .env ]; then
     php artisan key:generate --force >/dev/null
 fi
 
+# حالت دیباگ باید روشن بماند؛ وگرنه خطای ۵۰۰ فقط «Server Error» می‌گوید و
+# علت واقعی (متن استثنا) نه در توست پیدا است و نه قابل ریشه‌یابی سریع.
+if ! grep -q '^APP_DEBUG=true' .env; then
+    log "روشن کردن APP_DEBUG"
+    sed -i 's|^APP_DEBUG=.*|APP_DEBUG=true|' .env
+fi
+php artisan config:clear >/dev/null 2>&1 || true
+
 touch database/database.sqlite
 php artisan migrate --force >/dev/null
 

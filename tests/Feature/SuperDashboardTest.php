@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Challenge;
 use App\Models\DayFile;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -230,5 +231,37 @@ class SuperDashboardTest extends TestCase
         $search = $this->get(route('panel.super.dashboard', ['q' => 'صوت فیلتر']))->assertOk()->getContent();
         $this->assertStringContainsString('صوت فیلتر', $search);
         $this->assertStringNotContainsString('عکس فیلتر', $search);
+    }
+
+    public function test_the_super_admin_can_read_the_error_log_from_the_panel(): void
+    {
+        $marker = 'MARKER-'.uniqid();
+
+        Log::channel('stack')->error($marker);
+
+        // صفحهٔ مدیریت منابع به لاگ لینک می‌دهد
+        $this->loginAsAdmin();
+
+        $this->assertStringContainsString(
+            route('panel.super.logs'),
+            $this->get(route('panel.super.dashboard'))->assertOk()->getContent()
+        );
+
+        $response = $this->get(route('panel.super.logs'))->assertOk();
+
+        $this->assertStringContainsString('text/plain', (string) $response->headers->get('Content-Type'));
+        $this->assertStringContainsString('storage/logs/laravel.log', $response->getContent());
+        $this->assertStringContainsString($marker, $response->getContent(), 'متن آخرین خطاها باید خوانده شود.');
+    }
+
+    public function test_the_error_log_is_closed_to_other_admins_and_guests(): void
+    {
+        $this->loginAsAdmin($this->makeChallengeAdmin(['username' => 'logviewer']));
+
+        $this->get(route('panel.super.logs'))->assertForbidden();
+
+        auth('admin')->logout();
+
+        $this->get(route('panel.super.logs'))->assertRedirect(route('panel.login'));
     }
 }
