@@ -1,0 +1,307 @@
+<?php
+
+namespace App\Http\Controllers\Panel;
+
+use App\Http\Controllers\Controller;
+use App\Models\Challenge;
+use App\Models\ChallengeAttachment;
+use App\Models\DayFile;
+use App\Models\Visit;
+use App\Support\Jalali;
+use Illuminate\Contracts\View\View;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+
+/**
+ * آمار بازدید سایت: روزانه، ماهانه و تفکیک هر چالش +
+ * پخش صوت‌ها، دانلود فایل‌ها و دیده‌شدن روزها.
+ */
+class AnalyticsController extends Controller
+{
+    public function index(Request $request): View
+    {
+        $admin = Auth::guard('admin')->user();
+
+        $challenges = Challenge::query()
+            ->visibleToAdmin($admin)
+            ->orderByDesc('id')
+            ->get();
+
+        $selected = null;
+
+        if ($request->filled('challenge')) {
+            $selected = $challenges->firstWhere('id', $request->integer('challenge'));
+        }
+
+        // فیلتر بازهٔ زمانی: چیپ‌های سریع (روز) یا بازهٔ دلخواه شمسی
+        $rangeOptions = [7 => '۷ روز', 30 => '۳۰ روز', 90 => '۹۰ روز', 365 => 'یک سال'];
+        $range = $request->integer('range');
+        $range = array_key_exists($range, $rangeOptions) ? $range : 30;
+
+        $customFrom = Jalali::parseInput($request->filled('from') ? $request->string('from')->toString() : null);
+        $customTo = Jalali::parseInput($request->filled('to') ? $request->string('to')->toString() : null);
+        $custom = $customFrom !== null || $customTo !== null;
+
+        if ($custom) {
+            $to = ($customTo ?? now())->copy()->endOfDay();
+            $from = ($customFrom ?? $to->copy()->subDays(29))->copy()->startOfDay();
+        } else {
+            $to = now()->endOfDay();
+            $from = now()->subDays($range - 1)->startOfDay();
+        }
+
+        if ($from->greaterThan($to)) {
+            [$from, $to] = [$to->copy()->startOfDay(), $from->copy()->endOfDay()];
+        }
+
+        // فیلتر نوع بازدید
+        $typeOptions = [
+            'home' => 'صفحه اصلی',
+            'challenge' => 'صفحه چالش',
+            'day' => 'کارت روز',
+            'dashboard' => 'داشبورد شرکت‌کننده',
+        ];
+        if (! $admin->isSuper()) {
+            unset($typeOptions['home']);
+        }
+
+        $type = $request->string('type')->toString();
+        $type = array_key_exists($type, $typeOptions) ? $type : null;
+
+        // دامنه بازدیدها: مدیر کل همه، مدیر عادی فقط چالش‌های خودش
+        $globalScope = fn () => Visit::query()->visibleToAdmin($admin)
+            ->when($selected, fn (Builder $q) => $q->where('challenge_id', $selected->id));
+
+        $scope = fn () => $globalScope()
+            ->whereBetween('visited_at', [$from, $to])
+            ->when($type !== null, fn (Builder $q) => $q->where('type', $type));
+
+        $today = now()->startOfDay();
+
+        $totals = [
+            'range' => $scope()->count(),
+            'today' => $globalScope()->where('visited_at', '>=', $today)->count(),
+            'week' => $globalScope()->where('visited_at', '>=', now()->subDays(6)->startOfDay())->count(),
+            'month' => $globalScope()->where('visited_at', '>=', now()->subDays(29)->startOfDay())->count(),
+            'all' => $globalScope()->count(),
+            'day_views' => $globalScope()->where('type', Visit::TYPE_DAY)->count(),
+            'dashboard' => $globalScope()->where('type', Visit::TYPE_DASHBOARD)->count(),
+        ];
+
+        // پخش صوت و دانلود فایل‌ها (ستون‌های شمارشی روی خود فایل‌ها)
+        $fileScope = fn () => DayFile::query()
+            ->when($selected, fn (Builder $q) => $q->where('challenge_id', $selected->id))
+            ->when(! $selected && ! $admin->isSuper(), fn (Builder $q) => $q->whereIn('challenge_id', $challenges->pluck('id')));
+
+        $fileTotals = [
+            'plays' => (int) (clone $fileScope())->sum('plays'),
+            'downloads' => (int) (clone $fileScope())->sum('downloads'),
+            'attachments' => (int) ChallengeAttachment::query()
+                ->when($selected, fn (Builder $q) => $q->where('challenge_id', $selected->id))
+                ->when(! $selected && ! $admin->isSuper(), fn (Builder $q) => $q->whereIn('challenge_id', $challenges->pluck('id')))
+                ->sum('downloads'),
+        ];
+
+        // نمودار روزانه در بازهٔ انتخابی (تفکیک نوع)؛ بازهٔ بلند = سطل هفتگی
+        $spanDays = (int) $from->diffInDays($to) + 1;
+        $weeklyBuckets = $spanDays > 92;
+
+        $dailyRows = $scope()
+            ->selectRaw('DATE(visited_at) as d, type, COUNT(*) as c')
+            ->groupBy('d', 'type')
+            ->get();
+
+        $daily = [];
+
+        for ($cursor = $from->copy(); $cursor->lte($to); $cursor->addDays($weeklyBuckets ? 7 : 1)) {
+            $daily[$cursor->toDateString()] = ['challenge' => 0, 'day' => 0, 'dashboard' => 0, 'home' => 0, 'total' => 0];
+        }
+
+        foreach ($dailyRows as $row) {
+            if ($weeklyBuckets) {
+                $offset = (int) $from->diffInDays(\Illuminate\Support\Carbon::parse($row->d));
+                $key = $from->copy()->addDays($offset - ($offset % 7))->toDateString();
+            } else {
+                $key = $row->d;
+            }
+
+            if (! isset($daily[$key])) {
+                continue;
+            }
+
+            if (isset($daily[$key][$row->type])) {
+                $daily[$key][$row->type] += (int) $row->c;
+            }
+
+            $daily[$key]['total'] += (int) $row->c;
+        }
+
+        $dailyMax = max(1, max(array_map(fn ($d) => $d['total'], $daily)));
+
+        // جمع ماهانه (شمسی) از ۱۸۳ روز اخیر
+        $monthRows = $scope()
+            ->selectRaw('DATE(visited_at) as d, COUNT(*) as c')
+            ->groupBy('d')
+            ->get();
+
+        $monthly = [];
+
+        foreach ($monthRows as $row) {
+            [$jy, $jm] = Jalali::fromGregorian(
+                (int) substr($row->d, 0, 4),
+                (int) substr($row->d, 5, 2),
+                (int) substr($row->d, 8, 2),
+            );
+
+            $key = $jy.'-'.str_pad((string) $jm, 2, '0', STR_PAD_LEFT);
+            $monthly[$key]['label'] ??= Jalali::MONTHS[$jm].' '.Jalali::toPersianDigits($jy);
+            $monthly[$key]['total'] = ($monthly[$key]['total'] ?? 0) + (int) $row->c;
+        }
+
+        $monthly = array_slice($monthly, -12, true);
+        $monthlyMax = max(1, max(array_map(fn ($m) => $m['total'], $monthly) ?: [1]));
+
+        // جدول هر چالش
+        $visitCounts = Visit::query()
+            ->visibleToAdmin($admin)
+            ->whereNotNull('challenge_id')
+            ->whereBetween('visited_at', [$from, $to])
+            ->when($type !== null, fn (Builder $q) => $q->where('type', $type))
+            ->selectRaw('challenge_id, COUNT(*) as c')
+            ->groupBy('challenge_id')
+            ->pluck('c', 'challenge_id');
+
+        $todayCounts = Visit::query()->visibleToAdmin($admin)->where('visited_at', '>=', $today)->whereNotNull('challenge_id')->selectRaw('challenge_id, COUNT(*) as c')->groupBy('challenge_id')->pluck('c', 'challenge_id');
+        $monthCounts = Visit::query()->visibleToAdmin($admin)->where('visited_at', '>=', now()->subDays(29)->startOfDay())->whereNotNull('challenge_id')->selectRaw('challenge_id, COUNT(*) as c')->groupBy('challenge_id')->pluck('c', 'challenge_id');
+        $dayCounts = Visit::query()->visibleToAdmin($admin)->where('type', Visit::TYPE_DAY)->whereNotNull('challenge_id')->selectRaw('challenge_id, COUNT(*) as c')->groupBy('challenge_id')->pluck('c', 'challenge_id');
+
+        $playsByChallenge = DayFile::query()->selectRaw('challenge_id, SUM(plays) as p, SUM(downloads) as d')->groupBy('challenge_id')->get()->keyBy('challenge_id');
+
+        $perChallenge = $challenges->map(function (Challenge $challenge) use ($visitCounts, $todayCounts, $monthCounts, $dayCounts, $playsByChallenge) {
+            $files = $playsByChallenge->get($challenge->id);
+
+            return [
+                'id' => $challenge->id,
+                'title' => $challenge->title,
+                'slug' => $challenge->slug,
+                'published' => $challenge->is_published,
+                'all' => (int) ($visitCounts[$challenge->id] ?? 0),
+                'today' => (int) ($todayCounts[$challenge->id] ?? 0),
+                'month' => (int) ($monthCounts[$challenge->id] ?? 0),
+                'days' => (int) ($dayCounts[$challenge->id] ?? 0),
+                'plays' => (int) ($files->p ?? 0),
+                'downloads' => (int) ($files->d ?? 0) + (int) $challenge->attachments()->sum('downloads'),
+                'participants' => $challenge->participants()->count(),
+            ];
+        });
+
+        // تفکیک روزبه‌روز وقتی یک چالش انتخاب شده
+        $perDay = null;
+
+        if ($selected) {
+            $perDayVisits = Visit::query()
+                ->where('challenge_id', $selected->id)
+                ->where('type', Visit::TYPE_DAY)
+                ->whereBetween('visited_at', [$from, $to])
+                ->whereNotNull('day_number')
+                ->selectRaw('day_number, COUNT(*) as c')
+                ->groupBy('day_number')
+                ->pluck('c', 'day_number');
+
+            $perDayFiles = DayFile::query()
+                ->where('challenge_id', $selected->id)
+                ->selectRaw('day_number, SUM(plays) as p, SUM(downloads) as d')
+                ->groupBy('day_number')
+                ->get()
+                ->keyBy('day_number');
+
+            $perDay = collect();
+
+            for ($day = 1; $day <= max(1, $selected->daysCount()); $day++) {
+                $files = $perDayFiles->get($day);
+
+                $perDay->push([
+                    'day' => $day,
+                    'views' => (int) ($perDayVisits[$day] ?? 0),
+                    'plays' => (int) ($files->p ?? 0),
+                    'downloads' => (int) ($files->d ?? 0),
+                ]);
+            }
+        }
+
+        // دادهٔ نمودارها (chart.js) — برچسب‌ها شمسی و با رقم فارسی
+        $dailyLabels = [];
+        $series = ['challenge' => [], 'day' => [], 'dashboard' => [], 'home' => []];
+        $typeTotals = ['challenge' => 0, 'day' => 0, 'dashboard' => 0, 'home' => 0];
+
+        foreach ($daily as $date => $row) {
+            [$jy, $jm, $jd] = Jalali::fromGregorian(
+                (int) substr($date, 0, 4),
+                (int) substr($date, 5, 2),
+                (int) substr($date, 8, 2),
+            );
+
+            $dailyLabels[] = ($weeklyBuckets ? 'هفتهٔ ' : '').Jalali::toPersianDigits($jd).' '.Jalali::MONTHS[$jm];
+
+            foreach ($series as $key => $values) {
+                $series[$key][] = $row[$key];
+                $typeTotals[$key] += $row[$key];
+            }
+        }
+
+        $topChallenges = $perChallenge
+            ->sortByDesc('month')
+            ->take(8)
+            ->values();
+
+        // مدیر چالش آمار صفحهٔ اصلی (سراسری) را نمی‌بیند
+        if (! $admin->isSuper()) {
+            unset($series['home']);
+        }
+
+        $charts = [
+            'daily' => ['labels' => $dailyLabels] + $series,
+            'monthly' => [
+                'labels' => array_column($monthly, 'label'),
+                'totals' => array_column($monthly, 'total'),
+            ],
+            'types' => $admin->isSuper()
+                ? [
+                    'labels' => ['صفحه چالش', 'کارت روز', 'داشبورد شرکت‌کننده', 'صفحه اصلی'],
+                    'totals' => [$typeTotals['challenge'], $typeTotals['day'], $typeTotals['dashboard'], $typeTotals['home']],
+                ]
+                : [
+                    'labels' => ['صفحه چالش', 'کارت روز', 'داشبورد شرکت‌کننده'],
+                    'totals' => [$typeTotals['challenge'], $typeTotals['day'], $typeTotals['dashboard']],
+                ],
+            'challenges' => [
+                'labels' => $topChallenges->pluck('title')->all(),
+                'totals' => $topChallenges->pluck('month')->all(),
+            ],
+        ];
+
+        return view('panel.analytics', [
+            'chartsJson' => json_encode($charts, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT),
+            'challenges' => $challenges,
+            'selected' => $selected,
+            'totals' => $totals,
+            'fileTotals' => $fileTotals,
+            'daily' => $daily,
+            'dailyMax' => $dailyMax,
+            'monthly' => $monthly,
+            'monthlyMax' => $monthlyMax,
+            'perChallenge' => $perChallenge,
+            'perDay' => $perDay,
+            'isSuper' => $admin->isSuper(),
+            'range' => $range,
+            'rangeOptions' => $rangeOptions,
+            'custom' => $custom,
+            'from' => $from,
+            'to' => $to,
+            'type' => $type,
+            'typeOptions' => $typeOptions,
+            'weeklyBuckets' => $weeklyBuckets,
+        ]);
+    }
+}
