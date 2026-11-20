@@ -730,6 +730,11 @@ class DayFilesTest extends TestCase
         $this->assertStringContainsString('نشست شما پایان یافته', $js);
         $this->assertStringContainsString('از حد مجاز سرور یا پروکسی بیشتر است', $js);
 
+        // خطای ۵۰۰ هم تنها «کد ۵۰۰» نمی‌ماند: اگر سرور توضیحی فرستاده باشد
+        // (حالت دیباگ) همان در توست نشان داده می‌شود
+        $this->assertStringContainsString('failureMessage', $js);
+        $this->assertStringContainsString('ذخیره انجام نشد (کد ', $js);
+
         // تازه‌کردن بخش‌ها best-effort است؛ ذخیرهٔ موفق «ناموفق» گزارش نمی‌شود
         $this->assertStringContainsString('safeRefresh', $js);
         $this->assertStringNotContainsString("const message = await this.refreshDynamicSections(dayNumber);", $js);

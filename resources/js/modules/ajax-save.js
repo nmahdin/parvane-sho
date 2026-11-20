@@ -87,30 +87,10 @@ export default {
                 return;
             }
 
-            // ۴۲۲ = خطای اعتبارسنجی، ۴۱۳ = حجم فایل بیشتر از حد مجاز سرور
-            if (response.status === 422 || response.status === 413) {
-                const data = await response.json().catch(() => null);
-                const firstError = data?.errors ? Object.values(data.errors)[0]?.[0] : null;
-
-                this.showToast(
-                    firstError
-                        || data?.message
-                        || (response.status === 413
-                            ? 'حجم فایل بیشتر از حد مجاز سرور است.'
-                            : 'مقادیر فرم درست نیست.'),
-                    'error'
-                );
-
-                return;
-            }
-
-            if (response.status === 419) {
-                this.showToast('نشست شما پایان یافته است؛ صفحه را تازه کن و دوباره تلاش کن.', 'error');
-
-                return;
-            }
-
-            this.showToast(`ذخیره انجام نشد (کد ${toPersianDigits(String(response.status))})؛ دوباره تلاش کن.`, 'error');
+            this.showToast(
+                this.failureMessage(response.status, await response.text().catch(() => '')),
+                'error'
+            );
         } catch {
             this.showToast('اتصال برقرار نشد؛ دوباره تلاش کن.', 'error');
         } finally {
@@ -316,6 +296,33 @@ export default {
         window.setTimeout(() => bar.remove(), 500);
     },
 
+    /* پیام خطا از پاسخ سرور: اگر پاسخ JSON باشد همان پیام (و در حالت
+       دیباگ، متن خودِ استثنا) نشان داده می‌شود؛ وگرنه توضیح بر اساس کد
+       وضعیت. این‌طور «کد ۵۰۰» تنها نمی‌ماند و علت خطا از خود پیام پیدا است. */
+    failureMessage(status, text) {
+        let data = null;
+
+        try {
+            data = JSON.parse(text);
+        } catch {
+            data = null;
+        }
+
+        const firstError = data?.errors ? Object.values(data.errors)[0]?.[0] : null;
+
+        if (firstError) return firstError;
+
+        if (status === 413) return data?.message || 'حجم فایل بیشتر از حد مجاز سرور است.';
+
+        if (status === 419) return 'نشست شما پایان یافته است؛ صفحه را تازه کن و دوباره تلاش کن.';
+
+        if (status === 422) return data?.message || 'مقادیر فرم درست نیست.';
+
+        const detail = typeof data?.message === 'string' && data.message ? ` — ${data.message}` : '';
+
+        return `ذخیره انجام نشد (کد ${toPersianDigits(String(status))})${detail}؛ دوباره تلاش کن.`;
+    },
+
     /* تازه‌کردن بخش‌ها best-effort است: اگر خودش خطا داد، ذخیرهٔ موفق
        نباید به کاربر «ناموفق» گزارش شود. */
     async safeRefresh(dayNumber) {
@@ -416,42 +423,10 @@ export default {
                 return;
             }
 
-            // ۴۲۲ = خطای اعتبارسنجی، ۴۱۳ = حجم فایل بیشتر از حد مجاز سرور
-            if (xhr.status === 422 || xhr.status === 413) {
-                let data = null;
-
-                try {
-                    data = JSON.parse(xhr.responseText);
-                } catch {
-                    data = null;
-                }
-
-                const firstError = data?.errors ? Object.values(data.errors)[0]?.[0] : null;
-
-                this.showToast(
-                    firstError
-                        || data?.message
-                        || (xhr.status === 413
-                            ? 'حجم فایل بیشتر از حد مجاز سرور است.'
-                            : 'مقادیر فرم درست نیست.'),
-                    'error'
-                );
-
-                return;
-            }
-
-            // نشست تمام شده (CSRF) — صفحه باید تازه شود
-            if (xhr.status === 419) {
-                this.showToast('نشست شما پایان یافته است؛ صفحه را تازه کن و دوباره تلاش کن.', 'error');
-
-                return;
-            }
-
-            // کد وضعیت در پیام می‌آید تا علت خطا از خود پیام پیدا باشد
             this.showToast(
                 xhr.status === 0
                     ? 'پاسخی از سرور نرسید؛ اگر فایل بزرگ است احتمالاً حجمش از حد مجاز سرور یا پروکسی بیشتر است.'
-                    : `ذخیره انجام نشد (کد ${toPersianDigits(String(xhr.status))})؛ دوباره تلاش کن.`,
+                    : this.failureMessage(xhr.status, xhr.responseText),
                 'error'
             );
         } catch (error) {

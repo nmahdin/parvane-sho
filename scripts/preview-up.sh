@@ -58,6 +58,12 @@ if [ "$(php artisan tinker --execute='echo App\Models\Challenge::count();' 2>/de
     php artisan db:seed --force >/dev/null
 fi
 
+# ── ۳.۵) ستون is_video باید وجود داشته باشد؛ بدون آن هر آپلود فایلی ۵۰۰ می‌شود
+if [ "$(php artisan tinker --execute='echo (int) Schema::hasColumn("day_files", "is_video");' 2>/dev/null | tr -d '[:space:]')" != "1" ]; then
+    log "ستون is_video نیست — اجرای دوبارهٔ مهاجرت‌ها"
+    php artisan migrate --force
+fi
+
 # ── ۴) وابستگی‌های node (بایندینگ‌های نیتیو گاهی نصب نمی‌شوند) ─────────────
 if [ ! -d node_modules/vite ]; then
     log "npm install"
