@@ -584,11 +584,32 @@ class DayFilesTest extends TestCase
         $this->assertStringContainsString('let currentMedia = null;', $source);
         $this->assertGreaterThanOrEqual(2, substr_count($source, 'playExclusive('), 'پخش صوت و ویدیو باید از یک قاعدهٔ مشترک رد شود.');
 
+        /* موقع پخش، نه آیکون توقف روی ویدیو می‌ماند و نه چرخندهٔ بافر:
+           دکمهٔ بزرگ در حالت پخش از دید می‌رود (و با ماوس/فوکوس برمی‌گردد)
+           و چرخنده فقط با loadstart/waiting روشن و با playing/canplay خاموش
+           می‌شود — نه با خودِ «پخش شدن». */
+        $this->assertStringContainsString("stage.addEventListener('waiting', showBuffering);", $source);
+        $this->assertStringContainsString("stage.addEventListener('playing', hideBuffering);", $source);
+        $this->assertStringContainsString("stage.addEventListener('canplay', hideBuffering);", $source);
+        $this->assertStringNotContainsString("buffering.classList.toggle('hidden', !playing)", $source);
+        $this->assertStringContainsString('if (!playing) hideBuffering();', $source);
+
         $css = (string) file_get_contents($style[0]);
 
         $this->assertStringContainsString('video-player', $css);
         $this->assertStringContainsString('video-screen', $css);
         $this->assertStringContainsString('--video-progress', $css);
+
+        $this->assertStringContainsString('.video-player.is-playing .video-bigplay{', $css);
+
+        $overlay = substr($css, (int) strpos($css, '.video-player.is-playing .video-bigplay{'));
+        $overlay = substr($overlay, 0, (int) strpos($overlay, '}'));
+        $this->assertStringContainsString('opacity:0', $overlay);
+        $this->assertStringContainsString('pointer-events:none', $overlay);
+
+        // با نشانگر ماوس یا فوکوس کیبورد، دکمهٔ بزرگ برمی‌گردد
+        $this->assertStringContainsString('.video-screen:hover .video-bigplay', $css);
+        $this->assertStringContainsString('.video-bigplay:focus-visible', $css);
     }
 
     /**

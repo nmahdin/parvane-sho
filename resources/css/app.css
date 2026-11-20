@@ -1255,6 +1255,28 @@
         @apply absolute grid cursor-pointer place-items-center rounded-full bg-jade/95 text-white ring-4 ring-white/20 transition-colors hover:bg-forest disabled:cursor-not-allowed disabled:opacity-60;
         inline-size: 4.25rem;
         block-size: 4.25rem;
+        transition: opacity 0.18s ease, background-color 0.18s ease;
+    }
+
+    /* موقع پخش، دکمهٔ بزرگ (و آیکون توقفش) از روی تصویر کنار می‌رود تا
+       ویدیو را نپوشاند؛ با نشانگر ماوس یا فوکوس کیبورد برمی‌گردد. */
+    .video-player.is-playing .video-bigplay {
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    /* فقط روی دستگاه‌هایی که نشانگر ماوس دارند؛ وگرنه با لمس، حالت hover
+       روی صفحه می‌چسبد و دکمه موقع پخش الکی دیده می‌شود. */
+    @media (hover: hover) {
+        .video-screen:hover .video-bigplay {
+            opacity: 1;
+            pointer-events: auto;
+        }
+    }
+
+    .video-bigplay:focus-visible {
+        opacity: 1;
+        pointer-events: auto;
     }
 
     /* نشانگر پرشدن حافظه (بافر) */

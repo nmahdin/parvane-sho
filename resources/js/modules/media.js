@@ -231,6 +231,9 @@ export default {
             const currentLabel = player.querySelector('[data-video-current]');
             const durationLabel = player.querySelector('[data-video-duration]');
             const buffering = player.querySelector('[data-video-buffering]');
+            const screen = player.querySelector('.video-screen');
+            const showBuffering = () => buffering.classList.remove('hidden');
+            const hideBuffering = () => buffering.classList.add('hidden');
             const iconSet = (name) => Array.from(player.querySelectorAll(`[data-video-icon="${name}"]`));
             const resumeKey = 'pv-video-' + (player.dataset.videoId || player.dataset.videoSrc);
 
@@ -256,7 +259,10 @@ export default {
 
             const setPlaying = (playing) => {
                 player.classList.toggle('is-playing', playing);
-                buffering.classList.toggle('hidden', !playing);
+
+                /* چرخندهٔ بافر فقط موقع بارگذاری یا کندی پخش دیده می‌شود؛
+                   با توقف هم پنهان شود تا الکی روی ویدیو نماند. */
+                if (!playing) hideBuffering();
 
                 toggles.forEach((toggle) => {
                     toggle.setAttribute('aria-pressed', playing ? 'true' : 'false');
@@ -338,11 +344,13 @@ export default {
                 }
             });
             stage.addEventListener('timeupdate', paint);
-            stage.addEventListener('waiting', () => buffering.classList.remove('hidden'));
-            stage.addEventListener('playing', () => buffering.classList.toggle('hidden', stage.paused));
+            stage.addEventListener('loadstart', showBuffering);
+            stage.addEventListener('waiting', showBuffering);
+            stage.addEventListener('playing', hideBuffering);
+            stage.addEventListener('canplay', hideBuffering);
             stage.addEventListener('error', () => {
                 toggles.forEach((toggle) => { toggle.disabled = true; });
-                buffering.classList.add('hidden');
+                hideBuffering();
                 durationLabel.textContent = 'پخش نشد';
             });
 
@@ -358,6 +366,13 @@ export default {
             };
 
             toggles.forEach((toggle) => toggle.addEventListener('click', togglePlay));
+
+            // با یک ضربه روی پردهٔ ویدیو هم پخش/توقف شود
+            screen?.addEventListener('click', (event) => {
+                if (event.target.closest('[data-video-toggle]')) return;
+
+                togglePlay();
+            });
 
             seek.addEventListener('pointerdown', () => { dragging = true; });
             seek.addEventListener('pointerup', () => { dragging = false; });
