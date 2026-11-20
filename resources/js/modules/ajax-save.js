@@ -318,9 +318,16 @@ export default {
 
         if (status === 422) return data?.message || 'مقادیر فرم درست نیست.';
 
-        const detail = typeof data?.message === 'string' && data.message ? ` — ${data.message}` : '';
+        const detail = typeof data?.message === 'string' && data.message ? data.message : '';
 
-        return `ذخیره انجام نشد (کد ${toPersianDigits(String(status))})${detail}؛ دوباره تلاش کن.`;
+        /* وقتی APP_DEBUG خاموش است، Laravel فقط «Server Error» می‌فرستد؛ آن‌وقت
+           نشانی لاگ داده می‌شود چون متن واقعی استثنا همان‌جا ثبت شده است. */
+        if (!detail || detail === 'Server Error') {
+            return `ذخیره انجام نشد (کد ${toPersianDigits(String(status))})؛`
+                + ' جزئیات در «مدیریت منابع ← لاگ خطاها» ثبت شده است.';
+        }
+
+        return `ذخیره انجام نشد (کد ${toPersianDigits(String(status))}) — ${detail}؛ دوباره تلاش کن.`;
     },
 
     /* تازه‌کردن بخش‌ها best-effort است: اگر خودش خطا داد، ذخیرهٔ موفق

@@ -33,7 +33,10 @@
                 </p>
             </div>
 
-            <a href="{{ route('panel.super.logs') }}" target="_blank" rel="noopener" class="btn btn-white btn-sm">دیدن لاگ</a>
+            <span class="flex flex-wrap items-center gap-2">
+                <a href="{{ route('panel.super.logs', ['errors' => 1]) }}" target="_blank" rel="noopener" class="btn btn-primary btn-sm">فقط خطاها</a>
+                <a href="{{ route('panel.super.logs') }}" target="_blank" rel="noopener" class="btn btn-white btn-sm">کل لاگ</a>
+            </span>
         </div>
     </section>
 

@@ -44,7 +44,7 @@ class ErrorLogController extends Controller
         try {
             fseek($handle, 0, SEEK_END);
             $size = (int) ftell($handle);
-            $length = min($size, self::MAX_BYTES);
+            $length = min($size, $request->boolean('errors') ? self::MAX_BYTES * 4 : self::MAX_BYTES);
             fseek($handle, $size - $length);
             $chunk = (string) fread($handle, $length);
         } finally {
@@ -52,10 +52,29 @@ class ErrorLogController extends Controller
         }
 
         $lines = preg_split('/\R/', $chunk) ?: [];
-        $lines = array_slice(array_values(array_filter($lines, fn ($line) => trim($line) !== '')), -$limit);
+        $lines = array_values(array_filter($lines, fn ($line) => trim($line) !== ''));
 
-        $header = '# '.fa_num(count($lines)).' خط آخر از storage/logs/laravel.log'
-            .' (به‌روزرسانی: '.fa_num(date('Y-m-d H:i:s', (int) filemtime($path))).')'."\n";
+        /* حالت «فقط خطاها»: خط‌های stacktrace کنار می‌روند و همان خط‌هایی
+           می‌مانند که خودِ استثنا را می‌گویند (ERROR/CRITICAL/EMERGENCY)؛
+           وقتی APP_DEBUG خاموش است، علت خطا فقط همین‌جا پیدا می‌شود. */
+        if ($request->boolean('errors')) {
+            $lines = array_values(array_filter(
+                $lines,
+                fn ($line) => (bool) preg_match('/\.(ERROR|CRITICAL|ALERT|EMERGENCY):/', $line)
+            ));
+        }
+
+        $lines = array_slice($lines, -$limit);
+
+        $title = $request->boolean('errors')
+            ? '# '.fa_num(count($lines)).' خطای ثبت‌شده در storage/logs/laravel.log'
+            : '# '.fa_num(count($lines)).' خط آخر از storage/logs/laravel.log';
+
+        $header = $title.' (به‌روزرسانی: '.fa_num(date('Y-m-d H:i:s', (int) filemtime($path))).')'."\n";
+
+        if ($lines === []) {
+            return $this->plain($header."\nخطایی ثبت نشده است.\n");
+        }
 
         return $this->plain($header."\n".implode("\n", $lines)."\n");
     }

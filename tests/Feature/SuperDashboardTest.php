@@ -254,6 +254,31 @@ class SuperDashboardTest extends TestCase
         $this->assertStringContainsString($marker, $response->getContent(), 'متن آخرین خطاها باید خوانده شود.');
     }
 
+    public function test_the_error_log_can_show_only_the_error_lines(): void
+    {
+        $marker = 'ONLYERR-'.uniqid();
+
+        Log::channel('stack')->error($marker);
+
+        $this->loginAsAdmin();
+
+        $all = $this->get(route('panel.super.logs'))->assertOk()->getContent();
+        $only = $this->get(route('panel.super.logs', ['errors' => 1]))->assertOk()->getContent();
+
+        $this->assertStringContainsString($marker, $all);
+        $this->assertStringContainsString($marker, $only);
+
+        // حالت «فقط خطاها» باید stacktrace را کنار بگذارد
+        $this->assertStringNotContainsString('[stacktrace]', $only);
+        $this->assertStringContainsString('.ERROR:', $only);
+        $this->assertStringContainsString('خطای ثبت‌شده', $only);
+
+        // و هر دو دکمه در صفحهٔ مدیریت منابع هست
+        $dashboard = $this->get(route('panel.super.dashboard'))->assertOk()->getContent();
+        $this->assertStringContainsString('فقط خطاها', $dashboard);
+        $this->assertStringContainsString('کل لاگ', $dashboard);
+    }
+
     public function test_the_error_log_is_closed_to_other_admins_and_guests(): void
     {
         $this->loginAsAdmin($this->makeChallengeAdmin(['username' => 'logviewer']));

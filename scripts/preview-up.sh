@@ -50,11 +50,15 @@ if [ ! -f .env ]; then
     php artisan key:generate --force >/dev/null
 fi
 
-# حالت دیباگ باید روشن بماند؛ وگرنه خطای ۵۰۰ فقط «Server Error» می‌گوید و
-# علت واقعی (متن استثنا) نه در توست پیدا است و نه قابل ریشه‌یابی سریع.
-if ! grep -q '^APP_DEBUG=true' .env; then
-    log "روشن کردن APP_DEBUG"
-    sed -i 's|^APP_DEBUG=.*|APP_DEBUG=true|' .env
+# حالت دیباگ: پیش‌فرض روشن است تا خطای ۵۰۰ متن خودش را در توست بگوید.
+# برای همانندسازی هاست واقعی (که دیباگ خاموش است):  PREVIEW_DEBUG=0 bash scripts/preview-up.sh
+# در هر دو حالت علت خطا در storage/logs/laravel.log ثبت و از
+# «مدیریت منابع ← لاگ خطاها» خوانده می‌شود.
+WANT_DEBUG="$([ "${PREVIEW_DEBUG:-1}" = "0" ] && echo false || echo true)"
+
+if ! grep -q "^APP_DEBUG=${WANT_DEBUG}" .env; then
+    log "APP_DEBUG=${WANT_DEBUG}"
+    sed -i "s|^APP_DEBUG=.*|APP_DEBUG=${WANT_DEBUG}|" .env
 fi
 php artisan config:clear >/dev/null 2>&1 || true
 
