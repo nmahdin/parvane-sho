@@ -5,7 +5,6 @@ namespace Tests\Feature;
 use App\Models\Challenge;
 use App\Models\DayFile;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Tests\TestCase;
 
@@ -233,60 +232,22 @@ class SuperDashboardTest extends TestCase
         $this->assertStringNotContainsString('عکس فیلتر', $search);
     }
 
-    public function test_the_super_admin_can_read_the_error_log_from_the_panel(): void
+    /* لاگ خطاها از پنل برداشته شده است (نه نشانی‌اش، نه کارتش). علت خطاهای ۵۰۰
+       مثل قبل در storage/logs/laravel.log روی سرور می‌ماند. */
+    public function test_the_panel_does_not_expose_the_server_error_log(): void
     {
-        $marker = 'MARKER-'.uniqid();
-
-        Log::channel('stack')->error($marker);
-
-        // صفحهٔ مدیریت منابع به لاگ لینک می‌دهد
-        $this->loginAsAdmin();
-
-        $this->assertStringContainsString(
-            route('panel.super.logs'),
-            $this->get(route('panel.super.dashboard'))->assertOk()->getContent()
+        $this->assertFalse(
+            app('router')->getRoutes()->hasNamedRoute('panel.super.logs'),
+            'مسیر لاگ خطاها باید از پنل برداشته شده باشد.'
         );
 
-        $response = $this->get(route('panel.super.logs'))->assertOk();
-
-        $this->assertStringContainsString('text/plain', (string) $response->headers->get('Content-Type'));
-        $this->assertStringContainsString('storage/logs/laravel.log', $response->getContent());
-        $this->assertStringContainsString($marker, $response->getContent(), 'متن آخرین خطاها باید خوانده شود.');
-    }
-
-    public function test_the_error_log_can_show_only_the_error_lines(): void
-    {
-        $marker = 'ONLYERR-'.uniqid();
-
-        Log::channel('stack')->error($marker);
-
         $this->loginAsAdmin();
 
-        $all = $this->get(route('panel.super.logs'))->assertOk()->getContent();
-        $only = $this->get(route('panel.super.logs', ['errors' => 1]))->assertOk()->getContent();
-
-        $this->assertStringContainsString($marker, $all);
-        $this->assertStringContainsString($marker, $only);
-
-        // حالت «فقط خطاها» باید stacktrace را کنار بگذارد
-        $this->assertStringNotContainsString('[stacktrace]', $only);
-        $this->assertStringContainsString('.ERROR:', $only);
-        $this->assertStringContainsString('خطای ثبت‌شده', $only);
-
-        // و هر دو دکمه در صفحهٔ مدیریت منابع هست
         $dashboard = $this->get(route('panel.super.dashboard'))->assertOk()->getContent();
-        $this->assertStringContainsString('فقط خطاها', $dashboard);
-        $this->assertStringContainsString('کل لاگ', $dashboard);
-    }
 
-    public function test_the_error_log_is_closed_to_other_admins_and_guests(): void
-    {
-        $this->loginAsAdmin($this->makeChallengeAdmin(['username' => 'logviewer']));
+        $this->assertStringNotContainsString('لاگ خطاها', $dashboard);
+        $this->assertStringNotContainsString('super/logs', $dashboard);
 
-        $this->get(route('panel.super.logs'))->assertForbidden();
-
-        auth('admin')->logout();
-
-        $this->get(route('panel.super.logs'))->assertRedirect(route('panel.login'));
+        $this->get('panel/super/logs')->assertNotFound();
     }
 }

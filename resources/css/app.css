@@ -356,10 +356,24 @@
         backdrop-filter: blur(3px);
     }
 
+    /* تا وقتی مودال باز است، صفحهٔ پشتش اسکرول نمی‌شود (چرخ ماوس و لمس گوشی) */
+    html.pv-scroll-locked,
+    html.pv-scroll-locked body {
+        overflow: hidden;
+    }
+
+    /* پهنای اسکرول‌بار جبران می‌شود تا با قفل‌شدن، چیدمان نپرد */
+    html.pv-scroll-locked {
+        padding-inline-end: var(--pv-scrollbar, 0px);
+    }
+
     .panel-modal-box {
         width: min(36rem, 100%);
         max-height: min(85vh, calc(100vh - 2rem));
         overflow-y: auto;
+
+        /* اسکرولِ داخل مودال به صفحهٔ پشتش زنجیر نشود */
+        overscroll-behavior: contain;
         padding: 1.25rem;
         border: 1px solid var(--color-line);
         border-radius: var(--radius-3xl);

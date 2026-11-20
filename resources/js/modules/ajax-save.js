@@ -320,11 +320,11 @@ export default {
 
         const detail = typeof data?.message === 'string' && data.message ? data.message : '';
 
-        /* وقتی APP_DEBUG خاموش است، Laravel فقط «Server Error» می‌فرستد؛ آن‌وقت
-           نشانی لاگ داده می‌شود چون متن واقعی استثنا همان‌جا ثبت شده است. */
+        /* وقتی APP_DEBUG خاموش است، Laravel فقط «Server Error» می‌فرستد و متن
+           واقعی استثنا همان‌لحظه در لاگ سرور (storage/logs) ثبت می‌شود. */
         if (!detail || detail === 'Server Error') {
             return `ذخیره انجام نشد (کد ${toPersianDigits(String(status))})؛`
-                + ' جزئیات در «مدیریت منابع ← لاگ خطاها» ثبت شده است.';
+                + ' علت در لاگ سرور ثبت شده است. دوباره تلاش کن.';
         }
 
         return `ذخیره انجام نشد (کد ${toPersianDigits(String(status))}) — ${detail}؛ دوباره تلاش کن.`;

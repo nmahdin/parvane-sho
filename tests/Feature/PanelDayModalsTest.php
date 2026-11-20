@@ -172,6 +172,42 @@ class PanelDayModalsTest extends TestCase
         $this->assertStringContainsString('details.day-card', $js);
     }
 
+    /* مودال فقط با دکمه‌های خودش بسته می‌شود (✕، «انصراف» و ثبت فرم):
+       کلیک بیرون کارت چیزی را نمی‌بندد و تا وقتی مودال باز است، صفحهٔ
+       پشتش اسکرول نمی‌شود و جای اسکرول هم بعد از بستن برمی‌گردد. */
+    public function test_modals_close_only_with_their_own_buttons_and_lock_the_background(): void
+    {
+        $source = file_get_contents(resource_path('js/modules/modals.js'));
+
+        // کلیک روی خودِ dialog (بیرون کارت) دیگر مودال را نمی‌بندد
+        $this->assertStringNotContainsString("dialog.addEventListener('click'", $source);
+        $this->assertStringNotContainsString('if (event.target === dialog)', $source);
+
+        // ولی Escape با همان انیمیشن می‌بندد و دکمه‌ها سرِ جایشان‌اند
+        $this->assertStringContainsString("dialog.addEventListener('cancel'", $source);
+        $this->assertStringContainsString('data-close-modal', $source);
+        $this->assertStringContainsString('data-close-modal', $this->panelHtml($this->makeChallenge()));
+
+        $manifest = json_decode(file_get_contents(public_path('build/manifest.json')), true);
+        $js = file_get_contents(public_path('build/'.$manifest['resources/js/app.js']['file']));
+        $css = file_get_contents(public_path('build/'.$manifest['resources/css/app.css']['file']));
+
+        // قفل اسکرول پس‌زمینه در باندل و در CSS هست
+        $this->assertStringContainsString('pv-scroll-locked', $js);
+        $this->assertStringContainsString('lockPageScroll', $js);
+        $this->assertStringContainsString('unlockPageScroll', $js);
+        $this->assertStringContainsString('html.pv-scroll-locked', $css);
+
+        $lockCss = substr($css, (int) strpos($css, 'html.pv-scroll-locked'));
+        $lockCss = substr($lockCss, 0, (int) strpos($lockCss, '}'));
+        $this->assertStringContainsString('overflow:hidden', $lockCss);
+
+        // اسکرول داخل کارت مودال به صفحهٔ پشتش زنجیر نمی‌شود
+        $boxCss = substr($css, (int) strpos($css, '.panel-modal-box{'));
+        $boxCss = substr($boxCss, 0, (int) strpos($boxCss, '}'));
+        $this->assertStringContainsString('overscroll-behavior:contain', $boxCss);
+    }
+
     public function test_the_modal_styles_are_in_the_built_css(): void
     {
         $manifest = json_decode(file_get_contents(public_path('build/manifest.json')), true);

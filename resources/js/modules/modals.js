@@ -26,21 +26,54 @@ export default {
             }
         });
 
-        // کلیک روی پس‌زمینه تیره = بستن مودال
+        /* مودال فقط با دکمه‌های خودش بسته می‌شود (✕، «انصراف» و ثبت فرم)؛
+           کلیک بیرون کارت هیچ‌وقت مودال را نمی‌بندد تا فرمی که نصفه
+           پر شده با یک کلیک اشتباه از دست نرود. */
         document.querySelectorAll('dialog.panel-modal').forEach((dialog) => {
             if (dialog.dataset.bound) return;
             dialog.dataset.bound = '1';
-
-            dialog.addEventListener('click', (event) => {
-                if (event.target === dialog) this.closeModalAnimated(dialog);
-            });
 
             // Escape هم با همان انیمیشن ببندد
             dialog.addEventListener('cancel', (event) => {
                 event.preventDefault();
                 this.closeModalAnimated(dialog);
             });
+
+            // با بسته‌شدن مودال (از هر راهی) اسکرول صفحه آزاد شود
+            dialog.addEventListener('close', () => this.unlockPageScroll());
         });
+    },
+
+    /* تا وقتی مودال باز است، صفحهٔ پشتش اسکرول نمی‌شود؛ جای اسکرول هم
+       ذخیره می‌شود تا بعد از بستن، صفحه سرِ همان جایش برگردد. */
+    lockPageScroll() {
+        const html = document.documentElement;
+
+        // مودال دیگری باز است؟ همان قفل کفایت می‌کند
+        if (html.classList.contains('pv-scroll-locked')) return;
+
+        // پهنای اسکرول‌بار پیش از قفل‌شدن؛ تا چیدمان با قفل شدن نپرد
+        const gap = window.innerWidth - html.clientWidth;
+
+        html.style.setProperty('--pv-scrollbar', `${Math.max(0, gap)}px`);
+        html.classList.add('pv-scroll-locked');
+
+        this._lockedScrollY = window.scrollY || window.pageYOffset || 0;
+    },
+
+    unlockPageScroll() {
+        // تا وقتی مودال بازِ دیگری هست، پس‌زمینه قفل می‌ماند
+        if (document.querySelector('dialog.panel-modal[open]')) return;
+
+        const html = document.documentElement;
+
+        if (!html.classList.contains('pv-scroll-locked')) return;
+
+        html.classList.remove('pv-scroll-locked');
+        html.style.removeProperty('--pv-scrollbar');
+
+        // بعضی مرورگرها با overflow:hidden جای اسکرول را گم می‌کنند
+        window.scrollTo(0, this._lockedScrollY || 0);
     },
 
     openModal(opener) {
@@ -92,6 +125,9 @@ export default {
         } else {
             dialog.setAttribute('open', '');
         }
+
+        // پس‌زمینه تا بسته‌شدن این مودال اسکرول نمی‌شود
+        this.lockPageScroll();
 
         dialog.querySelector('input:not([type="hidden"]), textarea, select')?.focus();
     },

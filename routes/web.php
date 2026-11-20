@@ -19,7 +19,6 @@ use App\Http\Controllers\Panel\DayFileController as PanelDayFileController;
 use App\Http\Controllers\Panel\AnalyticsController as PanelAnalyticsController;
 use App\Http\Controllers\Panel\ParticipantController as PanelParticipantController;
 use App\Http\Controllers\Panel\SettingController;
-use App\Http\Controllers\Panel\ErrorLogController;
 use App\Http\Controllers\Panel\SuperDashboardController;
 use App\Http\Controllers\ParticipantDashboardController;
 use Illuminate\Support\Facades\Route;
@@ -145,8 +144,6 @@ Route::prefix('panel')->name('panel.')->group(function () {
             Route::delete('super/files/{type}/{file}', [SuperDashboardController::class, 'destroyFile'])->name('super.files.destroy');
             Route::post('super/files/cleanup', [SuperDashboardController::class, 'cleanupFiles'])->name('super.files.cleanup');
 
-            // دمِ لاگ خطاها برای ریشه‌یابی خطاهای ۵۰۰ (مثل آپلود ناموفق)
-            Route::get('super/logs', [ErrorLogController::class, 'index'])->name('super.logs');
 
             Route::get('admins', [PanelAdminController::class, 'index'])->name('admins.index');
             Route::post('admins', [PanelAdminController::class, 'store'])->name('admins.store');

@@ -21,25 +21,6 @@
         <x-stat-card label="مدیران" :value="fa_num($totals['admins'])" :hint="fa_num($totals['participants']).' شرکت‌کننده در سایت'" icon="🧑‍💼" tone="rose" />
     </div>
 
-    {{-- لاگ خطاها: برای ریشه‌یابی خطاهای ۵۰۰ (مثل آپلود ناموفق) --}}
-    <section class="card">
-        <div class="flex flex-wrap items-center justify-between gap-3">
-            <div>
-                <h2 class="text-base">📜 لاگ خطاها</h2>
-                <p class="mt-1 text-xs text-muted">
-                    اگر ذخیره یا آپلودی با کد ۵۰۰ شکست خورد، متن کامل استثنا در
-                    <span dir="ltr" class="text-ink">storage/logs/laravel.log</span> ثبت می‌شود؛
-                    چند خط آخرش همین‌جا خوانده می‌شود.
-                </p>
-            </div>
-
-            <span class="flex flex-wrap items-center gap-2">
-                <a href="{{ route('panel.super.logs', ['errors' => 1]) }}" target="_blank" rel="noopener" class="btn btn-primary btn-sm">فقط خطاها</a>
-                <a href="{{ route('panel.super.logs') }}" target="_blank" rel="noopener" class="btn btn-white btn-sm">کل لاگ</a>
-            </span>
-        </div>
-    </section>
-
     {{-- حجم مصرفی --}}
     <section class="card space-y-4">
         <div>
